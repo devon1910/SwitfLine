@@ -11,9 +11,9 @@ namespace Domain.Models
     {
         [Key]
         public long Id { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow.AddHours(1);
 
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
 
 
     }

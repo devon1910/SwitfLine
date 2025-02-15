@@ -1,5 +1,8 @@
+using Application.Services;
+using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure;
+using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -18,6 +21,9 @@ builder.Services.AddDbContext<SwiftLineDatabaseContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Database"));
 });
 builder.Services.AddOpenApi();
+
+builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<IEventRepo, EventRepo>();
 
 builder.Services.AddSwaggerGen(options =>
 {
