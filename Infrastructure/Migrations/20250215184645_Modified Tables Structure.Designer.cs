@@ -4,6 +4,7 @@ using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SwiftLineDatabaseContext))]
-    partial class SwiftLineDatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20250215184645_Modified Tables Structure")]
+    partial class ModifiedTablesStructure
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,7 +55,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CreatedBy");
 
-                    b.ToTable("Events", (string)null);
+                    b.ToTable("Events");
                 });
 
             modelBuilder.Entity("Domain.Models.Queue", b =>
@@ -79,7 +82,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("QueueMemberId");
 
-                    b.ToTable("Queues", (string)null);
+                    b.ToTable("Queues");
                 });
 
             modelBuilder.Entity("Domain.Models.QueueMember", b =>
@@ -111,7 +114,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("QueueMembers", (string)null);
+                    b.ToTable("QueueMembers");
                 });
 
             modelBuilder.Entity("Domain.Models.SwiftLineUser", b =>

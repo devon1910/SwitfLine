@@ -24,5 +24,26 @@ namespace Infrastructure.Repositories
             await dbContext.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> JoinEvent(string userId, long eventId)
+        {
+            var newQueueMember = new QueueMember
+            {
+                EventId = eventId,
+                UserId = userId
+            };
+
+            await dbContext.QueueMembers.AddAsync(newQueueMember);
+            await dbContext.SaveChangesAsync();
+
+            Queue queue = new()
+            {
+                QueueMemberId = newQueueMember.Id
+            };
+
+            await dbContext.Queues.AddAsync(queue);
+            await dbContext.SaveChangesAsync();
+            return true;
+        }
     }
 }

@@ -22,5 +22,16 @@ namespace Application.Services
             }
             return Result<bool>.Failed("Failed to create event");
         }
+
+        public async Task<Result<bool>> JoinEvent(string userId, long eventId)
+        {
+            bool isJoined = await eventRepo.JoinEvent(userId, eventId);
+
+            if (isJoined)
+            {
+                return Result<bool>.Ok(true);
+            }
+            return Result<bool>.Failed("Failed to join event");
+        }
     }
 }

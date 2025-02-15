@@ -12,10 +12,10 @@ namespace Domain.Models
     {
         public BasePriority BasePriority { get; set; }
 
-        public long UserId { get; set; }
-        public long QueueId { get; set; }
-        [ForeignKey("QueueId")]
-        public Event Queue { get; set; }
+        public string UserId { get; set; }
+        public long EventId { get; set; }
+        [ForeignKey("EventId")]
+        public Event Event { get; set; }
     }
 
 }

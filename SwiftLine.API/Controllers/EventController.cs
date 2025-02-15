@@ -1,4 +1,5 @@
-﻿using Domain.DTOs.Requests;
+﻿using Application.Services;
+using Domain.DTOs.Requests;
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,14 @@ namespace SwiftLine.API.Controllers
         {
             
             var res = await eventService.CreateEvent(UserId,request);
+            return res.ToActionResult();
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<Result<bool>>> JoinEvent(long eventId)
+        {
+
+            var res = await eventService.JoinEvent(UserId, eventId);
             return res.ToActionResult();
         }
     }

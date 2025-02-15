@@ -24,11 +24,10 @@ namespace Infrastructure
                 .Property(e => e.BasePriority)
                 .HasConversion<string>();
            
-
-            //modelBuilder.HasDefaultSchema("SmartDelivery");
         }
         public DbSet<SwiftLineUser> SwiftLineUsers { get; set; }
         public DbSet<Event> Events { get; set; }
-        public DbSet<QueueMember> QueueItems { get; set; }
+        public DbSet<QueueMember> QueueMembers { get; set; }
+        public DbSet<Queue> Queues { get; set; }
     }
 }
