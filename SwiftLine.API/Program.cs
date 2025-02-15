@@ -2,6 +2,7 @@ using Application.Services;
 using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure;
+using Infrastructure.BackgroundServices;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,8 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRepo, EventRepo>();
+
+builder.Services.AddHostedService<LineManager>();
 
 builder.Services.AddSwaggerGen(options =>
 {

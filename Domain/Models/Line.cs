@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 
 namespace Domain.Models
 {
-    public class Queue: BaseModel
+    public class Line: BaseModel
     {
-        public  long QueueMemberId { get; set; }
+        public  long LineMemberId { get; set; }
         public  bool IsAttendedTo { get; set; }
 
-        [ForeignKey("QueueMemberId")]
-        public QueueMember QueueMember { get; set; }
+        [ForeignKey("LineMemberId")]
+        public LineMember LineMember { get; set; }
+        public DateTime DateAttendedTo { get; set; }
     }
 }

@@ -13,6 +13,7 @@ namespace Domain.Interfaces
         public Task<bool> CreateEvent(string userId,CreateEventReq req);
 
         public Task<bool> JoinEvent(string userId, long eventId);
+
     }
     public interface IEventService
     {

@@ -1,5 +1,6 @@
 ﻿using Domain.DTOs.Responses;
 using Domain.Interfaces;
+using Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Application.Services
 {
-    public class QueueService(IQueueRepo queueRepo) : IQueueService
+    public class LineService(ILineRepo lineRepo) : ILineService
     {
         //public async Task<Result<bool>> JoinEvent(string userId, long eventId)
         //{
@@ -20,5 +21,16 @@ namespace Application.Services
         //    }
         //    return Result<bool>.Failed("Failed to join event");
         //}
+        public async Task<Result<LineInfoRes>> GetLineInfo(long QueueMemberId)
+        {
+            var lineInfo = await lineRepo.GetLineInfo(QueueMemberId);
+
+            return Result<LineInfoRes>.Ok(lineInfo);
+        }
+
+        public Task<Result<List<Line>>> GetLines()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -27,21 +27,21 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> JoinEvent(string userId, long eventId)
         {
-            var newQueueMember = new QueueMember
+            var newQueueMember = new LineMember
             {
                 EventId = eventId,
                 UserId = userId
             };
 
-            await dbContext.QueueMembers.AddAsync(newQueueMember);
+            await dbContext.LineMembers.AddAsync(newQueueMember);
             await dbContext.SaveChangesAsync();
 
-            Queue queue = new()
+            Line queue = new()
             {
-                QueueMemberId = newQueueMember.Id
+                LineMemberId = newQueueMember.Id
             };
 
-            await dbContext.Queues.AddAsync(queue);
+            await dbContext.Lines.AddAsync(queue);
             await dbContext.SaveChangesAsync();
             return true;
         }

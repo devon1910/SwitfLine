@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Models
 {
-    public class QueueMember : BaseModel
+    public class LineMember : BaseModel
     {
         public BasePriority BasePriority { get; set; }
 

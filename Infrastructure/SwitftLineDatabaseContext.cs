@@ -20,14 +20,14 @@ namespace Infrastructure
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<QueueMember>()
+            modelBuilder.Entity<LineMember>()
                 .Property(e => e.BasePriority)
                 .HasConversion<string>();
            
         }
         public DbSet<SwiftLineUser> SwiftLineUsers { get; set; }
         public DbSet<Event> Events { get; set; }
-        public DbSet<QueueMember> QueueMembers { get; set; }
-        public DbSet<Queue> Queues { get; set; }
+        public DbSet<LineMember> LineMembers { get; set; }
+        public DbSet<Line> Lines { get; set; }
     }
 }
