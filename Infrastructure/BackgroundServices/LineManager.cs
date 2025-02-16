@@ -27,7 +27,7 @@ namespace Infrastructure.BackgroundServices
                     var eventsRepo = scope.ServiceProvider.GetRequiredService<IEventRepo>();
 
                     // Initialize cache and refresh tracking
-                    IEnumerable<Event> cachedEvents = Enumerable.Empty<Event>();
+                    IEnumerable<Event> cachedEvents = await eventsRepo.GetActiveEvents(); ;
                     DateTime lastCacheRefresh = DateTime.MinValue;
                     TimeSpan cacheRefreshInterval = TimeSpan.FromSeconds(30); // Adjust interval as needed
 
@@ -35,7 +35,7 @@ namespace Infrastructure.BackgroundServices
                     {
 
                         // Refresh cache only if the interval has elapsed
-                        if (DateTime.UtcNow - lastCacheRefresh > cacheRefreshInterval)
+                        if (DateTime.UtcNow.AddHours(1) - lastCacheRefresh > cacheRefreshInterval)
                         {
                             cachedEvents = await eventsRepo.GetActiveEvents();
                             lastCacheRefresh = DateTime.UtcNow;

@@ -49,7 +49,7 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> IsUserAttendedTo(Line line)
         {
-            if (line.DateStartedBeingAttendedTo != default) 
+            if (line.DateStartedBeingAttendedTo == default) 
             {
                 line.DateStartedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
                 await dbContext.SaveChangesAsync();
