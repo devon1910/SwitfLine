@@ -16,7 +16,7 @@ namespace Infrastructure.Repositories
         {
             var line = dbContext.Lines
                 .AsSplitQuery()
-                .Where(x=>x.LineMemberId==LineMemberId)
+                .Where(x=>x.LineMemberId==LineMemberId && !x.IsAttendedTo)
                 .Include(x=>x.LineMember)
                 .ThenInclude(x=> x.Event)
                 .FirstOrDefault();
@@ -25,7 +25,7 @@ namespace Infrastructure.Repositories
                 .AsSplitQuery()
                 .Include(x=>x.LineMember)
                 .ThenInclude(x=> x.Event)
-                .Where(x => x.LineMember.EventId == line.LineMember.EventId)
+                .Where(x => x.LineMember.EventId == line.LineMember.EventId && !x.IsAttendedTo && x.IsActive)
                 .ToListAsync();
 
             int position = othersInLines.IndexOf(line);
@@ -49,14 +49,17 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> IsUserAttendedTo(Line line)
         {
-            if ((DateTime.UtcNow.AddHours(1).Second - line.CreatedAt.Second) >= line.LineMember.Event.AverageTimeToServe) return true;
+            var diff = (DateTime.UtcNow.AddHours(1) - line.CreatedAt).TotalSeconds;
+
+            if (diff >= line.LineMember.Event.AverageTimeToServe) return true;
             return false;
         }
 
         public async Task<bool> MarkUserAsAttendedTo(Line line)
         {
            line.IsAttendedTo = true;
-           await dbContext.SaveChangesAsync();
+           line.DateAttendedTo = DateTime.UtcNow.AddHours(1);
+            await dbContext.SaveChangesAsync();
            return true;
         }
     }

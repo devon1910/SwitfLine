@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Domain.Interfaces;
+using Domain.Models;
 
 namespace Infrastructure.BackgroundServices
 {
@@ -16,23 +17,34 @@ namespace Infrastructure.BackgroundServices
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var queuesRepo = serviceProvider.GetRequiredService<ILineRepo>();
+            
             try
             {
-                while (!stoppingToken.IsCancellationRequested)
+                
+                using (var scope = serviceProvider.CreateScope()) 
                 {
-                    var lines = await queuesRepo.GetLines();
-
-                    foreach (var line in lines)
+                    var queuesRepo = scope.ServiceProvider.GetRequiredService<ILineRepo>();
+                    bool callGetLines= true;
+                    List<Line> lines= [];
+                    while (!stoppingToken.IsCancellationRequested)
                     {
-                        if (await queuesRepo.IsUserAttendedTo(line)) 
+                        if (callGetLines)
                         {
-                            await queuesRepo.MarkUserAsAttendedTo(line);
+                            lines = await queuesRepo.GetLines();
+                            callGetLines = false;
                         }
-                    }
+                      
 
-                    await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+                        if (await queuesRepo.IsUserAttendedTo(lines[0]))
+                        {
+                            await queuesRepo.MarkUserAsAttendedTo(lines[0]);
+                            callGetLines = true;
+                        }
+
+                        await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+                    }
                 }
+                
             }
             catch (Exception ex)
             {

@@ -25,6 +25,8 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRepo, EventRepo>();
+builder.Services.AddScoped<ILineRepo, LineRepo>();
+builder.Services.AddScoped<ILineService, LineService>();
 
 builder.Services.AddHostedService<LineManager>();
 
