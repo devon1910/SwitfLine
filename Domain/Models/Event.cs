@@ -18,5 +18,7 @@ namespace Domain.Models
 
         [ForeignKey("CreatedBy")]
         public SwiftLineUser SwiftLineUser { get; set; }
+
+        public bool IsOngoing { get; set; } = true;
     }
 }

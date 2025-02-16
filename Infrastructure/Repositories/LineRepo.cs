@@ -49,7 +49,13 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> IsUserAttendedTo(Line line)
         {
-            var diff = (DateTime.UtcNow.AddHours(1) - line.CreatedAt).TotalSeconds;
+            if (line.DateStartedBeingAttendedTo != default) 
+            {
+                line.DateStartedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
+                await dbContext.SaveChangesAsync();
+            }
+
+            var diff = (DateTime.UtcNow.AddHours(1) - line.DateStartedBeingAttendedTo).TotalSeconds;
 
             if (diff >= line.LineMember.Event.AverageTimeToServe) return true;
             return false;
@@ -58,9 +64,21 @@ namespace Infrastructure.Repositories
         public async Task<bool> MarkUserAsAttendedTo(Line line)
         {
            line.IsAttendedTo = true;
-           line.DateAttendedTo = DateTime.UtcNow.AddHours(1);
+           line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
             await dbContext.SaveChangesAsync();
            return true;
+        }
+
+        public async Task<Line?> GetFirstLineMember(long eventId)
+        {
+            return await  dbContext.Lines
+                .Include(x => x.LineMember)
+                .ThenInclude(x => x.Event)
+                .Where(x => x.LineMember.EventId == eventId && !x.IsAttendedTo)
+                .OrderBy(x => x.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            
         }
     }
 }

@@ -24,22 +24,33 @@ namespace Infrastructure.BackgroundServices
                 using (var scope = serviceProvider.CreateScope()) 
                 {
                     var queuesRepo = scope.ServiceProvider.GetRequiredService<ILineRepo>();
-                    bool callGetLines= true;
-                    List<Line> lines= [];
+                    var eventsRepo = scope.ServiceProvider.GetRequiredService<IEventRepo>();
+
+                    // Initialize cache and refresh tracking
+                    IEnumerable<Event> cachedEvents = Enumerable.Empty<Event>();
+                    DateTime lastCacheRefresh = DateTime.MinValue;
+                    TimeSpan cacheRefreshInterval = TimeSpan.FromSeconds(30); // Adjust interval as needed
+
                     while (!stoppingToken.IsCancellationRequested)
                     {
-                        if (callGetLines)
-                        {
-                            lines = await queuesRepo.GetLines();
-                            callGetLines = false;
-                        }
-                      
 
-                        if (await queuesRepo.IsUserAttendedTo(lines[0]))
+                        // Refresh cache only if the interval has elapsed
+                        if (DateTime.UtcNow - lastCacheRefresh > cacheRefreshInterval)
                         {
-                            await queuesRepo.MarkUserAsAttendedTo(lines[0]);
-                            callGetLines = true;
+                            cachedEvents = await eventsRepo.GetActiveEvents();
+                            lastCacheRefresh = DateTime.UtcNow;
                         }
+
+                        foreach (var e in cachedEvents)
+                        {
+                            Line? line = await queuesRepo.GetFirstLineMember(e.Id);
+
+                            if (line is not null && await queuesRepo.IsUserAttendedTo(line))
+                            {
+                                await queuesRepo.MarkUserAsAttendedTo(line);
+                            }
+                           
+                        }                 
 
                         await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
                     }

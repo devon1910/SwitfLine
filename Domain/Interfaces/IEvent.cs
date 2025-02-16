@@ -1,5 +1,6 @@
 ﻿using Domain.DTOs.Requests;
 using Domain.DTOs.Responses;
+using Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,8 @@ namespace Domain.Interfaces
         public Task<bool> CreateEvent(string userId,CreateEventReq req);
 
         public Task<bool> JoinEvent(string userId, long eventId);
+
+        public Task<List<Event>> GetActiveEvents();
 
     }
     public interface IEventService

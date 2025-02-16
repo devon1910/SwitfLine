@@ -15,6 +15,8 @@ namespace Domain.Models
 
         [ForeignKey("LineMemberId")]
         public LineMember LineMember { get; set; }
-        public DateTime DateAttendedTo { get; set; }
+
+        public DateTime DateStartedBeingAttendedTo { get; set; }
+        public DateTime DateCompletedBeingAttendedTo { get; set; }
     }
 }

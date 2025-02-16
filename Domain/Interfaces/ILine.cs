@@ -16,6 +16,8 @@ namespace Domain.Interfaces
         public Task<bool> IsUserAttendedTo(Line line);  
         public Task<bool> MarkUserAsAttendedTo(Line line);
         public Task<LineInfoRes> GetLineInfo(long LineMemberId);
+
+        public Task<Line?> GetFirstLineMember(long eventId);
     }
     public interface ILineService
     {

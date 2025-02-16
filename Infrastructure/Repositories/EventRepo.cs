@@ -1,6 +1,7 @@
 ﻿using Domain.DTOs.Requests;
 using Domain.Interfaces;
 using Domain.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,14 @@ namespace Infrastructure.Repositories
             await dbContext.Events.AddAsync(newEvent);
             await dbContext.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<List<Event>> GetActiveEvents()
+        {
+            return await dbContext.Events
+                .AsNoTracking()
+                .Where(x=>x.IsOngoing && x.IsActive)
+                .ToListAsync();
         }
 
         public async Task<bool> JoinEvent(string userId, long eventId)
