@@ -29,7 +29,7 @@ namespace Infrastructure.BackgroundServices
                     // Initialize cache and refresh tracking
                     IEnumerable<Event> cachedEvents = await eventsRepo.GetActiveEvents(); ;
                     DateTime lastCacheRefresh = DateTime.MinValue;
-                    TimeSpan cacheRefreshInterval = TimeSpan.FromSeconds(30); // Adjust interval as needed
+                    TimeSpan cacheRefreshInterval = TimeSpan.FromSeconds(60); // Adjust interval as needed
 
                     while (!stoppingToken.IsCancellationRequested)
                     {

@@ -21,19 +21,35 @@ namespace Infrastructure.Repositories
                 .ThenInclude(x=> x.Event)
                 .FirstOrDefault();
 
-            var othersInLines= await  dbContext.Lines
-                .AsSplitQuery()
-                .Include(x=>x.LineMember)
-                .ThenInclude(x=> x.Event)
-                .Where(x => x.LineMember.EventId == line.LineMember.EventId && !x.IsAttendedTo && x.IsActive)
-                .ToListAsync();
+            if (line is null) return new LineInfoRes(LineMemberId, "0th");
 
-            int position = othersInLines.IndexOf(line);
+            int position = 0;
+            var othersInLines = await dbContext.Lines
+                   .AsSplitQuery()
+                   .Include(x => x.LineMember)
+                   .ThenInclude(x => x.Event)
+                   .Where(x => x.LineMember.EventId == line.LineMember.EventId && !x.IsAttendedTo && x.IsActive)
+                   .ToListAsync();
+
+            position = othersInLines.IndexOf(line) + 1;
+
+            return new LineInfoRes(line.LineMemberId, $"{position}"+GetOrdinal(position));
 
 
-            return new LineInfoRes(line.LineMemberId, position);
+        }
 
+        private string GetOrdinal(int number)
+        {
+            int lastTwo = number % 100;
+            if (lastTwo >= 11 && lastTwo <= 13) return "th";
 
+            return (number % 10) switch
+            {
+                1 => "st",
+                2 => "nd",
+                3 => "rd",
+                _ => "th",
+            };
         }
 
         public async Task<List<Line>> GetLines()

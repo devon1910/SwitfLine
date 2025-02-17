@@ -6,5 +6,5 @@ using System.Threading.Tasks;
 
 namespace Domain.DTOs.Responses
 {
-    public record LineInfoRes(long LineMemberId, int position);
+    public record LineInfoRes(long LineMemberId, string position);
 }
