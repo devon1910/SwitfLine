@@ -16,11 +16,9 @@ namespace Infrastructure.BackgroundServices
     {
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            
+        {          
             try
-            {
-                
+            {             
                 using (var scope = serviceProvider.CreateScope()) 
                 {
                     var queuesRepo = scope.ServiceProvider.GetRequiredService<ILineRepo>();
