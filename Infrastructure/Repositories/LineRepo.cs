@@ -33,7 +33,7 @@ namespace Infrastructure.Repositories
 
             position = othersInLines.IndexOf(line) + 1;
 
-            var timeTillYourTurn = ((line.LineMember.Event.AverageTimeToServe * position) - line.LineMember.Event.AverageTimeToServe)/60;
+            var timeTillYourTurn = ((line.LineMember.Event.AverageTimeToServeSeconds * position) - line.LineMember.Event.AverageTimeToServeSeconds)/60;
 
             return new LineInfoRes(line.LineMemberId, $"{position}" + GetOrdinal(position), $"{timeTillYourTurn} minutes");
 
@@ -75,7 +75,7 @@ namespace Infrastructure.Repositories
 
             var diff = (DateTime.UtcNow.AddHours(1) - line.DateStartedBeingAttendedTo).TotalSeconds;
 
-            if (diff >= line.LineMember.Event.AverageTimeToServe) return true;
+            if (diff >= line.LineMember.Event.AverageTimeToServeSeconds) return true;
             return false;
         }
 

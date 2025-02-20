@@ -18,12 +18,28 @@ namespace Infrastructure.Repositories
             var newEvent = new Event
             {
                 Name = req.Name,
-                AverageTimeToServe = req.AverageTimeToServe * 60,
+                AverageTimeToServeMinutes = req.AverageTimeToServe,
                 CreatedBy = userId
             };
             await dbContext.Events.AddAsync(newEvent);
             await dbContext.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<bool> EditEvent(EditEventReq req)
+        {
+            Event? @event = await dbContext.Events.FindAsync(req.EventId);
+
+            if (@event == null)
+            {
+                return false;
+            }
+
+            @event.Name = req.Name;
+            @event.AverageTimeToServeMinutes = req.AverageTimeToServe;
+            await dbContext.SaveChangesAsync();
+            return true;
+
         }
 
         public async Task<List<Event>> GetActiveEvents()
@@ -32,6 +48,11 @@ namespace Infrastructure.Repositories
                 .AsNoTracking()
                 .Where(x=>x.IsOngoing && x.IsActive)
                 .ToListAsync();
+        }
+
+        public async Task<Event> GetEvent(long eventId)
+        {
+            return await dbContext.Events.FindAsync(eventId);
         }
 
         public async Task<bool> JoinEvent(string userId, long eventId)
@@ -54,5 +75,6 @@ namespace Infrastructure.Repositories
             await dbContext.SaveChangesAsync();
             return true;
         }
+
     }
 }

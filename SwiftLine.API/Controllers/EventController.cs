@@ -2,6 +2,7 @@
 using Domain.DTOs.Requests;
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
+using Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 using SwiftLine.API.Extensions;
 
@@ -18,10 +19,24 @@ namespace SwiftLine.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Result<bool>>> JoinEvent(long eventId)
+        public async Task<ActionResult<Result<bool>>> JoinEvent(long EventId)
         {
 
-            var res = await eventService.JoinEvent(UserId, eventId);
+            var res = await eventService.JoinEvent(UserId, EventId);
+            return res.ToActionResult();
+        }
+
+        [HttpPut]
+        public async Task<ActionResult<Result<bool>>> EditEvent(EditEventReq req)
+        {
+            var res = await eventService.EditEvent(req);
+            return res.ToActionResult();
+        }
+        [HttpGet("{EventId}")]
+        public async Task<ActionResult<Result<Event>>> GetEvent(long EventId)
+        {
+
+            var res = await eventService.GetEvent(EventId);
             return res.ToActionResult();
         }
     }

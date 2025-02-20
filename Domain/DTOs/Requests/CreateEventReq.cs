@@ -7,4 +7,6 @@ using System.Threading.Tasks;
 namespace Domain.DTOs.Requests
 {
     public record CreateEventReq(string Name, int AverageTimeToServe);
+
+    public record EditEventReq(long EventId,string Name, int AverageTimeToServe);
 }

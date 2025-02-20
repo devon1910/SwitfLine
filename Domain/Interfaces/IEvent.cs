@@ -13,7 +13,11 @@ namespace Domain.Interfaces
     {
         public Task<bool> CreateEvent(string userId,CreateEventReq req);
 
+        public Task<bool> EditEvent(EditEventReq req);
+
         public Task<bool> JoinEvent(string userId, long eventId);
+
+        public Task<Event> GetEvent(long eventId);
 
         public Task<List<Event>> GetActiveEvents();
 
@@ -23,6 +27,10 @@ namespace Domain.Interfaces
         public Task<Result<bool>> CreateEvent(string userId, CreateEventReq req);
 
         public Task<Result<bool>> JoinEvent(string userId, long eventId);
+
+        public Task<Result<bool>> EditEvent(EditEventReq req);
+
+        public Task<Result<Event>> GetEvent(long eventId);
 
     }
 }
