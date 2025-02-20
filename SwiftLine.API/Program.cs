@@ -1,12 +1,15 @@
 using Application.Services;
 using Domain.Interfaces;
 using Domain.Models;
-using Infrastructure;
 using Infrastructure.BackgroundServices;
+using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,8 +30,30 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRepo, EventRepo>();
 builder.Services.AddScoped<ILineRepo, LineRepo>();
 builder.Services.AddScoped<ILineService, LineService>();
-
 builder.Services.AddHostedService<LineManager>();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}
+)
+   .AddJwtBearer(options =>
+   {
+       options.SaveToken = true;
+       options.RequireHttpsMetadata = false;
+       options.TokenValidationParameters = new TokenValidationParameters
+       {
+           ValidateIssuer = true,
+           ValidateAudience = true,
+           ValidAudience = builder.Configuration["JWT:ValidAudience"],
+           ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
+           ClockSkew = TimeSpan.Zero,
+           IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:secret"]))
+       };
+   }
+);
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -60,5 +85,7 @@ app.UseSwaggerUI(options =>
 app.UseAuthorization();
 
 app.MapControllers();
+
+await DbSeeder.SeedData(app);  // Call this method to seed the data
 
 app.Run();

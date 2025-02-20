@@ -7,9 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infrastructure
+namespace Infrastructure.Data
 {
-    public class SwiftLineDatabaseContext  : IdentityDbContext<SwiftLineUser>
+    public class SwiftLineDatabaseContext : IdentityDbContext<SwiftLineUser>
     {
         public SwiftLineDatabaseContext(DbContextOptions<SwiftLineDatabaseContext> options)
            : base(options)
@@ -23,11 +23,13 @@ namespace Infrastructure
             modelBuilder.Entity<LineMember>()
                 .Property(e => e.BasePriority)
                 .HasConversion<string>();
-           
+
         }
         public DbSet<SwiftLineUser> SwiftLineUsers { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<LineMember> LineMembers { get; set; }
         public DbSet<Line> Lines { get; set; }
+
+        public DbSet<TokenInfo> TokenInfos { get; set; }
     }
 }
