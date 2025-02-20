@@ -28,7 +28,7 @@ namespace Domain.Models
 
         public bool IsOngoing { get; set; } = true;
 
-        public TimeOnly EventStartTime { get; set; }
-        public TimeOnly EventEndTime {get; set;}
+        public required TimeOnly EventStartTime { get; set; }
+        public required TimeOnly EventEndTime {get; set;}
     }
 }

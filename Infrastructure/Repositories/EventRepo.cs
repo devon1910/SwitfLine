@@ -19,7 +19,10 @@ namespace Infrastructure.Repositories
             {
                 Name = req.Name,
                 AverageTimeToServeMinutes = req.AverageTimeToServe,
-                CreatedBy = userId
+                CreatedBy = userId,
+                EventStartTime = req.StartTime,
+                EventEndTime = req.EndTime
+
             };
             await dbContext.Events.AddAsync(newEvent);
             await dbContext.SaveChangesAsync();
@@ -76,5 +79,12 @@ namespace Infrastructure.Repositories
             return true;
         }
 
+      
+        public async Task<bool> UpdateEventVisibility(long eventId, bool status)
+        {
+            Event @event = await dbContext.Events.FindAsync(eventId);
+            @event.IsOngoing = status;
+            return true;
+        }
     }
 }

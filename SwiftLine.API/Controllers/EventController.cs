@@ -10,8 +10,8 @@ namespace SwiftLine.API.Controllers
 {
     public class EventController(IEventService eventService) : BaseController
     {
-        [HttpPost]
-        public async Task<ActionResult<Result<bool>>> CreateEvent([FromBody] CreateEventReq request)
+        [HttpPost("api/v1/[controller]")]
+        public async Task<ActionResult<Result<bool>>> CreateEvent(CreateEventReq request)
         {
             
             var res = await eventService.CreateEvent(UserId,request);
@@ -26,13 +26,13 @@ namespace SwiftLine.API.Controllers
             return res.ToActionResult();
         }
 
-        [HttpPut]
+        [HttpPut("api/v1/[controller]")]
         public async Task<ActionResult<Result<bool>>> EditEvent(EditEventReq req)
         {
             var res = await eventService.EditEvent(req);
             return res.ToActionResult();
         }
-        [HttpGet("{EventId}")]
+        [HttpGet("api/v1/[controller]/{EventId}")]
         public async Task<ActionResult<Result<Event>>> GetEvent(long EventId)
         {
 
