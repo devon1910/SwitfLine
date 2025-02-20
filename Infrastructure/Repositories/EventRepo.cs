@@ -15,13 +15,14 @@ namespace Infrastructure.Repositories
     {
         public async Task<bool> CreateEvent(string userId, CreateEventReq req)
         {
+            
             var newEvent = new Event
             {
                 Name = req.Name,
                 AverageTimeToServeMinutes = req.AverageTimeToServe,
                 CreatedBy = userId,
-                EventStartTime = req.StartTime,
-                EventEndTime = req.EndTime
+                EventStartTime = TimeOnly.TryParse(req.StartTime, out _) ? TimeOnly.Parse(req.StartTime) : default,
+                EventEndTime = TimeOnly.TryParse(req.EndTime, out _) ? TimeOnly.Parse(req.EndTime) : default
 
             };
             await dbContext.Events.AddAsync(newEvent);
@@ -47,10 +48,20 @@ namespace Infrastructure.Repositories
 
         public async Task<List<Event>> GetActiveEvents()
         {
+            var timeNow = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1));
+
+
             return await dbContext.Events
-                .AsNoTracking()
-                .Where(x=>x.IsOngoing && x.IsActive)
-                .ToListAsync();
+                    .AsNoTracking()
+                    .Where(x => x.IsActive &&
+                           (
+                             // For events that do not span midnight:
+                             x.EventStartTime <= x.EventEndTime
+                                ? (timeNow >= x.EventStartTime && timeNow <= x.EventEndTime)
+                                // For events that span midnight:
+                                : (timeNow >= x.EventStartTime || timeNow <= x.EventEndTime)
+                           ))
+                    .ToListAsync();
         }
 
         public async Task<Event> GetEvent(long eventId)
@@ -80,11 +91,6 @@ namespace Infrastructure.Repositories
         }
 
       
-        public async Task<bool> UpdateEventVisibility(long eventId, bool status)
-        {
-            Event @event = await dbContext.Events.FindAsync(eventId);
-            @event.IsOngoing = status;
-            return true;
-        }
+       
     }
 }

@@ -10,7 +10,7 @@ namespace SwiftLine.API.Controllers
 {
     public class QueueController(ILineService lineService) : BaseController
     {
-        [HttpGet("/{LineMemberId}")]
+        [HttpGet("{LineMemberId}")]
         public async Task<ActionResult<Result<LineInfoRes>>> GetLineInfo(long LineMemberId)
         {
             var res = await lineService.GetLineInfo(LineMemberId);

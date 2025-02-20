@@ -19,8 +19,6 @@ namespace Domain.Interfaces
 
         public Task<Event> GetEvent(long eventId);
 
-        public Task<bool> UpdateEventVisibility(long eventId, bool status);
-
         public Task<List<Event>> GetActiveEvents();
 
     }

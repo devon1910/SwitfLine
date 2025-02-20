@@ -26,8 +26,6 @@ namespace Domain.Models
         [ForeignKey("CreatedBy")]
         public SwiftLineUser SwiftLineUser { get; set; }
 
-        public bool IsOngoing { get; set; } = true;
-
         public required TimeOnly EventStartTime { get; set; }
         public required TimeOnly EventEndTime {get; set;}
     }
