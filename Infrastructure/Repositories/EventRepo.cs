@@ -14,7 +14,7 @@ namespace Infrastructure.Repositories
 
     public class EventRepo(SwiftLineDatabaseContext dbContext) : IEventRepo
     {
-        public async Task<bool> CreateEvent(string userId, CreateEventReq req)
+        public async Task<bool> CreateEvent(string userId, CreateEventModel req)
         {
             
             var newEvent = new Event

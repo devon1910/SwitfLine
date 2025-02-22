@@ -11,7 +11,7 @@ namespace Domain.Interfaces
 {
     public interface IEventRepo
     {
-        public Task<bool> CreateEvent(string userId,CreateEventReq req);
+        public Task<bool> CreateEvent(string userId,CreateEventModel req);
 
         public Task<bool> EditEvent(EditEventReq req);
 
@@ -24,7 +24,7 @@ namespace Domain.Interfaces
     }
     public interface IEventService
     {
-        public Task<Result<bool>> CreateEvent(string userId, CreateEventReq req);
+        public Task<Result<bool>> CreateEvent(string userId, CreateEventModel req);
 
         public Task<Result<bool>> JoinEvent(string userId, long eventId);
 

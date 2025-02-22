@@ -11,7 +11,7 @@ namespace SwiftLine.API.Controllers
     public class EventController(IEventService eventService) : BaseController
     {
         [HttpPost]
-        public async Task<ActionResult<Result<bool>>> CreateEvent(CreateEventReq request)
+        public async Task<ActionResult<Result<bool>>> CreateEvent(CreateEventModel request)
         {
             
             var res = await eventService.CreateEvent(UserId,request);

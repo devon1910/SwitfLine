@@ -13,7 +13,7 @@ namespace Application.Services
 {
     public class EventService(IEventRepo eventRepo) : IEventService
     {
-        public async Task<Result<bool>> CreateEvent(string userId, CreateEventReq req)
+        public async Task<Result<bool>> CreateEvent(string userId, CreateEventModel req)
         {
             var createdEvent = await eventRepo.CreateEvent(userId, req);
 

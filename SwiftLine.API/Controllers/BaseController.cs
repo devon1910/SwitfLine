@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace SwiftLine.API.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/v1/[controller]/[action]")]
     public class BaseController : ControllerBase
     {

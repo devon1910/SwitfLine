@@ -24,7 +24,7 @@ namespace Infrastructure.Data
                 var roleManager = scope.ServiceProvider.GetService<RoleManager<IdentityRole>>();
 
                 // Check if any users exist to prevent duplicate seeding
-                if (userManager.Users.Any() == false)
+                if (!userManager.Users.Any())
                 {
                     var user = new SwiftLineUser
                     {
@@ -36,7 +36,7 @@ namespace Infrastructure.Data
                     };
 
                     // Create Admin role if it doesn't exist
-                    if ((await roleManager.RoleExistsAsync(Roles.Admin)) == false)
+                    if (!await roleManager.RoleExistsAsync(Roles.Admin))
                     {
                         logger.LogInformation("Admin role is creating");
                         var roleResult = await roleManager
@@ -57,7 +57,7 @@ namespace Infrastructure.Data
                           .CreateAsync(user: user, password: "Admin@123");
 
                     // Validate user creation
-                    if (createUserResult.Succeeded == false)
+                    if (!createUserResult.Succeeded)
                     {
                         var errors = createUserResult.Errors.Select(e => e.Description);
                         logger.LogError(
@@ -70,7 +70,7 @@ namespace Infrastructure.Data
                     var addUserToRoleResult = await userManager
                                     .AddToRoleAsync(user: user, role: Roles.Admin);
 
-                    if (addUserToRoleResult.Succeeded == false)
+                    if (!addUserToRoleResult.Succeeded)
                     {
                         var errors = addUserToRoleResult.Errors.Select(e => e.Description);
                         logger.LogError($"Failed to add admin role to user. Errors : {string.Join(",", errors)}");

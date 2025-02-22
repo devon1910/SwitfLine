@@ -7,6 +7,7 @@ using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -18,7 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
-builder.Services.AddIdentityApiEndpoints<SwiftLineUser>().AddEntityFrameworkStores<SwiftLineDatabaseContext>().AddApiEndpoints();
+builder.Services.AddIdentity<SwiftLineUser, IdentityRole>().AddEntityFrameworkStores<SwiftLineDatabaseContext>().AddDefaultTokenProviders();
 
 builder.Services.AddDbContext<SwiftLineDatabaseContext>(options =>
 {
@@ -30,6 +31,7 @@ builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRepo, EventRepo>();
 builder.Services.AddScoped<ILineRepo, LineRepo>();
 builder.Services.AddScoped<ILineService, LineService>();
+builder.Services.AddScoped<ITokenRepo, TokenRepo>();
 builder.Services.AddHostedService<LineManager>();
 
 builder.Services.AddAuthentication(options =>
@@ -59,10 +61,33 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
 
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
     // Use string values for enums
-   // options.SchemaFilter<EnumSchemaFilter>();
+    // options.SchemaFilter<EnumSchemaFilter>();
 
 });
+
 
 var app = builder.Build();
 
@@ -71,7 +96,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-app.MapIdentityApi<SwiftLineUser>();
+//app.MapIdentityApi<SwiftLineUser>();
 
 app.UseHttpsRedirection();
 
@@ -81,7 +106,7 @@ app.UseSwaggerUI(options =>
 
 });
 
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
