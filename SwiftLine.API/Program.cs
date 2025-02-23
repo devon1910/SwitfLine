@@ -4,8 +4,10 @@ using Domain.Models;
 using Infrastructure.BackgroundServices;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -34,6 +36,7 @@ builder.Services.AddScoped<ILineService, LineService>();
 builder.Services.AddScoped<ITokenRepo, TokenRepo>();
 builder.Services.AddHostedService<LineManager>();
 
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -58,36 +61,40 @@ builder.Services.AddAuthentication(options =>
 );
 
 builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
-
-
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        In = ParameterLocation.Header,
-        Description = "Place to add JWT with Bearer token",
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement()
-            {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        },
-                        Name = "Bearer"
-                    }, new List<string>()
-                }
-            });
-    // Use string values for enums
-    // options.SchemaFilter<EnumSchemaFilter>();
+        options.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });  
+        //options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        //{
+        //    In = ParameterLocation.Header,
+        //    Description = "Place to add JWT with Bearer token",
+        //    Name = "Authorization",
+        //    Type = SecuritySchemeType.ApiKey,
+        //    Scheme = "Bearer"
+        //});
+        //options.AddSecurityRequirement(new OpenApiSecurityRequirement()
+        //        {
+        //            {
+        //                new OpenApiSecurityScheme
+        //                {
+        //                    Reference = new OpenApiReference
+        //                    {
+        //                        Type = ReferenceType.SecurityScheme,
+        //                        Id = "Bearer"
+        //                    },
+        //                    Name = "Bearer"
+        //                }, new List<string>()
+        //            }
+        //        });
+        //// Use string values for enums
+        //// options.SchemaFilter<EnumSchemaFilter>();
 
+    });
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 });
+
+
 
 
 var app = builder.Build();
@@ -115,3 +122,34 @@ app.MapControllers();
 await DbSeeder.SeedData(app);  // Call this method to seed the data
 
 app.Run();
+
+internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider) : IOpenApiDocumentTransformer
+{
+    public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
+    {
+        var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
+        if (authenticationSchemes.Any(authScheme => authScheme.Name == "Bearer"))
+        {
+            var requirements = new Dictionary<string, OpenApiSecurityScheme>
+            {
+                ["Bearer"] = new OpenApiSecurityScheme
+                {
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer", // "bearer" refers to the header name here
+                    In = ParameterLocation.Header,
+                    BearerFormat = "Json Web Token",
+                    Description = "Place Your JWT Token",
+                }
+            };
+            document.Components ??= new OpenApiComponents();
+            document.Components.SecuritySchemes = requirements;
+            foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations))
+            {
+                operation.Value.Security.Add(new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecurityScheme { Reference = new OpenApiReference { Id = "Bearer", Type = ReferenceType.SecurityScheme } }] = Array.Empty<string>()
+                });
+            }
+        }
+    }
+}
