@@ -18,11 +18,14 @@ namespace Domain.Interfaces
         public Task<LineInfoRes> GetLineInfo(long LineMemberId);
 
         public Task<Line?> GetFirstLineMember(long eventId);
+        public Task<bool> ServeUser(long lineMemberId);
     }
     public interface ILineService
     {
         public Task<Result<List<Line>>> GetLines();
 
         public Task<Result<LineInfoRes>> GetLineInfo(long LineMemberId);
+
+        public Task<Result<bool>> ServeUser(long lineMemberId);
     }
 }

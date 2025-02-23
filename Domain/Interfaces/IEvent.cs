@@ -17,6 +17,8 @@ namespace Domain.Interfaces
 
         public Task<bool> JoinEvent(string userId, long eventId);
 
+        //public Task<bool> ServeLineMember(string userId, long eventId);
+
         public Task<Event> GetEvent(long eventId);
 
         public Task<List<Event>> GetActiveEvents();

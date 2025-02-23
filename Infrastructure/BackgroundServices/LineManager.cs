@@ -21,7 +21,7 @@ namespace Infrastructure.BackgroundServices
             {             
                 using (var scope = serviceProvider.CreateScope()) 
                 {
-                    var queuesRepo = scope.ServiceProvider.GetRequiredService<ILineRepo>();
+                    var linesRepo = scope.ServiceProvider.GetRequiredService<ILineRepo>();
                     var eventsRepo = scope.ServiceProvider.GetRequiredService<IEventRepo>();
 
                     // Initialize cache and refresh tracking
@@ -41,11 +41,11 @@ namespace Infrastructure.BackgroundServices
 
                         foreach (var e in cachedEvents)
                         {
-                            Line? line = await queuesRepo.GetFirstLineMember(e.Id);
+                            Line? line = await linesRepo.GetFirstLineMember(e.Id);
 
-                            if (line is not null && await queuesRepo.IsUserAttendedTo(line))
+                            if (line is not null && await linesRepo.IsUserAttendedTo(line))
                             {
-                                await queuesRepo.MarkUserAsAttendedTo(line);
+                                await linesRepo.MarkUserAsAttendedTo(line);
                             }
                            
                         }                 

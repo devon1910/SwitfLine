@@ -84,7 +84,7 @@ namespace Infrastructure.Repositories
         {
            line.IsAttendedTo = true;
            line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
-            await dbContext.SaveChangesAsync();
+           await dbContext.SaveChangesAsync();
            return true;
         }
 
@@ -95,9 +95,14 @@ namespace Infrastructure.Repositories
                 .ThenInclude(x => x.Event)
                 .Where(x => x.LineMember.EventId == eventId && !x.IsAttendedTo)
                 .OrderBy(x => x.CreatedAt)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync();      
+        }
 
-            
+        public async Task<bool> ServeUser(long lineMemberId)
+        {
+            Line line = dbContext.Lines.FirstOrDefault(x => x.LineMemberId == lineMemberId);
+
+            return await MarkUserAsAttendedTo(line);
         }
     }
 }

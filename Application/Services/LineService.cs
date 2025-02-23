@@ -32,5 +32,17 @@ namespace Application.Services
         {
             throw new NotImplementedException();
         }
+
+
+        public async Task<Result<bool>> ServeUser(long lineMemberId)
+        {
+            bool isServed = await lineRepo.ServeUser(lineMemberId);
+
+            if (isServed)
+            {
+                return Result<bool>.Ok(true);
+            }
+            return Result<bool>.Failed("Failed to Attend to User.");
+        }
     }
 }

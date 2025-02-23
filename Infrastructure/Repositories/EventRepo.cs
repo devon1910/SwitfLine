@@ -42,6 +42,8 @@ namespace Infrastructure.Repositories
 
             @event.Name = req.Name;
             @event.AverageTimeToServeMinutes = req.AverageTimeToServe;
+            @event.EventStartTime = TimeOnly.TryParse(req.StartTime, out _) ? TimeOnly.Parse(req.StartTime) : default;
+            @event.EventEndTime = TimeOnly.TryParse(req.EndTime, out _) ? TimeOnly.Parse(req.EndTime) : default;    
             await dbContext.SaveChangesAsync();
             return true;
 
