@@ -3,6 +3,7 @@ using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.BackgroundServices;
 using Infrastructure.Data;
+using Infrastructure.Middleware;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -34,6 +35,8 @@ builder.Services.AddScoped<IEventRepo, EventRepo>();
 builder.Services.AddScoped<ILineRepo, LineRepo>();
 builder.Services.AddScoped<ILineService, LineService>();
 builder.Services.AddScoped<ITokenRepo, TokenRepo>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IAuthRepo, AuthRepo>();
 builder.Services.AddHostedService<LineManager>();
 
 
@@ -116,9 +119,11 @@ app.UseSwaggerUI(options =>
 
 });
 
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseCors("AllowAll");
+
 
 app.MapControllers();
 
