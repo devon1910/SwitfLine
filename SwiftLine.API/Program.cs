@@ -88,6 +88,9 @@ builder.Services.AddSwaggerGen(options =>
 
     });
 
+builder.Services.AddCors(options =>
+               options.AddPolicy("AllowAll", policy =>
+                   policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
 builder.Services.AddOpenApi(options =>
 {
@@ -115,6 +118,7 @@ app.UseSwaggerUI(options =>
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseCors("AllowAll");
 
 app.MapControllers();
 

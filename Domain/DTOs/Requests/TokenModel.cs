@@ -14,5 +14,7 @@ namespace Domain.DTOs.Requests
 
         [Required]
         public string RefreshToken { get; set; } = string.Empty;
+
+        public bool status { get; set; }
     }
 }
