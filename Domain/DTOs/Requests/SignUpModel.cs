@@ -9,9 +9,6 @@ namespace Domain.DTOs.Requests
 {
     public record SignupModel
     {
-        [Required]
-        [MaxLength(30)]
-        public string Name { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(30)]

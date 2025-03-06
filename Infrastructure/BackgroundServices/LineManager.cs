@@ -18,42 +18,40 @@ namespace Infrastructure.BackgroundServices
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {          
             try
-            {             
-                using (var scope = serviceProvider.CreateScope()) 
+            {
+                using var scope = serviceProvider.CreateScope();
+                var linesRepo = scope.ServiceProvider.GetRequiredService<ILineRepo>();
+                var eventsRepo = scope.ServiceProvider.GetRequiredService<IEventRepo>();
+
+                // Initialize cache and refresh tracking
+                IEnumerable<Event> cachedEvents = [];
+                DateTime lastCacheRefresh = DateTime.MinValue;
+                TimeSpan cacheRefreshInterval = TimeSpan.FromSeconds(60); // Adjust interval as needed
+
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    var linesRepo = scope.ServiceProvider.GetRequiredService<ILineRepo>();
-                    var eventsRepo = scope.ServiceProvider.GetRequiredService<IEventRepo>();
 
-                    // Initialize cache and refresh tracking
-                    IEnumerable<Event> cachedEvents = [];
-                    DateTime lastCacheRefresh = DateTime.MinValue;
-                    TimeSpan cacheRefreshInterval = TimeSpan.FromSeconds(60); // Adjust interval as needed
-
-                    while (!stoppingToken.IsCancellationRequested)
+                    // Refresh cache only if the interval has elapsed
+                    if (DateTime.UtcNow.AddHours(1) - lastCacheRefresh > cacheRefreshInterval)
                     {
+                        cachedEvents = await eventsRepo.GetActiveEvents();
+                        lastCacheRefresh = DateTime.UtcNow;
+                    }
 
-                        // Refresh cache only if the interval has elapsed
-                        if (DateTime.UtcNow.AddHours(1) - lastCacheRefresh > cacheRefreshInterval)
+                    foreach (var e in cachedEvents)
+                    {
+                        Line? line = await linesRepo.GetFirstLineMember(e.Id);
+
+                        if (line is not null && await linesRepo.IsUserAttendedTo(line))
                         {
-                            cachedEvents = await eventsRepo.GetActiveEvents();
-                            lastCacheRefresh = DateTime.UtcNow;
+                            await linesRepo.MarkUserAsAttendedTo(line);
                         }
 
-                        foreach (var e in cachedEvents)
-                        {
-                            Line? line = await linesRepo.GetFirstLineMember(e.Id);
-
-                            if (line is not null && await linesRepo.IsUserAttendedTo(line))
-                            {
-                                await linesRepo.MarkUserAsAttendedTo(line);
-                            }
-                           
-                        }                 
-
-                        await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
                     }
+
+                    await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
                 }
-                
+
             }
             catch (Exception ex)
             {

@@ -23,6 +23,8 @@ namespace Domain.Interfaces
 
         public Task<List<Event>> GetActiveEvents();
 
+        public Task<List<Event>> GetAllEvents();
+
     }
     public interface IEventService
     {
@@ -33,6 +35,8 @@ namespace Domain.Interfaces
         public Task<Result<bool>> EditEvent(EditEventReq req);
 
         public Task<Result<Event>> GetEvent(long eventId);
+
+        public Task<Result<List<Event>>> GetAllEvents();
 
     }
 }

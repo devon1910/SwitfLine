@@ -55,5 +55,12 @@ namespace Application.Services
             }
             return Result<Event>.Ok(@event);
         }
+
+        public async Task<Result<List<Event>>> GetAllEvents()
+        {
+            var allEvents = await eventRepo.GetAllEvents();
+
+            return Result<List<Event>>.Ok(allEvents);
+        }
     }
 }

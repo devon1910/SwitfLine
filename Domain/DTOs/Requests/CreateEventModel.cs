@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Domain.DTOs.Requests
 {
-    public record CreateEventModel(string Name, int AverageTimeToServe, string StartTime, string EndTime);
+    public record CreateEventModel(string Title, string Description, int AverageTime, string StartTime, string EndTime);
 
-    public record EditEventReq(long EventId,string Name, int AverageTimeToServe, string StartTime, string EndTime);
+    public record EditEventReq(long EventId,string Title, string Description, int AverageTime, string StartTime, string EndTime);
 }

@@ -48,7 +48,6 @@ namespace Infrastructure.Repositories
                 Email = model.Email,
                 SecurityStamp = Guid.NewGuid().ToString(),
                 UserName = model.Email,
-                Name = model.Name,
                 EmailConfirmed = true
             };
 

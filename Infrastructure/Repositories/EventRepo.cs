@@ -19,9 +19,10 @@ namespace Infrastructure.Repositories
             
             var newEvent = new Event
             {
-                Name = req.Name,
-                AverageTimeToServeMinutes = req.AverageTimeToServe,
-                CreatedBy = userId,
+                Title = req.Title,
+                Description = req.Description,
+                AverageTime = req.AverageTime,
+                CreatedBy = userId,              
                 EventStartTime = TimeOnly.TryParse(req.StartTime, out _) ? TimeOnly.Parse(req.StartTime) : default,
                 EventEndTime = TimeOnly.TryParse(req.EndTime, out _) ? TimeOnly.Parse(req.EndTime) : default
 
@@ -40,10 +41,11 @@ namespace Infrastructure.Repositories
                 return false;
             }
 
-            @event.Name = req.Name;
-            @event.AverageTimeToServeMinutes = req.AverageTimeToServe;
+            @event.Title = req.Title;
+            @event.AverageTime = req.AverageTime;
             @event.EventStartTime = TimeOnly.TryParse(req.StartTime, out _) ? TimeOnly.Parse(req.StartTime) : default;
-            @event.EventEndTime = TimeOnly.TryParse(req.EndTime, out _) ? TimeOnly.Parse(req.EndTime) : default;    
+            @event.EventEndTime = TimeOnly.TryParse(req.EndTime, out _) ? TimeOnly.Parse(req.EndTime) : default;   
+            @event.Description = req.Description;
             await dbContext.SaveChangesAsync();
             return true;
 
@@ -55,16 +57,31 @@ namespace Infrastructure.Repositories
 
 
             return await dbContext.Events
-                    .AsNoTracking()
-                    .Where(x => x.IsActive &&
-                           (
-                             // For events that do not span midnight:
-                             x.EventStartTime <= x.EventEndTime
-                                ? (timeNow >= x.EventStartTime && timeNow <= x.EventEndTime)
-                                // For events that span midnight:
-                                : (timeNow >= x.EventStartTime || timeNow <= x.EventEndTime)
-                           ))
-                    .ToListAsync();
+                .AsNoTracking()
+                .Where(x => x.IsActive &&
+                        (
+                            // For events that do not span midnight:
+                            x.EventStartTime <= x.EventEndTime
+                            ? (timeNow >= x.EventStartTime && timeNow <= x.EventEndTime)
+                            // For events that span midnight:
+                            : (timeNow >= x.EventStartTime || timeNow <= x.EventEndTime)
+                        ))
+                .ToListAsync();
+        }
+
+        public async Task<List<Event>> GetAllEvents()
+        {
+            List<Event> events = await dbContext.Events.Where(x=>x.IsActive).ToListAsync();
+
+            foreach (var @event in events)
+            {
+                 @event.UsersInQueue = await dbContext.Lines
+                    .Include(x => x.LineMember)
+                    .Where(x => x.LineMember.EventId == @event.Id && !x.IsAttendedTo).CountAsync();
+                var user = await dbContext.SwiftLineUsers.FindAsync(@event.CreatedBy);
+                @event.CreatedBy = user.Email;
+            }
+            return events;
         }
 
         public async Task<Event> GetEvent(long eventId)
