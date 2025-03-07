@@ -15,7 +15,7 @@ namespace Domain.Interfaces
 
         public Task<bool> EditEvent(EditEventReq req);
 
-        public Task<bool> JoinEvent(string userId, long eventId);
+        public Task<LineInfoRes> JoinEvent(string userId, long eventId);
 
         //public Task<bool> ServeLineMember(string userId, long eventId);
 
@@ -32,7 +32,7 @@ namespace Domain.Interfaces
     {
         public Task<Result<bool>> CreateEvent(string userId, CreateEventModel req);
 
-        public Task<Result<bool>> JoinEvent(string userId, long eventId);
+        public Task<Result<LineInfoRes>> JoinEvent(string userId, long eventId);
 
         public Task<Result<bool>> EditEvent(EditEventReq req);
 

@@ -16,7 +16,7 @@ namespace Domain.Models
         public long EventId { get; set; }
         [ForeignKey("EventId")]
         public Event Event { get; set; }
-        [NotMapped]
+        [ForeignKey("UserId")]
         public SwiftLineUser SwiftLineUser { get; set; }
     }
 

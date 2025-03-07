@@ -1,4 +1,5 @@
 ﻿using Domain.DTOs.Requests;
+using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.Data;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 namespace Infrastructure.Repositories
 {
 
-    public class EventRepo(SwiftLineDatabaseContext dbContext) : IEventRepo
+    public class EventRepo(SwiftLineDatabaseContext dbContext, ILineRepo lineRepo) : IEventRepo
     {
         public async Task<bool> CreateEvent(string userId, CreateEventModel req)
         {
@@ -92,17 +93,17 @@ namespace Infrastructure.Repositories
         public async Task<List<Line>> GetEventQueue(long eventId)
         {
             var lines = await dbContext.Lines
+                        .Where(x =>!x.IsAttendedTo)
                         .Include(x => x.LineMember)
-                        .ThenInclude(x => x.SwiftLineUser)
-                        .Where(x => x.LineMember.EventId == eventId && !x.IsAttendedTo)
+                        .Where(x => x.LineMember.EventId == eventId)
                         .ToListAsync();
             return lines;
 
         }
 
-        public async Task<bool> JoinEvent(string userId, long eventId)
+        public async Task<LineInfoRes> JoinEvent(string userId, long eventId)
         {
-            var newQueueMember = new LineMember
+            LineMember newQueueMember = new LineMember
             {
                 EventId = eventId,
                 UserId = userId
@@ -115,10 +116,11 @@ namespace Infrastructure.Repositories
             {
                 LineMemberId = newQueueMember.Id
             };
-
             await dbContext.Lines.AddAsync(queue);
             await dbContext.SaveChangesAsync();
-            return true;
+
+            return await lineRepo.GetLineInfo(newQueueMember.Id);
+
         }
 
       
