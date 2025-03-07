@@ -3,6 +3,7 @@ using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,10 +73,9 @@ namespace Infrastructure.Repositories
         public async Task<List<Event>> GetAllEvents()
         {
             List<Event> events = await dbContext.Events.Where(x=>x.IsActive).ToListAsync();
-
             foreach (var @event in events)
             {
-                 @event.UsersInQueue = await dbContext.Lines
+                @event.UsersInQueue = await dbContext.Lines
                     .Include(x => x.LineMember)
                     .Where(x => x.LineMember.EventId == @event.Id && !x.IsAttendedTo).CountAsync();
                 var user = await dbContext.SwiftLineUsers.FindAsync(@event.CreatedBy);
@@ -87,6 +87,17 @@ namespace Infrastructure.Repositories
         public async Task<Event> GetEvent(long eventId)
         {
             return await dbContext.Events.FindAsync(eventId);
+        }
+
+        public async Task<List<Line>> GetEventQueue(long eventId)
+        {
+            var lines = await dbContext.Lines
+                        .Include(x => x.LineMember)
+                        .ThenInclude(x => x.SwiftLineUser)
+                        .Where(x => x.LineMember.EventId == eventId && !x.IsAttendedTo)
+                        .ToListAsync();
+            return lines;
+
         }
 
         public async Task<bool> JoinEvent(string userId, long eventId)

@@ -62,5 +62,12 @@ namespace Application.Services
 
             return Result<List<Event>>.Ok(allEvents);
         }
+
+        public async Task<Result<List<Line>>> GetEventQueue(long eventId)
+        {
+            var lines = await  eventRepo.GetEventQueue(eventId);
+            return Result<List<Line>>.Ok(lines);
+        }
+
     }
 }
