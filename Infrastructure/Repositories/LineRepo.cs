@@ -23,7 +23,7 @@ namespace Infrastructure.Repositories
                 .ThenInclude(x=> x.Event)
                 .FirstOrDefault();
 
-            if (line is null) return new LineInfoRes(LineMemberId, "0th",0,0);
+            if (line is null) return new LineInfoRes(LineMemberId, "0",0,0,"0th",false);
 
             int position = 0;
             var othersInLines = await dbContext.Lines
@@ -37,12 +37,12 @@ namespace Infrastructure.Repositories
 
             var timeTillYourTurn = ((line.LineMember.Event.AverageTimeToServeSeconds * position) - line.LineMember.Event.AverageTimeToServeSeconds)/60;
             //+ GetOrdinal(position)
-            return new LineInfoRes(line.LineMemberId, $"{position}", timeTillYourTurn,line.LineMember.EventId);
+            return new LineInfoRes(line.LineMemberId, $"{position}", timeTillYourTurn,line.LineMember.EventId, GetOrdinal(position), position == 1 ? false : true);
 
 
         }
 
-        private string GetOrdinal(int number)
+        private static string GetOrdinal(int number)
         {
             int lastTwo = number % 100;
             if (lastTwo >= 11 && lastTwo <= 13) return "th";
@@ -86,16 +86,20 @@ namespace Infrastructure.Repositories
         {
            line.IsAttendedTo = true;
            line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
-           await dbContext.SaveChangesAsync();
+           line.LineMember.SwiftLineUser.isInQueue = false;
+            await dbContext.SaveChangesAsync();
             return true;
         }
 
         public async Task<Line?> GetFirstLineMember(long eventId)
         {
             return await  dbContext.Lines
+                .Where(x => x.IsActive && !x.IsAttendedTo)
                 .Include(x => x.LineMember)
-                .ThenInclude(x => x.Event)
-                .Where(x => x.LineMember.EventId == eventId && !x.IsAttendedTo)
+                .Include(x => x.LineMember.Event)
+                .ThenInclude(x => x.SwiftLineUser)
+                .AsSplitQuery()
+                .Where(x => x.LineMember.EventId == eventId)
                 .OrderBy(x => x.CreatedAt)
                 .FirstOrDefaultAsync();      
         }

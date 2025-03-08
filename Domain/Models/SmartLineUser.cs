@@ -10,5 +10,7 @@ namespace Domain.Models
     public class SwiftLineUser : IdentityUser
     {
         public string Name { get; set; } = string.Empty;
+
+        public bool isInQueue { get; set; } = false;    
     }
 }

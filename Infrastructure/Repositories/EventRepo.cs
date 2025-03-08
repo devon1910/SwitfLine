@@ -117,7 +117,10 @@ namespace Infrastructure.Repositories
                 LineMemberId = newQueueMember.Id
             };
             await dbContext.Lines.AddAsync(queue);
+            SwiftLineUser user = await dbContext.SwiftLineUsers.FindAsync(userId);
+            user.isInQueue = true;
             await dbContext.SaveChangesAsync();
+
 
             return await lineRepo.GetLineInfo(newQueueMember.Id);
 

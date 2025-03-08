@@ -47,9 +47,23 @@ namespace Infrastructure.Repositories
 
             var timeTillYourTurn = ((line.LineMember.Event.AverageTimeToServeSeconds * position) - line.LineMember.Event.AverageTimeToServeSeconds) / 60;
             //+ GetOrdinal(position)
-            return new LineInfoRes(line.LineMemberId, $"{position}", timeTillYourTurn, line.LineMember.EventId);
+            return new LineInfoRes(line.LineMemberId, $"{position}", timeTillYourTurn, line.LineMember.EventId, GetOrdinal(position), position == 1 ? false : true);
 
 
+        }
+
+        private static string GetOrdinal(int number)
+        {
+            int lastTwo = number % 100;
+            if (lastTwo >= 11 && lastTwo <= 13) return "th";
+
+            return (number % 10) switch
+            {
+                1 => "st",
+                2 => "nd",
+                3 => "rd",
+                _ => "th",
+            };
         }
     }
 }
