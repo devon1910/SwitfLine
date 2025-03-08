@@ -64,6 +64,7 @@ namespace Infrastructure.Repositories
                 .AsSplitQuery()
                 .OrderBy(x => x.CreatedAt)
                 .ToListAsync();
+            
         }
 
         public async Task<bool> IsUserAttendedTo(Line line)
@@ -85,7 +86,9 @@ namespace Infrastructure.Repositories
            line.IsAttendedTo = true;
            line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
            await dbContext.SaveChangesAsync();
-           return true;
+
+            /// Notify the user that they have been attended to
+            return true;
         }
 
         public async Task<Line?> GetFirstLineMember(long eventId)

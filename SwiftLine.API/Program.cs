@@ -1,6 +1,8 @@
 using Application.Services;
+using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
+using Infrastructure;
 using Infrastructure.BackgroundServices;
 using Infrastructure.Data;
 using Infrastructure.Middleware;
@@ -134,7 +136,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 
-app.MapHub<ChatHub>("/chatHub");
+app.MapHub<SwiftLineHub>("/queueHub");
 
 app.MapControllers();
 
@@ -173,10 +175,3 @@ internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvi
     }
 }
 
-public class ChatHub : Hub
-{
-    public async Task SendMessage(string message)
-    {
-        await Clients.All.SendAsync("ReceiveMessage", message);
-    }
-}
