@@ -7,8 +7,10 @@ using Infrastructure.Middleware;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.OpenApi;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -92,14 +94,22 @@ builder.Services.AddSwaggerGen(options =>
     });
 
 builder.Services.AddCors(options =>
-               options.AddPolicy("AllowAll", policy =>
-                   policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // Replace with your client origin
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Required for SignalR with credentials
+    });
+});
 
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 });
 
+builder.Services.AddSignalR();
 
 
 var app = builder.Build();
@@ -118,12 +128,13 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/openapi/v1.json", "SwiftLine Demo");
 
 });
-
+app.UseCors();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseCors("AllowAll");
 
+
+app.MapHub<ChatHub>("/chatHub");
 
 app.MapControllers();
 
@@ -159,5 +170,13 @@ internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvi
                 });
             }
         }
+    }
+}
+
+public class ChatHub : Hub
+{
+    public async Task SendMessage(string message)
+    {
+        await Clients.All.SendAsync("ReceiveMessage", message);
     }
 }

@@ -22,7 +22,7 @@ namespace Infrastructure.Repositories
                 .ThenInclude(x=> x.Event)
                 .FirstOrDefault();
 
-            if (line is null) return new LineInfoRes(LineMemberId, "0th","",0);
+            if (line is null) return new LineInfoRes(LineMemberId, "0th",0,0);
 
             int position = 0;
             var othersInLines = await dbContext.Lines
@@ -36,7 +36,7 @@ namespace Infrastructure.Repositories
 
             var timeTillYourTurn = ((line.LineMember.Event.AverageTimeToServeSeconds * position) - line.LineMember.Event.AverageTimeToServeSeconds)/60;
             //+ GetOrdinal(position)
-            return new LineInfoRes(line.LineMemberId, $"{position}", $"{timeTillYourTurn}",line.LineMember.EventId);
+            return new LineInfoRes(line.LineMemberId, $"{position}", timeTillYourTurn,line.LineMember.EventId);
 
 
         }
