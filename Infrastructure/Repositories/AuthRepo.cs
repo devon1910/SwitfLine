@@ -26,7 +26,7 @@ namespace Infrastructure.Repositories
             var existingUser = await _userManager.FindByNameAsync(model.Email);
             if (existingUser != null)
             {
-                return new AuthRes(false,"User already exists","","");
+                return new AuthRes(false,"User already exists","","","");
             }
 
             // Create User role if it doesn't exist
@@ -35,11 +35,11 @@ namespace Infrastructure.Repositories
                 var roleResult = await _roleManager
                       .CreateAsync(new IdentityRole(Roles.User));
 
-                if (roleResult.Succeeded == false)
+                if (!roleResult.Succeeded)
                 {
                     var roleErros = roleResult.Errors.Select(e => e.Description);
                     _logger.LogError($"Failed to create user role. Errors : {string.Join(",", roleErros)}");
-                    return new AuthRes(false,$"Failed to create user role. Errors : {string.Join(",", roleErros)}","","");
+                    return new AuthRes(false,$"Failed to create user role. Errors : {string.Join(",", roleErros)}","","","");
                 }
             }
 
@@ -56,13 +56,13 @@ namespace Infrastructure.Repositories
 
             // Validate user creation. If user is not created, log the error and
             // return the BadRequest along with the errors
-            if (createUserResult.Succeeded == false)
+            if (!createUserResult.Succeeded)
             {
                 var errors = createUserResult.Errors.Select(e => e.Description);
                 _logger.LogError(
                     $"Failed to create user. Errors: {string.Join(", ", errors)}"
                 );
-                return new AuthRes(false, $"Failed to create user. Errors: {string.Join(", ", errors)}", "", "");
+                return new AuthRes(false, $"Failed to create user. Errors: {string.Join(", ", errors)}", "", "","");
             }
 
             // adding role to user
@@ -73,7 +73,7 @@ namespace Infrastructure.Repositories
                 var errors = addUserToRoleResult.Errors.Select(e => e.Description);
                 _logger.LogError($"Failed to add role to the user. Errors : {string.Join(",", errors)}");
             }
-            return new(true, "User Created", "", "");
+            return new(true, "User Created", "", "", user.Id);
 
         }
 
@@ -83,7 +83,7 @@ namespace Infrastructure.Repositories
             bool isValidPassword = await _userManager.CheckPasswordAsync(user, model.Password);
             if (user is null || !isValidPassword)
             {
-                return new AuthRes(false, "Invalid User name or password.", "", "");
+                return new AuthRes(false, "Invalid User name or password.", "", "", "");
             }
 
             // creating the necessary claims
@@ -131,7 +131,7 @@ namespace Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
 
-            return new AuthRes(true, "Login Successful", token, refreshToken);
+            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id);
            
         }
 
@@ -146,7 +146,7 @@ namespace Infrastructure.Repositories
                 || tokenInfo.RefreshToken != tokenModel.RefreshToken
                 || tokenInfo.ExpiredAt <= DateTime.UtcNow)
             {
-                return new AuthRes(false,"Invalid refresh token. Please login again.","","");
+                return new AuthRes(false,"Invalid refresh token. Please login again.","","", "");
             }
 
             var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims);
@@ -155,7 +155,9 @@ namespace Infrastructure.Repositories
             tokenInfo.RefreshToken = newRefreshToken; // rotating the refresh token
             await _context.SaveChangesAsync();
 
-            return new AuthRes(false, "Invalid refresh token. Please login again.", newAccessToken, newRefreshToken);
+            var user = await _userManager.FindByNameAsync(username); 
+
+            return new AuthRes(false, "Invalid refresh token. Please login again.", newAccessToken, newRefreshToken,user.Id);
            
         }
 

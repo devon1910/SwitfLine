@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Domain.DTOs.Responses
 {
-    public record AuthRes(bool status, string message, string AccessToken, string RefreshToken);
+    public record AuthRes(bool status, string message, string AccessToken, string RefreshToken, string userId);
 
 
 }

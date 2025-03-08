@@ -1,4 +1,5 @@
 ﻿using Domain.DTOs.Responses;
+using Domain.Models;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Infrastructure
 {
@@ -15,11 +17,14 @@ namespace Infrastructure
         private static Dictionary<string, string> _userConnections = new Dictionary<string, string>();
 
         // Join a specific queue group
-        public async Task JoinQueueGroup(string eventId, string userId)
+        public async Task JoinQueueGroup(int eventId, string userId)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, $"queue-{eventId}");
 
             _userConnections[userId] = Context.ConnectionId;
+
+            //get the position of the user in the queue
+            await Clients.Client(Context.ConnectionId).SendAsync("ReceiveLineInfo", new { position=1, timeTillYourTurn=2, eventId=3, lineMemberId=4 });
 
             Console.WriteLine($"User {userId} joined queue for event {eventId}");
         }
