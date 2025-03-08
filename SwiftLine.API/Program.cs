@@ -2,7 +2,6 @@ using Application.Services;
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
-using Infrastructure;
 using Infrastructure.BackgroundServices;
 using Infrastructure.Data;
 using Infrastructure.Middleware;
@@ -18,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SwiftLine.API;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,6 +42,8 @@ builder.Services.AddScoped<ILineService, LineService>();
 builder.Services.AddScoped<ITokenRepo, TokenRepo>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAuthRepo, AuthRepo>();
+builder.Services.AddScoped<INotifier, Notifier>();
+builder.Services.AddScoped<INotifierRepo, NotifierRepo>();
 builder.Services.AddHostedService<LineManager>();
 
 

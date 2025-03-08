@@ -22,7 +22,7 @@ namespace Infrastructure.BackgroundServices
                 using var scope = serviceProvider.CreateScope();
                 var linesRepo = scope.ServiceProvider.GetRequiredService<ILineRepo>();
                 var eventsRepo = scope.ServiceProvider.GetRequiredService<IEventRepo>();
-
+                var notifier = scope.ServiceProvider.GetRequiredService<INotifierRepo>();
                 // Initialize cache and refresh tracking
                 IEnumerable<Event> cachedEvents = [];
                 DateTime lastCacheRefresh = DateTime.MinValue;
@@ -45,11 +45,12 @@ namespace Infrastructure.BackgroundServices
                         if (line is not null && await linesRepo.IsUserAttendedTo(line))
                         {
                             await linesRepo.MarkUserAsAttendedTo(line);
+                            await notifier.BroadcastLineUpdate(line);
                         }
 
                     }
 
-                    await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+                    await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
                 }
 
             }

@@ -1,4 +1,5 @@
-﻿using Domain.DTOs.Responses;
+﻿using Application.Services;
+using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.Data;
@@ -26,10 +27,10 @@ namespace Infrastructure.Repositories
 
             int position = 0;
             var othersInLines = await dbContext.Lines
-                   .AsSplitQuery()
+                   .Where(x=>x.IsActive && !x.IsAttendedTo)
                    .Include(x => x.LineMember)
-                   .ThenInclude(x => x.Event)
-                   .Where(x => x.LineMember.EventId == line.LineMember.EventId && !x.IsAttendedTo && x.IsActive)
+                   .AsSplitQuery()
+                   .Where(x => x.LineMember.EventId == line.LineMember.EventId)
                    .ToListAsync();
 
             position = othersInLines.IndexOf(line) + 1;
@@ -86,8 +87,6 @@ namespace Infrastructure.Repositories
            line.IsAttendedTo = true;
            line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
            await dbContext.SaveChangesAsync();
-
-            /// Notify the user that they have been attended to
             return true;
         }
 

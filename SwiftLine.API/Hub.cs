@@ -1,4 +1,6 @@
-﻿using Domain.DTOs.Responses;
+﻿using Application.Services;
+using Domain.DTOs.Responses;
+using Domain.Interfaces;
 using Domain.Models;
 using Microsoft.AspNetCore.SignalR;
 using System;
@@ -9,52 +11,24 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
-namespace Infrastructure
+namespace SwiftLine.API
 {
-    public class SwiftLineHub : Hub
+    public class SwiftLineHub(INotifier notifier) : Hub
     {
-        // Store connection IDs mapped to user IDs for direct messaging
-        private static Dictionary<string, string> _userConnections = new Dictionary<string, string>();
 
-        // Join a specific queue group
         public async Task JoinQueueGroup(int eventId, string userId)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"queue-{eventId}");
-
-            _userConnections[userId] = Context.ConnectionId;
-
-            //get the position of the user in the queue
-            await Clients.Client(Context.ConnectionId).SendAsync("ReceiveLineInfo", new { position=1, timeTillYourTurn=2, eventId=3, lineMemberId=4 });
-
-            Console.WriteLine($"User {userId} joined queue for event {eventId}");
+           await notifier.JoinQueueGroup(eventId, userId, Context.ConnectionId);  
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             // Remove from user connections mapping
-            string userId = _userConnections.FirstOrDefault(x => x.Value == Context.ConnectionId).Key;
-            if (!string.IsNullOrEmpty(userId))
-            {
-                _userConnections.Remove(userId);
-            }
+            await notifier.OnDisconnectedAsync(Context.ConnectionId);
 
             await base.OnDisconnectedAsync(exception);
         }
-        //public async Task ProcessQueueMovement(string eventId, Dictionary<string, object> userUpdates)
-        //{
-        //    // First broadcast general update to everyone
-        //    await BroadcastQueueUpdate(eventId, new { message = "The First person has been served." });
-
-        //    // Then send personalized updates to each affected user
-        //    foreach (var update in userUpdates)
-        //    {
-        //        string userId = update.Key;
-        //        object personalData = update.Value;
-
-        //        await NotifyUserPositionChange(userId, personalData);
-        //    }
-        //}
-        // Broadcast to all clients in a queue (called from your queue service)
+       
         public async Task BroadcastQueueUpdate(string eventId, object queueUpdate)
         {
             await Clients.Group($"queue-{eventId}").SendAsync("ReceiveQueueUpdate", queueUpdate);
@@ -62,10 +36,8 @@ namespace Infrastructure
 
         public async Task NotifyUserPositionChange(string userId, LineInfoRes lineInfoRes)
         {
-            if (_userConnections.TryGetValue(userId, out string connectionId))
-            {
-                await Clients.Client(connectionId).SendAsync("ReceivePersonalUpdate", lineInfoRes);
-            }
+            await notifier.NotifyUserPositionChange(userId, lineInfoRes);
+           
         }
 
 
