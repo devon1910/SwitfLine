@@ -18,10 +18,7 @@ namespace SwiftLine.API
             _userConnections[userId] = ConnectionId;
 
             await eventRepo.JoinEvent(userId, eventId);
-            //get the position of the user in the queue
-            await _hubContext.Clients.Client(ConnectionId).SendAsync("ReceiveIsInQueueUpdate", true);
 
-            Console.WriteLine($"User {userId} joined queue for event {eventId}");
         }
 
         public async Task NotifyUserPositionChange(string userId, LineInfoRes lineInfoRes)

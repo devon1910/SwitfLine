@@ -27,11 +27,15 @@ namespace Infrastructure.Repositories
                  .AsNoTracking()
                  .ToListAsync();
 
+            string userId = line.LineMember.SwiftLineUser.Id;
+            var lineinfo = await lineRepo.GetUserLineInfo(userId);
+            await notifierHub.NotifyUserPositionChange(userId, lineinfo);
+
             foreach (var l in othersInLines)
             {
 
-                string userId = l.LineMember.SwiftLineUser.Id;
-                var lineinfo = await lineRepo.GetUserLineInfo(userId);
+                userId = l.LineMember.SwiftLineUser.Id;
+                lineinfo = await lineRepo.GetUserLineInfo(userId);
                 await notifierHub.NotifyUserPositionChange(userId, lineinfo);
             }
 
