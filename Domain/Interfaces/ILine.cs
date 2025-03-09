@@ -15,7 +15,8 @@ namespace Domain.Interfaces
         public Task<List<Line>> GetLines();
         public Task<bool> IsUserAttendedTo(Line line);  
         public Task<bool> MarkUserAsAttendedTo(Line line);
-        public Task<LineInfoRes> GetLineInfo(long LineMemberId);
+        //public Task<LineInfoRes> GetLineInfo(long LineMemberId);
+        public Task<LineInfoRes> GetUserLineInfo(string UserId);
 
         public Task<Line?> GetFirstLineMember(long eventId);
         public Task<bool> ServeUser(long lineMemberId);
@@ -24,7 +25,9 @@ namespace Domain.Interfaces
     {
         public Task<Result<List<Line>>> GetLines();
 
-        public Task<Result<LineInfoRes>> GetLineInfo(long LineMemberId);
+        //public Task<Result<LineInfoRes>> GetLineInfo(long LineMemberId);
+
+        public Task<Result<LineInfoRes>> GetUserLineInfo(string UserId);
 
         public Task<Result<bool>> ServeUser(long lineMemberId);
     }

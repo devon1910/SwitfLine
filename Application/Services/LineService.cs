@@ -21,18 +21,17 @@ namespace Application.Services
         //    }
         //    return Result<bool>.Failed("Failed to join event");
         //}
-        public async Task<Result<LineInfoRes>> GetLineInfo(long QueueMemberId)
-        {
-            var lineInfo = await lineRepo.GetLineInfo(QueueMemberId);
-
-            return Result<LineInfoRes>.Ok(lineInfo);
-        }
-
         public Task<Result<List<Line>>> GetLines()
         {
             throw new NotImplementedException();
         }
 
+        public async Task<Result<LineInfoRes>> GetUserLineInfo(string UserId)
+        {
+            var lineInfo = await lineRepo.GetUserLineInfo(UserId);
+
+            return Result<LineInfoRes>.Ok(lineInfo);
+        }
 
         public async Task<Result<bool>> ServeUser(long lineMemberId)
         {

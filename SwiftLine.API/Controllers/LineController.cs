@@ -12,10 +12,10 @@ namespace SwiftLine.API.Controllers
 {
     public class LineController(ILineService lineService) : BaseController
     {
-        [HttpGet("{LineMemberId}")]
-        public async Task<ActionResult<Result<LineInfoRes>>> GetLineInfo(long LineMemberId)
+        [HttpGet()]
+        public async Task<ActionResult<Result<LineInfoRes>>> GetUserLineInfo()
         {
-            var res = await lineService.GetLineInfo(LineMemberId);
+            var res = await lineService.GetUserLineInfo(UserId);
             return res.ToActionResult();
         } 
         [HttpPost("{LineMemberId}")]

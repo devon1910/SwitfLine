@@ -18,7 +18,7 @@ namespace SwiftLine.API
 
         public async Task JoinQueueGroup(int eventId, string userId)
         {
-           await notifier.JoinQueueGroup(eventId, userId, Context.ConnectionId);  
+            await notifier.JoinQueueGroup(eventId, userId, Context.ConnectionId);
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)

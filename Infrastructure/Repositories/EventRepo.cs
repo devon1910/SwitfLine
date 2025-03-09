@@ -101,32 +101,41 @@ namespace Infrastructure.Repositories
 
         }
 
-        public async Task<LineInfoRes> JoinEvent(string userId, long eventId)
+        public async Task<bool> JoinEvent(string userId, long eventId)
         {
-            LineMember newQueueMember = new LineMember
+            if (await isUserInLine(userId)) 
             {
-                EventId = eventId,
-                UserId = userId
-            };
+                LineMember newQueueMember = new LineMember
+                {
+                    EventId = eventId,
+                    UserId = userId
+                };
 
-            await dbContext.LineMembers.AddAsync(newQueueMember);
-            await dbContext.SaveChangesAsync();
+                await dbContext.LineMembers.AddAsync(newQueueMember);
+                await dbContext.SaveChangesAsync();
 
-            Line queue = new()
-            {
-                LineMemberId = newQueueMember.Id
-            };
-            await dbContext.Lines.AddAsync(queue);
-            SwiftLineUser user = await dbContext.SwiftLineUsers.FindAsync(userId);
-            user.isInQueue = true;
-            await dbContext.SaveChangesAsync();
+                Line queue = new()
+                {
+                    LineMemberId = newQueueMember.Id
+                };
+                await dbContext.Lines.AddAsync(queue);
+                SwiftLineUser user = await dbContext.SwiftLineUsers.FindAsync(userId);
+                user.isInQueue = true;
+                await dbContext.SaveChangesAsync();
+                return true;
+            }
+            return false;
 
-
-            return await lineRepo.GetLineInfo(newQueueMember.Id);
 
         }
 
-      
-       
+        private async Task<bool> isUserInLine(string userId)
+        {
+            var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
+
+            return user.isInQueue;
+        }
+
+
     }
 }

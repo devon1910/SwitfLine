@@ -14,33 +14,7 @@ namespace Infrastructure.Repositories
 {
     public class LineRepo(SwiftLineDatabaseContext dbContext) : ILineRepo
     {
-        public async Task<LineInfoRes> GetLineInfo(long LineMemberId)
-        {
-            var line = dbContext.Lines
-                .AsSplitQuery()
-                .Where(x=>x.LineMemberId==LineMemberId && !x.IsAttendedTo)
-                .Include(x=>x.LineMember)
-                .ThenInclude(x=> x.Event)
-                .FirstOrDefault();
-
-            if (line is null) return new LineInfoRes(LineMemberId, "0",0,0,"0th",false);
-
-            int position = 0;
-            var othersInLines = await dbContext.Lines
-                   .Where(x=>x.IsActive && !x.IsAttendedTo)
-                   .Include(x => x.LineMember)
-                   .AsSplitQuery()
-                   .Where(x => x.LineMember.EventId == line.LineMember.EventId)
-                   .ToListAsync();
-
-            position = othersInLines.IndexOf(line) + 1;
-
-            var timeTillYourTurn = ((line.LineMember.Event.AverageTimeToServeSeconds * position) - line.LineMember.Event.AverageTimeToServeSeconds)/60;
-            //+ GetOrdinal(position)
-            return new LineInfoRes(line.LineMemberId, $"{position}", timeTillYourTurn,line.LineMember.EventId, GetOrdinal(position), position == 1 ? false : true);
-
-
-        }
+        
 
         private static string GetOrdinal(int number)
         {
@@ -49,10 +23,10 @@ namespace Infrastructure.Repositories
 
             return (number % 10) switch
             {
-                1 => "st",
-                2 => "nd",
-                3 => "rd",
-                _ => "th",
+                1 => number+ "st",
+                2 => number+ "nd",
+                3 => number+ "rd",
+                _ => number+ "th",
             };
         }
 
@@ -97,7 +71,7 @@ namespace Infrastructure.Repositories
                 .Where(x => x.IsActive && !x.IsAttendedTo)
                 .Include(x => x.LineMember)
                 .Include(x => x.LineMember.Event)
-                .ThenInclude(x => x.SwiftLineUser)
+                .Include(x => x.LineMember.SwiftLineUser)
                 .AsSplitQuery()
                 .Where(x => x.LineMember.EventId == eventId)
                 .OrderBy(x => x.CreatedAt)
@@ -109,6 +83,47 @@ namespace Infrastructure.Repositories
             Line line = dbContext.Lines.FirstOrDefault(x => x.LineMemberId == lineMemberId);
 
             return await MarkUserAsAttendedTo(line);
+        }
+
+        public async Task<LineInfoRes> GetUserLineInfo(string UserId)
+        {
+            if (await isUserInLine(UserId))
+            {
+                var line = await  dbContext.Lines
+                .AsSplitQuery()
+                .Where(x => !x.IsAttendedTo && x.IsActive)
+                .Include(x => x.LineMember)
+                .ThenInclude(x => x.Event)
+                .Where(x => x.LineMember.UserId == UserId)
+                .FirstOrDefaultAsync();
+
+                if(line is null) return new LineInfoRes(0, 0, 0, "", "");
+
+                int position = 0;
+                var othersInLines = await dbContext.Lines
+                       .Where(x => x.IsActive && !x.IsAttendedTo)
+                       .Include(x => x.LineMember)
+                       .AsSplitQuery()
+                       .Where(x => x.LineMember.EventId == line.LineMember.EventId)
+                       .ToListAsync();
+
+                position = othersInLines.IndexOf(line) + 1;
+
+                int timeTillYourTurn = ((line.LineMember.Event.AverageTimeToServeSeconds * position) - line.LineMember.Event.AverageTimeToServeSeconds) / 60;
+                //+ GetOrdinal(position)
+                return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn, GetOrdinal(position), line.LineMember.Event.Title);
+            }
+            else 
+            {
+                return new LineInfoRes(0, -1, 0, "", "");
+            }
+        }
+
+        private async Task<bool> isUserInLine(string userId)
+        {
+           var user= await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
+
+            return user.isInQueue;
         }
     }
 }

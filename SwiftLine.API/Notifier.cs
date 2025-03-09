@@ -10,16 +10,16 @@ namespace SwiftLine.API
     public class Notifier(IHubContext<SwiftLineHub> _hubContext, IEventRepo eventRepo) : INotifier
     {
         private static Dictionary<string, string> _userConnections = new Dictionary<string, string>();
-       
+
         public async Task JoinQueueGroup(int eventId, string userId, string ConnectionId)
         {
             await _hubContext.Groups.AddToGroupAsync(ConnectionId, $"queue-{eventId}");
 
             _userConnections[userId] = ConnectionId;
 
-            LineInfoRes lineInfoRes = await eventRepo.JoinEvent(userId, eventId);
+            await eventRepo.JoinEvent(userId, eventId);
             //get the position of the user in the queue
-            await _hubContext.Clients.Client(ConnectionId).SendAsync("ReceiveLineInfo", lineInfoRes);
+            //await _hubContext.Clients.Client(ConnectionId).SendAsync("ReceiveLineInfo", lineInfoRes);
 
             Console.WriteLine($"User {userId} joined queue for event {eventId}");
         }

@@ -19,7 +19,7 @@ namespace SwiftLine.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Result<LineInfoRes>>> JoinEvent(long EventId)
+        public async Task<ActionResult<Result<bool>>> JoinEvent(long EventId)
         {
 
             var res = await eventService.JoinEvent(UserId, EventId);

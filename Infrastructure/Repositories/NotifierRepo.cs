@@ -15,7 +15,7 @@ namespace Infrastructure.Repositories
     {
         public async Task BroadcastLineUpdate(Line line)
         {
-            /// Notify the user that they have been attended to
+            
             var othersInLines = await dbContext.Lines
                  .Where(x => !x.IsAttendedTo && x.IsActive)
                  .Include(x => x.LineMember)
@@ -35,35 +35,11 @@ namespace Infrastructure.Repositories
             var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = 5 };
             await Parallel.ForEachAsync(othersInLines, parallelOptions, async (l, token) =>
             {
-                var lineinfo = MiniGetLineInfores(othersInLines, l);
+                string userId = l.LineMember.SwiftLineUser.Id;
+                var lineinfo = await lineRepo.GetUserLineInfo(userId);
 
                 await notifierHub.NotifyUserPositionChange(l.LineMember.SwiftLineUser.Id, lineinfo);
             });
-        }
-
-        private LineInfoRes MiniGetLineInfores(List<Line> othersInLines,Line line)
-        {
-            int position = othersInLines.IndexOf(line) + 1;
-
-            var timeTillYourTurn = ((line.LineMember.Event.AverageTimeToServeSeconds * position) - line.LineMember.Event.AverageTimeToServeSeconds) / 60;
-            //+ GetOrdinal(position)
-            return new LineInfoRes(line.LineMemberId, $"{position}", timeTillYourTurn, line.LineMember.EventId, GetOrdinal(position), position == 1 ? false : true);
-
-
-        }
-
-        private static string GetOrdinal(int number)
-        {
-            int lastTwo = number % 100;
-            if (lastTwo >= 11 && lastTwo <= 13) return "th";
-
-            return (number % 10) switch
-            {
-                1 => "st",
-                2 => "nd",
-                3 => "rd",
-                _ => "th",
-            };
         }
     }
 }
