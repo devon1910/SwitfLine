@@ -19,7 +19,7 @@ namespace SwiftLine.API
 
             await eventRepo.JoinEvent(userId, eventId);
             //get the position of the user in the queue
-            //await _hubContext.Clients.Client(ConnectionId).SendAsync("ReceiveLineInfo", lineInfoRes);
+            await _hubContext.Clients.Client(ConnectionId).SendAsync("ReceiveIsInQueueUpdate", true);
 
             Console.WriteLine($"User {userId} joined queue for event {eventId}");
         }
@@ -31,6 +31,8 @@ namespace SwiftLine.API
                 await _hubContext.Clients.Client(connectionId).SendAsync("ReceivePositionUpdate", lineInfoRes);
             }
         }
+
+       
 
         public async Task OnDisconnectedAsync(string ConnectionId)
         {

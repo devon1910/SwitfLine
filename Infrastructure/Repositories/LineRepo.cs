@@ -1,4 +1,5 @@
 ﻿using Application.Services;
+using Azure.Core;
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
@@ -87,8 +88,7 @@ namespace Infrastructure.Repositories
 
         public async Task<LineInfoRes> GetUserLineInfo(string UserId)
         {
-            if (await isUserInLine(UserId))
-            {
+
                 var line = await  dbContext.Lines
                 .AsSplitQuery()
                 .Where(x => !x.IsAttendedTo && x.IsActive)
@@ -97,7 +97,7 @@ namespace Infrastructure.Repositories
                 .Where(x => x.LineMember.UserId == UserId)
                 .FirstOrDefaultAsync();
 
-                if(line is null) return new LineInfoRes(0, 0, 0, "", "");
+                if(line is null) return new LineInfoRes(0, -1, 0, "", "");
 
                 int position = 0;
                 var othersInLines = await dbContext.Lines
@@ -111,19 +111,14 @@ namespace Infrastructure.Repositories
 
                 int timeTillYourTurn = ((line.LineMember.Event.AverageTimeToServeSeconds * position) - line.LineMember.Event.AverageTimeToServeSeconds) / 60;
                 //+ GetOrdinal(position)
-                return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn, GetOrdinal(position), line.LineMember.Event.Title);
-            }
-            else 
-            {
-                return new LineInfoRes(0, -1, 0, "", "");
-            }
+                return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn, GetOrdinal(position), line.LineMember.Event.Title);  
         }
 
-        private async Task<bool> isUserInLine(string userId)
+        public bool GetUserQueueStatus(string UserId)
         {
-           var user= await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
-
+            var user=  dbContext.SwiftLineUsers.Find( UserId);
             return user.isInQueue;
+            
         }
     }
 }

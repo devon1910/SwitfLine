@@ -3,6 +3,7 @@ using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,20 +27,30 @@ namespace Infrastructure.Repositories
                  .AsNoTracking()
                  .ToListAsync();
 
-            //foreach (var l in othersInLines)
-            //{
-            //    var lineinfo = await GetLineInfo(l.LineMemberId);
-            //    await notifierHub.NotifyUserPositionChange(l.LineMember.SwiftLineUser.Id, lineinfo);
-            //}
-
-            var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = 5 };
-            await Parallel.ForEachAsync(othersInLines, parallelOptions, async (l, token) =>
+            foreach (var l in othersInLines)
             {
+
                 string userId = l.LineMember.SwiftLineUser.Id;
                 var lineinfo = await lineRepo.GetUserLineInfo(userId);
+                await notifierHub.NotifyUserPositionChange(userId, lineinfo);
+            }
 
-                await notifierHub.NotifyUserPositionChange(l.LineMember.SwiftLineUser.Id, lineinfo);
-            });
+            //var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = 5 };
+            //await notifierHub.UpdateIsUserInQueue(line.LineMember.SwiftLineUser.Id);
+            //await Parallel.ForEachAsync(othersInLines, parallelOptions, async (l, token) =>
+            //{
+            //    //string userId = l.LineMember.SwiftLineUser.Id;
+            //    //using var dbContext = _dbContextFactory.CreateDbContext();
+
+            //    //// Create a new repository instance (or pass the new context to your method)
+            //    //var newLineRepo = new LineRepository(dbContext);
+
+            //    //var lineinfo = await newLineRepo.GetUserLineInfo(userId);
+
+            //    //I'll come back to this later, i Think I need to refactor whereby i use a dbcontext to manage the contexts lifecycle
+            //    var lineinfo = await lineRepo.GetUserLineInfo(userId);
+            //    await notifierHub.NotifyUserPositionChange(userId, lineinfo);
+            //});
         }
     }
 }

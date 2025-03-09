@@ -57,7 +57,7 @@ namespace Infrastructure.Repositories
         {
             var timeNow = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1));
 
-
+            var unfinishedEvents = await dbContext.Lines.Where(x=>!x.IsAttendedTo).Include(x=>x.LineMember).Select(x => x.LineMember.EventId).ToListAsync();
             return await dbContext.Events
                 .AsNoTracking()
                 .Where(x => x.IsActive &&
@@ -67,7 +67,7 @@ namespace Infrastructure.Repositories
                             ? (timeNow >= x.EventStartTime && timeNow <= x.EventEndTime)
                             // For events that span midnight:
                             : (timeNow >= x.EventStartTime || timeNow <= x.EventEndTime)
-                        ))
+                        ) || unfinishedEvents.Contains(x.Id))
                 .ToListAsync();
         }
 
@@ -103,7 +103,7 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> JoinEvent(string userId, long eventId)
         {
-            if (await isUserInLine(userId)) 
+            if (!await isUserInLine(userId)) 
             {
                 LineMember newQueueMember = new LineMember
                 {

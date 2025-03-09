@@ -28,6 +28,7 @@ namespace SwiftLine.API
 
             await base.OnDisconnectedAsync(exception);
         }
+
        
         public async Task BroadcastQueueUpdate(string eventId, object queueUpdate)
         {
@@ -39,6 +40,7 @@ namespace SwiftLine.API
             await notifier.NotifyUserPositionChange(userId, lineInfoRes);
            
         }
+   
 
 
 

@@ -18,6 +18,8 @@ namespace Domain.Interfaces
         //public Task<LineInfoRes> GetLineInfo(long LineMemberId);
         public Task<LineInfoRes> GetUserLineInfo(string UserId);
 
+        public bool GetUserQueueStatus(string UserId);
+
         public Task<Line?> GetFirstLineMember(long eventId);
         public Task<bool> ServeUser(long lineMemberId);
     }
@@ -28,6 +30,8 @@ namespace Domain.Interfaces
         //public Task<Result<LineInfoRes>> GetLineInfo(long LineMemberId);
 
         public Task<Result<LineInfoRes>> GetUserLineInfo(string UserId);
+
+        public Result<bool> GetUserQueueStatus(string UserId);
 
         public Task<Result<bool>> ServeUser(long lineMemberId);
     }

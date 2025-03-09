@@ -17,6 +17,12 @@ namespace SwiftLine.API.Controllers
         {
             var res = await lineService.GetUserLineInfo(UserId);
             return res.ToActionResult();
+        }  
+        [HttpGet()]
+        public ActionResult<Result<bool>> GetUserQueueStatus()
+        {
+            var res =  lineService.GetUserQueueStatus(UserId);
+            return res.ToActionResult();
         } 
         [HttpPost("{LineMemberId}")]
         [Authorize(Roles = Roles.Admin)]

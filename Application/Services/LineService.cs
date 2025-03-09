@@ -33,6 +33,13 @@ namespace Application.Services
             return Result<LineInfoRes>.Ok(lineInfo);
         }
 
+        public Result<bool> GetUserQueueStatus(string UserId)
+        {
+            var lineQueuestatus = lineRepo.GetUserQueueStatus(UserId);
+
+            return Result<bool>.Ok(lineQueuestatus);
+        }
+
         public async Task<Result<bool>> ServeUser(long lineMemberId)
         {
             bool isServed = await lineRepo.ServeUser(lineMemberId);
