@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "composeLaunchAction": "LaunchBrowser",
+      "composeLaunchServiceName": "swiftline.api",
+      "composeLaunchUrl": "http://0.0.0.0:5000/",
+      "serviceActions": {
+        "swiftline.api": "StartDebugging",
+        "swiftline.database": "StartWithoutDebugging"
+      }
+    }
+  }
+}

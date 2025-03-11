@@ -18,6 +18,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SwiftLine.API;
+using SwiftLine.API.Extensions;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,7 +32,7 @@ builder.Services.AddIdentity<SwiftLineUser, IdentityRole>().AddEntityFrameworkSt
 
 builder.Services.AddDbContext<SwiftLineDatabaseContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Database"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Database"));
 });
 builder.Services.AddOpenApi();
 
@@ -106,8 +107,13 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials(); // Required for SignalR with credentials
+
+
     });
 });
+
+
+
 
 builder.Services.AddOpenApi(options =>
 {
@@ -119,13 +125,13 @@ builder.Services.AddSignalR(options =>
     options.EnableDetailedErrors = true;
 });
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.ApplyMigrations();
 }
 //app.MapIdentityApi<SwiftLineUser>();
 
