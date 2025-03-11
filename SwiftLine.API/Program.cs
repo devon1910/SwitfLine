@@ -108,7 +108,6 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowCredentials(); // Required for SignalR with credentials
 
-
     });
 });
 
@@ -131,7 +130,6 @@ var app = builder.Build();
 app.MapOpenApi();
 if (app.Environment.IsDevelopment())
 {
-
     app.ApplyMigrations();
 }
 //app.MapIdentityApi<SwiftLineUser>();
@@ -144,7 +142,7 @@ app.UseSwaggerUI(options =>
 
 });
 app.UseCors();
-app.UseMiddleware<ExceptionMiddleware>();
+//app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
