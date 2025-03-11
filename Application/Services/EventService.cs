@@ -69,5 +69,11 @@ namespace Application.Services
             return Result<List<Line>>.Ok(lines);
         }
 
+        public async Task<Result<List<Event>>> GetUserEvents(string userId)
+        {
+            var userEvents = await eventRepo.GetUserEvents(userId);
+
+            return Result<List<Event>>.Ok(userEvents);
+        }
     }
 }

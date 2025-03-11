@@ -101,6 +101,11 @@ namespace Infrastructure.Repositories
 
         }
 
+        public async Task<List<Event>> GetUserEvents(string userId)
+        {
+            return await dbContext.Events.Where(x => x.CreatedBy == userId).ToListAsync();
+        }
+
         public async Task<bool> JoinEvent(string userId, long eventId)
         {
             if (!await isUserInLine(userId)) 

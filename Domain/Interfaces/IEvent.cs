@@ -27,6 +27,8 @@ namespace Domain.Interfaces
 
         public Task<List<Line>> GetEventQueue(long eventId);
 
+        public Task<List<Event>> GetUserEvents(string userId);
+
     }
     public interface IEventService
     {
@@ -41,6 +43,8 @@ namespace Domain.Interfaces
         public Task<Result<List<Line>>> GetEventQueue(long eventId);
 
         public Task<Result<List<Event>>> GetAllEvents();
+
+        public Task<Result<List<Event>>> GetUserEvents(string userId);
 
     }
 }
