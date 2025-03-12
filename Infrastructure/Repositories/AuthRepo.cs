@@ -6,7 +6,9 @@ using Domain.Models;
 using FluentEmail.Core;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -24,7 +26,8 @@ namespace Infrastructure.Repositories
                                 SwiftLineDatabaseContext _context, 
                                 ITokenRepo _tokenService,
                                 IFluentEmail _fluentEmail,
-                                ILogger<AuthRepo> _logger) : IAuthRepo
+                                ILogger<AuthRepo> _logger,
+                                IConfiguration _configuration) : IAuthRepo
     {
  
         public async Task<AuthRes> Signup(SignupModel model)
@@ -32,9 +35,13 @@ namespace Infrastructure.Repositories
             var existingUser = await _userManager.FindByNameAsync(model.Email);
             if (existingUser != null)
             {
-                return new AuthRes(false,"User already exists","","","","",false);
+                return new AuthRes(false,
+                    existingUser.IsEmailVerified 
+                    ? "User already exists"
+                    : "User already exists but email is not verified. Please check your email for the verification link and follow the instructions.", "","","","",false);
             }
 
+           
             // Create User role if it doesn't exist
             if ((await _roleManager.RoleExistsAsync(Roles.User)) == false)
             {
@@ -80,8 +87,25 @@ namespace Infrastructure.Repositories
                 _logger.LogError($"Failed to add role to the user. Errors : {string.Join(",", errors)}");
             }
 
+            List<Claim> authClaims = [
+                   new (ClaimTypes.Name, user.UserName),
+                        new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                        new (ClaimTypes.NameIdentifier, user.Id),
+                        new ("purpose", "Email_Verification"),
+                        // unique id for token
+                        ];
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            // adding roles to the claims. So that we can get the user role from the token.
+            foreach (var userRole in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
+
+            var token = _tokenService.GenerateAccessToken(authClaims);
             //Send Email Verification
-            bool isMailSent= await VerifyEmail(user.Email); 
+            bool isMailSent= await SendEmailVerifyLink(user.Email, token); 
            
             return new(isMailSent ? true : false,
                 isMailSent ? "A link has been sent to your email, Kindly follow the instructions. Didn't receive the mail in your inbox? Please check your spam folder. Thanks!"
@@ -99,11 +123,18 @@ namespace Infrastructure.Repositories
                 return new AuthRes(false, "Invalid User name or password.", "", "", "", "",false);
             }
 
+            if (!user.IsEmailVerified)
+            {
+                return new AuthRes(false, "Email Address not verified, please check your email for the verification link and follow the instructions.", "", "", "", "", false);
+            }
+
+
             // creating the necessary claims
             List<Claim> authClaims = [
                     new (ClaimTypes.Name, user.UserName),
                         new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                         new (ClaimTypes.NameIdentifier, user.Id),
+
                         // unique id for token
                         ];
 
@@ -189,16 +220,16 @@ namespace Infrastructure.Repositories
             return true;
         }
 
-        public async Task<bool> VerifyEmail(string RecipientEmail)
+        public async Task<bool> SendEmailVerifyLink(string RecipientEmail, string token)
         {
-            string htmlTemplate = GetEmailTemplate();
-            string link = "https://swiftline-olive.vercel.app/";
+            string htmlTemplate = GetEmailTemplate(); 
+            string link = "https://swiftline-olive.vercel.app/VerifyToken/?token="+token; //come back to this
             var email = await _fluentEmail
                 .To(RecipientEmail)
                 .Subject($"Welcome to Swiftline⚡ - Verify Your Email Address")
                 .Body(htmlTemplate
                 .Replace("{{UserName}}",RecipientEmail)
-                .Replace("{{VerificationLink}}", link), true)
+                .Replace("{{VerificationLink}}", link), true) 
                 .SendAsync();
             _logger.LogInformation("Email Sent Successfully");
             if (!email.Successful)
@@ -208,6 +239,33 @@ namespace Infrastructure.Repositories
                 throw new Exception("Failed to send welcome Email");
             }
             return true;
+        }
+
+        public ClaimsPrincipal VerifyToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]);
+
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidAudience = _configuration["JWT:ValidAudience"],
+                ValidIssuer = _configuration["JWT:ValidIssuer"],
+                ClockSkew = TimeSpan.Zero
+            };
+
+            try
+            {
+                var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
+                return principal;
+            }
+            catch (Exception ex)
+            {
+                throw ex; // Invalid token
+            }
         }
 
         private string GetEmailTemplate()
@@ -314,11 +372,11 @@ namespace Infrastructure.Repositories
                         </div>
                     </body>
                     </html>";
-             //< div class=""logo"">
-             //               <img src = ""https://swiftline-olive.vercel.app/api/placeholder/180/60"" alt=""Swiftline Logo"">
-             //           </div>
+            //< div class=""logo"">
+            //               <img src = ""https://swiftline-olive.vercel.app/api/placeholder/180/60"" alt=""Swiftline Logo"">
+            //           </div>
 
-             //< p > If you have any questions or need assistance, please don't hesitate to contact our support team at <a href=""mailto:support@swiftline.com"" class=""link"">support@swiftline.com</a>.</p>
+            //< p > If you have any questions or need assistance, please don't hesitate to contact our support team at <a href=""mailto:support@swiftline.com"" class=""link"">support@swiftline.com</a>.</p>
 
 
         }

@@ -57,6 +57,7 @@ namespace SwiftLine.API.Controllers
             var res = await eventService.GetUserEvents(UserId);
             return res.ToActionResult();
         }
+       
 
         
     }

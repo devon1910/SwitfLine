@@ -19,7 +19,8 @@ namespace Domain.Interfaces
 
         public Task<bool> Revoke(ClaimsPrincipal User);
 
-        public Task<bool> VerifyEmail(string UserId);
+        public ClaimsPrincipal VerifyToken(string token);
+
     }
 
     public interface IAuthService
@@ -29,5 +30,6 @@ namespace Domain.Interfaces
         public Task<Result<AuthRes>> RefreshToken(TokenModel tokenModel);
         public Task<Result<bool>> Revoke(ClaimsPrincipal User);
 
+        public Result<bool> VerifyToken(string token);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Application.Services;
 using Azure.Core;
+using Domain.AttributeValidator;
 using Domain.Constants;
 using Domain.DTOs.Requests;
 using Domain.DTOs.Responses;
@@ -47,6 +48,15 @@ namespace SwiftLine.API.Controllers
         {
             var res = await service.Revoke(User);
             return res.ToActionResult();
-        }
+        } 
+        
+        [HttpPost]
+        [AllowAnonymous]
+        public ActionResult<Result<bool>> VerifyToken([JwtTokenAttribute] string token)
+        {
+            var res = service.VerifyToken(token);
+            return res.ToActionResult();
+        } 
+       
     }
 }

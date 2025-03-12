@@ -69,5 +69,21 @@ namespace Application.Services
                 return Result<bool>.Failed("Failed to Signup", revokeRes);
             }
         }
+
+        public Result<bool> VerifyToken(string token)
+        {
+            var principal = authRepo.VerifyToken(token);
+            string userId = principal.FindFirst("userId")?.Value;
+            string email = principal.FindFirst("email")?.Value;
+            string purpose = principal.FindFirst("purpose")?.Value;
+
+            if (purpose != "Email_Verification")
+            {
+                return Result<bool>.Failed("Invalid token purpose",false);
+            }
+
+            return Result<bool>.Ok(true);
+        }
+
     }
 }
