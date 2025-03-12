@@ -18,19 +18,16 @@ namespace Domain.Interfaces
         public Task<AuthRes> RefreshToken(TokenModel tokenModel);
 
         public Task<bool> Revoke(ClaimsPrincipal User);
+
+        public Task<bool> VerifyEmail(string UserId);
     }
 
     public interface IAuthService
     {
         public Task<Result<AuthRes>> SignUp(SignupModel model);
-
         public Task<Result<AuthRes>> Login(LoginModel model);
-
         public Task<Result<AuthRes>> RefreshToken(TokenModel tokenModel);
-
         public Task<Result<bool>> Revoke(ClaimsPrincipal User);
 
-
     }
-
 }

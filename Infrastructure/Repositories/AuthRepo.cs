@@ -3,6 +3,7 @@ using Domain.DTOs.Requests;
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
+using FluentEmail.Core;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -10,15 +11,20 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Numerics;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Infrastructure.Repositories
 {
     public class AuthRepo(UserManager<SwiftLineUser> _userManager,
                                 RoleManager<IdentityRole> _roleManager,
-                                SwiftLineDatabaseContext _context, ITokenRepo _tokenService, ILogger<AuthRepo> _logger) : IAuthRepo
+                                SwiftLineDatabaseContext _context, 
+                                ITokenRepo _tokenService,
+                                IFluentEmail _fluentEmail,
+                                ILogger<AuthRepo> _logger) : IAuthRepo
     {
  
         public async Task<AuthRes> Signup(SignupModel model)
@@ -73,7 +79,14 @@ namespace Infrastructure.Repositories
                 var errors = addUserToRoleResult.Errors.Select(e => e.Description);
                 _logger.LogError($"Failed to add role to the user. Errors : {string.Join(",", errors)}");
             }
-            return new(true, "User Created", "", "", user.Id, user.Email,user.IsInQueue);
+
+            //Send Email Verification
+            bool isMailSent= await VerifyEmail(user.Email); 
+           
+            return new(isMailSent ? true : false,
+                isMailSent ? "A link has been sent to your email, Kindly follow the instructions. Didn't receive the mail in your inbox? Please check your spam folder. Thanks!"
+                : "User account created but unable to send out emails at the moment.",
+                "", "", user.Id, user.Email,user.IsInQueue);
 
         }
 
@@ -174,6 +187,140 @@ namespace Infrastructure.Repositories
             user.RefreshToken = string.Empty;
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<bool> VerifyEmail(string RecipientEmail)
+        {
+            string htmlTemplate = GetEmailTemplate();
+            string link = "https://swiftline-olive.vercel.app/";
+            var email = await _fluentEmail
+                .To(RecipientEmail)
+                .Subject($"Welcome to Swiftline⚡ - Verify Your Email Address")
+                .Body(htmlTemplate
+                .Replace("{{UserName}}",RecipientEmail)
+                .Replace("{{VerificationLink}}", link), true)
+                .SendAsync();
+            _logger.LogInformation("Email Sent Successfully");
+            if (!email.Successful)
+            {
+                _logger.LogError("Failed to send email: {Errors}",
+                    string.Join(", ", email.ErrorMessages));
+                throw new Exception("Failed to send welcome Email");
+            }
+            return true;
+        }
+
+        private string GetEmailTemplate()
+        {
+            return @"
+                  <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset=""UTF-8"">
+                        <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+                        <title>Welcome to Swiftline</title>
+                        <style>
+                            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+                            body {
+                                font-family: 'Inter', sans-serif;
+                                line-height: 1.6;
+                                color: #333;
+                                max-width: 600px;
+                                margin: 0 auto;
+                                padding: 20px;
+                                background-color: #f9f9f9;
+                            }
+                            .logo {
+                                text-align: center;
+                                margin-bottom: 30px;
+                            }
+                            .logo img {
+                                max-width: 180px;
+                            }
+                            .container {
+                                background-color: white;
+                                border-radius: 8px;
+                                padding: 30px;
+                                border: 1px solid #eaeaea;
+                            }
+                            h1 {
+                                color: #6B8E6E; /* Sage green */
+                                margin-top: 0;
+                                font-weight: 600;
+                            }
+                            .button {
+                                display: inline-block;
+                                background-color: #6B8E6E; /* Sage green */
+                                color: white;
+                                text-decoration: none;
+                                padding: 12px 30px;
+                                border-radius: 4px;
+                                font-weight: 500;
+                                margin: 20px 0;
+                            }
+                            .expiry-note {
+                                color: #6B8E6E; /* Sage green */
+                                font-weight: 600;
+                                font-size: 14px;
+                                border: 1px solid #6B8E6E;
+                                display: inline-block;
+                                padding: 8px 15px;
+                                border-radius: 4px;
+                            }
+                            .footer {
+                                margin-top: 30px;
+                                font-size: 12px;
+                                color: #666;
+                                text-align: center;
+                            }
+                            .link {
+                                color: #6B8E6E; /* Sage green */
+                                text-decoration: underline;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                       
+    
+                        <div class=""container"">
+                            <h1>Welcome to Swiftline🤗</h1>
+        
+                            <p>Hello {{UserName}},</p>
+        
+                            <p>Thank you for Signing up with Swiftline! We're excited to have you on board. To get started with your account, please verify your email address by clicking the button below:</p>
+        
+                            <div style=""text-align: center;"">
+                                <a href=""{{VerificationLink}}"" class=""button"">Verify Email Address</a>
+                            </div>
+        
+                            <p class=""expiry-note"">⏱️ This verification link expires in 1 hour</p>
+        
+                            <p>If the button above doesn't work, you can copy and paste the following link into your browser:</p>
+        
+                            <p style=""word-break: break-all; font-size: 14px; color: #666;"">{{VerificationLink}}</p>
+        
+                            <p>Swiftline is designed to help you manage your workflow efficiently and boost your productivity. Once your email is verified, you'll have full access to all features.</p>
+        
+                            
+                            <p>Best regards,<br>
+                            The Swiftline Team</p>
+                        </div>
+    
+                        <div class=""footer"">
+                            <p>© 2025 Swiftline. All rights reserved.</p>
+                            <p>Visit our website: <a href=""https://swiftline-olive.vercel.app"" class=""link"">https://swiftline-olive.vercel.app</a></p>
+                            <p>If you didn't create this account, please ignore this email.</p>
+                        </div>
+                    </body>
+                    </html>";
+             //< div class=""logo"">
+             //               <img src = ""https://swiftline-olive.vercel.app/api/placeholder/180/60"" alt=""Swiftline Logo"">
+             //           </div>
+
+             //< p > If you have any questions or need assistance, please don't hesitate to contact our support team at <a href=""mailto:support@swiftline.com"" class=""link"">support@swiftline.com</a>.</p>
+
+
         }
     }
 }

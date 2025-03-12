@@ -19,6 +19,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SwiftLine.API;
 using SwiftLine.API.Extensions;
+using System.Net.Mail;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -110,7 +111,16 @@ builder.Services.AddCors(options =>
 
     });
 });
-
+builder.Services.AddFluentEmail(builder.Configuration["Smtp:FromEmail"]) 
+    .AddSmtpSender(new SmtpClient
+    {
+        Host = builder.Configuration["Smtp:Host"],
+        Port = int.Parse(builder.Configuration["Smtp:Port"]),
+        EnableSsl = true,
+        Credentials = new System.Net.NetworkCredential(
+            builder.Configuration["Smtp:Username"],
+        builder.Configuration["Smtp:Password"])
+    }).AddRazorRenderer();
 
 
 
@@ -142,7 +152,7 @@ app.UseSwaggerUI(options =>
 
 });
 app.UseCors();
-//app.UseMiddleware<ExceptionMiddleware>();
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
