@@ -125,7 +125,7 @@ namespace Infrastructure.Repositories
                 };
                 await dbContext.Lines.AddAsync(queue);
                 SwiftLineUser user = await dbContext.SwiftLineUsers.FindAsync(userId);
-                user.isInQueue = true;
+                user.IsInQueue = true;
                 await dbContext.SaveChangesAsync();
                 return true;
             }
@@ -138,7 +138,7 @@ namespace Infrastructure.Repositories
         {
             var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
 
-            return user.isInQueue;
+            return user.IsInQueue;
         }
 
 

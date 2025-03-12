@@ -61,7 +61,7 @@ namespace Infrastructure.Repositories
         {
            line.IsAttendedTo = true;
            line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
-           line.LineMember.SwiftLineUser.isInQueue = false;
+           line.LineMember.SwiftLineUser.IsInQueue = false;
             await dbContext.SaveChangesAsync();
             return true;
         }
@@ -117,7 +117,7 @@ namespace Infrastructure.Repositories
         public bool GetUserQueueStatus(string UserId)
         {
             var user=  dbContext.SwiftLineUsers.Find( UserId);
-            return user.isInQueue;
+            return user.IsInQueue;
             
         }
     }

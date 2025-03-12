@@ -73,7 +73,7 @@ namespace Infrastructure.Repositories
                 var errors = addUserToRoleResult.Errors.Select(e => e.Description);
                 _logger.LogError($"Failed to add role to the user. Errors : {string.Join(",", errors)}");
             }
-            return new(true, "User Created", "", "", user.Id, user.Email,user.isInQueue);
+            return new(true, "User Created", "", "", user.Id, user.Email,user.IsInQueue);
 
         }
 
@@ -131,7 +131,7 @@ namespace Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
 
-            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id,user.Email,user.isInQueue);
+            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id,user.Email,user.IsInQueue);
            
         }
 
@@ -157,7 +157,7 @@ namespace Infrastructure.Repositories
 
             var user = await _userManager.FindByNameAsync(username); 
 
-            return new AuthRes(true, "Refresh token updated.", newAccessToken, newRefreshToken,user.Id,user.Email, user.isInQueue);
+            return new AuthRes(true, "Refresh token updated.", newAccessToken, newRefreshToken,user.Id,user.Email, user.IsInQueue);
            
         }
 
