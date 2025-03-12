@@ -52,7 +52,7 @@ namespace SwiftLine.API.Controllers
         
         [HttpPost]
         [AllowAnonymous]
-        public ActionResult<Result<bool>> VerifyToken([JwtTokenAttribute] string token)
+        public ActionResult<Result<AuthRes>> VerifyToken([JwtTokenAttribute] string token)
         {
             var res = service.VerifyToken(token);
             return res.ToActionResult();

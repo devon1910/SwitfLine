@@ -108,7 +108,7 @@ namespace Infrastructure.Repositories
             bool isMailSent= await SendEmailVerifyLink(user.Email, token); 
            
             return new(isMailSent ? true : false,
-                isMailSent ? "A link has been sent to your email, Kindly follow the instructions. Didn't receive the mail in your inbox? Please check your spam folder. Thanks!"
+                isMailSent ? "Almost done🎉! a welcome mail has been sent to your email address, kindly follow the instructions. Didn't get it in your inbox? Please check your spam folder or contact the support team. Thanks!"
                 : "User account created but unable to send out emails at the moment.",
                 "", "", user.Id, user.Email,user.IsInQueue);
 
@@ -223,7 +223,7 @@ namespace Infrastructure.Repositories
         public async Task<bool> SendEmailVerifyLink(string RecipientEmail, string token)
         {
             string htmlTemplate = GetEmailTemplate(); 
-            string link = "https://swiftline-olive.vercel.app/VerifyToken/?token="+token; //come back to this
+            string link =  _configuration["SwiftLineBaseUrl"] +token; //come back to this
             var email = await _fluentEmail
                 .To(RecipientEmail)
                 .Subject($"Welcome to Swiftline⚡ - Verify Your Email Address")
@@ -241,7 +241,7 @@ namespace Infrastructure.Repositories
             return true;
         }
 
-        public ClaimsPrincipal VerifyToken(string token)
+        public AuthRes VerifyToken(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]);
@@ -260,7 +260,20 @@ namespace Infrastructure.Repositories
             try
             {
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
-                return principal;
+                string userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+                var user= _context.SwiftLineUsers.Find(userId);
+
+                if (user is null)
+                {
+                    return new AuthRes(false, "Could not found user with the provided token.", "", "", "", "", false);
+                }
+                user.IsEmailVerified = true;
+                _context.SaveChanges();
+                return new AuthRes(true,"Token Validated","","", 
+                    user.Id, 
+                    user.Email,
+                    user.IsInQueue,
+                    principal.FindFirst("purpose")?.Value);
             }
             catch (Exception ex)
             {

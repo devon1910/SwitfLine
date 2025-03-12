@@ -19,7 +19,7 @@ namespace Domain.Interfaces
 
         public Task<bool> Revoke(ClaimsPrincipal User);
 
-        public ClaimsPrincipal VerifyToken(string token);
+        public AuthRes VerifyToken(string token);
 
     }
 
@@ -30,6 +30,6 @@ namespace Domain.Interfaces
         public Task<Result<AuthRes>> RefreshToken(TokenModel tokenModel);
         public Task<Result<bool>> Revoke(ClaimsPrincipal User);
 
-        public Result<bool> VerifyToken(string token);
+        public Result<AuthRes> VerifyToken(string token);
     }
 }

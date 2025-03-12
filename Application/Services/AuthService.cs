@@ -70,19 +70,16 @@ namespace Application.Services
             }
         }
 
-        public Result<bool> VerifyToken(string token)
+        public Result<AuthRes> VerifyToken(string token)
         {
-            var principal = authRepo.VerifyToken(token);
-            string userId = principal.FindFirst("userId")?.Value;
-            string email = principal.FindFirst("email")?.Value;
-            string purpose = principal.FindFirst("purpose")?.Value;
+            var authRes = authRepo.VerifyToken(token);
 
-            if (purpose != "Email_Verification")
+            if (authRes.purpose != "Email_Verification")
             {
-                return Result<bool>.Failed("Invalid token purpose",false);
+                return Result<AuthRes>.Failed("Invalid token purpose", authRes);
             }
 
-            return Result<bool>.Ok(true);
+            return Result<AuthRes>.Ok(authRes);
         }
 
     }
