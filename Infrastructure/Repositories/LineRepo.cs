@@ -284,8 +284,10 @@ namespace Infrastructure.Repositories
                         <body>
                             <div class=""container"">
                                 <!-- Header -->
+                                <div class=""header"">
+                                    <img src = ""https://res.cloudinary.com/dddabj5ub/image/upload/v1741908218/swifline_logo_cpsacv.webp"" alt=""Swiftline"" class=""logo"">
+                                </div>
                                 
-        
                                 <!-- Main Content -->
                                 <div class=""content"">
                                     <h1>You're Almost Up!</h1>
@@ -328,10 +330,7 @@ namespace Infrastructure.Repositories
                         </body>
                         </html>";
 
-            //< div class=""header"">
-            //                        <!-- Replace with actual logo image URL -->
-            //                        <img src = ""https://example.com/swiftline-logo.png"" alt=""Swiftline"" class=""logo"">
-            //                    </div>
+                                
         }
     }
 }

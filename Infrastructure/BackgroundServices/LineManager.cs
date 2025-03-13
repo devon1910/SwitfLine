@@ -47,14 +47,10 @@ namespace Infrastructure.BackgroundServices
                             await linesRepo.MarkUserAsAttendedTo(line);
                             await notifier.BroadcastLineUpdate(line);
                             await linesRepo.NotifyFifthMember(e.Id);
-
                         }
-
                     }
-
                     await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
                 }
-
             }
             catch (Exception ex)
             {

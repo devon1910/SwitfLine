@@ -96,7 +96,7 @@ builder.Services.AddSwaggerGen(options =>
                             Name = "Bearer"
                         }, new List<string>()
                     }
-                });
+        });
 
     });
 

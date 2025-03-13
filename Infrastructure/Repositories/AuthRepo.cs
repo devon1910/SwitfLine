@@ -357,8 +357,10 @@ namespace Infrastructure.Repositories
                        
     
                         <div class=""container"">
-                           
-        
+                            
+                            <div class=""header"">
+                                 <img src = ""https://res.cloudinary.com/dddabj5ub/image/upload/v1741908218/swifline_logo_cpsacv.webp"" alt=""Swiftline"" class=""logo"">
+                            </div>
                             <p>Hello {{UserName}},</p>
         
                             <p>Thank you for Signing up with Swiftline! We're excited to have you on board. To get started with your account, please verify your email address by clicking the button below:</p>
@@ -390,10 +392,7 @@ namespace Infrastructure.Repositories
                     </body>
                     </html>";
 
-//              < div class=""logo"">
-//                           <img style = ""style=width: 60px; margin-bottom: 1em; display: block; margin-left: auto; margin-right: auto;""
-//src = ""https://media-hosting.imagekit.io//6f445e007cc74d9e/swifline_logo.webp?Expires=1836439304&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=vJ5r56sZuDVm1UFUr3qSMU7L~InBoubqGGRjK2QVMOLNP057l9gP3oho6wXYo0HwP2DjdYpJHWScz5ZYEkqCuzLmplHdZF3mHBWhVnNczB-C-5Ac4eLgBOw0KPt~ieI62GInXhVLyBF58MvOeoFhSrP6hM17EN307XAnUkelCR2XfCcYu746ItonZ3arrC3k7ZE1F6NjqrV7zcPf9X0OdcZd5vlq5mRUWklwAiChanubKtBtS3Iwu7gvzqjhQPID5B34eWRRHENaXfGZPQKRywvwR2svax53QJbVNIm3RLcR0691~L527KuqDRS1wa7HNVwJWbTi5WxNxrc16G-HSA__"" alt=""Swiftline Logo"">
-//                        </div>
+                   
         }
     }
 }
