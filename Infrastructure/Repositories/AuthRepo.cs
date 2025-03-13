@@ -357,7 +357,7 @@ namespace Infrastructure.Repositories
                        
     
                         <div class=""container"">
-                            <h1>Welcome to Swiftline 🤗</h1>
+                           
         
                             <p>Hello {{UserName}},</p>
         
