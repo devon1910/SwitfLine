@@ -11,8 +11,8 @@ namespace Domain.DTOs.Requests
         public required string Title { get; init; }
         public required string Description { get; init; }
         public required int AverageTime { get; init; }
-        public required string StartTime { get; init; }
-        public required string EndTime { get; init; }
+        public required string EventStartTime { get; init; }
+        public required string EventEndTime { get; init; }
     }
     public record EditEventReq 
     {
@@ -20,7 +20,7 @@ namespace Domain.DTOs.Requests
         public required string Title { get; init; }
         public required string Description { get; init; }
         public required int AverageTime { get; init; }
-        public required string StartTime { get; init; }
-        public required string EndTime { get; init; }
+        public required string EventStartTime { get; init; }
+        public required string EventEndTime { get; init; }
     }
 }

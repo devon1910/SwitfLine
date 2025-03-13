@@ -25,8 +25,8 @@ namespace Infrastructure.Repositories
                 Description = req.Description,
                 AverageTime = req.AverageTime,
                 CreatedBy = userId,              
-                EventStartTime = TimeOnly.TryParse(req.StartTime, out _) ? TimeOnly.Parse(req.StartTime) : default,
-                EventEndTime = TimeOnly.TryParse(req.EndTime, out _) ? TimeOnly.Parse(req.EndTime) : default
+                EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default,
+                EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default
 
             };
             await dbContext.Events.AddAsync(newEvent);
@@ -45,8 +45,8 @@ namespace Infrastructure.Repositories
 
             @event.Title = req.Title;
             @event.AverageTime = req.AverageTime;
-            @event.EventStartTime = TimeOnly.TryParse(req.StartTime, out _) ? TimeOnly.Parse(req.StartTime) : default;
-            @event.EventEndTime = TimeOnly.TryParse(req.EndTime, out _) ? TimeOnly.Parse(req.EndTime) : default;   
+            @event.EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default;
+            @event.EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default;   
             @event.Description = req.Description;
             await dbContext.SaveChangesAsync();
             return true;
