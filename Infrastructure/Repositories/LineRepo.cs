@@ -134,13 +134,13 @@ namespace Infrastructure.Repositories
                 .AsSplitQuery()
                 .Where(x => x.LineMember.EventId == eventId)
                 .OrderBy(x => x.CreatedAt)
-                //.Skip(4)
+                .Skip(4)
                 .FirstOrDefaultAsync();
 
            
             if (user is not null) 
             {
-                int EstimatedTime = (user.LineMember.Event.AverageTimeToServeSeconds) / 60; //use five later
+                int EstimatedTime = (user.LineMember.Event.AverageTimeToServeSeconds * 5) / 60; 
                 await SendReminderMail(user.LineMember.SwiftLineUser.Email, EstimatedTime);
             }
 
