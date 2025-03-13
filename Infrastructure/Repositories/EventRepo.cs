@@ -95,6 +95,7 @@ namespace Infrastructure.Repositories
             var lines = await dbContext.Lines
                         .Where(x =>!x.IsAttendedTo)
                         .Include(x => x.LineMember)
+                        .ThenInclude(x=>x.SwiftLineUser)
                         .Where(x => x.LineMember.EventId == eventId)
                         .ToListAsync();
             return lines;

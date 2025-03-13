@@ -134,23 +134,24 @@ namespace Infrastructure.Repositories
                 .AsSplitQuery()
                 .Where(x => x.LineMember.EventId == eventId)
                 .OrderBy(x => x.CreatedAt)
-                .Skip(4)
+                //.Skip(4)
                 .FirstOrDefaultAsync();
 
-            int EstimatedTime = (user.LineMember.Event.AverageTimeToServeSeconds * 5) / 60;
+           
             if (user is not null) 
             {
-                SendReminderMail(user.LineMember.SwiftLineUser.Email, EstimatedTime);
+                int EstimatedTime = (user.LineMember.Event.AverageTimeToServeSeconds) / 60; //use five later
+                await SendReminderMail(user.LineMember.SwiftLineUser.Email, EstimatedTime);
             }
 
         }
         private async Task<bool> SendReminderMail(string RecipientEmail, int EstimatedTime)
         {
             string htmlTemplate = GetEmailTemplate();
-            string link = _configuration["SwiftLineBaseUrl"]; 
+            string link = _configuration["SwiftLineBaseUrlForReminder"]; 
             var email = await _fluentEmail
                 .To(RecipientEmail)
-                .Subject($"Welcome to Swiftline⚡ - Verify Your Email Address")
+                .Subject($"Your Turn is Coming Up Soon - Swiftline")
                 .Body(htmlTemplate
                 .Replace("[UserName]", RecipientEmail)
                 .Replace("[swiftlinelink]", link)
@@ -295,7 +296,7 @@ namespace Infrastructure.Repositories
             
                                     <div class=""timer-container"">
                                         <div class=""time-label"">Estimated time until your turn:</div>
-                                        <div class=""estimated-time"">[estimatedTime]</div>
+                                        <div class=""estimated-time"">[estimatedTime] minutes</div>
                                     </div>
             
                                     <div class=""urgency-note"">
