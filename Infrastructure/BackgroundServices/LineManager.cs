@@ -26,7 +26,7 @@ namespace Infrastructure.BackgroundServices
                 // Initialize cache and refresh tracking
                 IEnumerable<Event> cachedEvents = [];
                 DateTime lastCacheRefresh = DateTime.MinValue;
-                TimeSpan cacheRefreshInterval = TimeSpan.FromSeconds(60); // Adjust interval as needed
+                TimeSpan cacheRefreshInterval = TimeSpan.FromMinutes(1); // Adjust interval as needed
 
                 while (!stoppingToken.IsCancellationRequested)
                 {
@@ -46,6 +46,8 @@ namespace Infrastructure.BackgroundServices
                         {
                             await linesRepo.MarkUserAsAttendedTo(line);
                             await notifier.BroadcastLineUpdate(line);
+                            await linesRepo.NotifyFifthMember(e.Id);
+
                         }
 
                     }

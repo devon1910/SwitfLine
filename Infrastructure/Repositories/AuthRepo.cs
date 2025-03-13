@@ -120,12 +120,12 @@ namespace Infrastructure.Repositories
             bool isValidPassword = await _userManager.CheckPasswordAsync(user, model.Password);
             if (user is null || !isValidPassword)
             {
-                return new AuthRes(false, "Invalid User name or password.", "", "", "", "",false);
+                return new AuthRes(false, "Invalid user name or password.", "", "", "", "",false);
             }
 
             if (!user.IsEmailVerified)
             {
-                return new AuthRes(false, "Email Address not verified, please check your email for the verification link and follow the instructions.", "", "", "", "", false);
+                return new AuthRes(false, "Email address not verified, please check your email for the verification link and follow the instructions.", "", "", "", "", false);
             }
 
 
@@ -289,6 +289,8 @@ namespace Infrastructure.Repositories
                     <head>
                         <meta charset=""UTF-8"">
                         <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+                      
+
                         <title>Welcome to Swiftline</title>
                         <style>
                             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -355,7 +357,7 @@ namespace Infrastructure.Repositories
                        
     
                         <div class=""container"">
-                            <h1>Welcome to Swiftline🤗</h1>
+                            <h1>Welcome to Swiftline 🤗</h1>
         
                             <p>Hello {{UserName}},</p>
         
@@ -372,7 +374,9 @@ namespace Infrastructure.Repositories
                             <p style=""word-break: break-all; font-size: 14px; color: #666;"">{{VerificationLink}}</p>
         
                             <p>Swiftline is designed to help you manage your workflow efficiently and boost your productivity. Once your email is verified, you'll have full access to all features.</p>
-        
+                            
+                            <p> If you have any questions or need assistance, please don't hesitate to contact our support team at <a href=""mailto:swiftline00@gmail.com"" class=""link"">swiftline00@gmail.com</a>.</p>
+
                             
                             <p>Best regards,<br>
                             The Swiftline Team</p>
@@ -385,13 +389,11 @@ namespace Infrastructure.Repositories
                         </div>
                     </body>
                     </html>";
-            //< div class=""logo"">
-            //               <img src = ""https://swiftline-olive.vercel.app/api/placeholder/180/60"" alt=""Swiftline Logo"">
-            //           </div>
 
-            //< p > If you have any questions or need assistance, please don't hesitate to contact our support team at <a href=""mailto:support@swiftline.com"" class=""link"">support@swiftline.com</a>.</p>
-
-
+//              < div class=""logo"">
+//                           <img style = ""style=width: 60px; margin-bottom: 1em; display: block; margin-left: auto; margin-right: auto;""
+//src = ""https://media-hosting.imagekit.io//6f445e007cc74d9e/swifline_logo.webp?Expires=1836439304&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=vJ5r56sZuDVm1UFUr3qSMU7L~InBoubqGGRjK2QVMOLNP057l9gP3oho6wXYo0HwP2DjdYpJHWScz5ZYEkqCuzLmplHdZF3mHBWhVnNczB-C-5Ac4eLgBOw0KPt~ieI62GInXhVLyBF58MvOeoFhSrP6hM17EN307XAnUkelCR2XfCcYu746ItonZ3arrC3k7ZE1F6NjqrV7zcPf9X0OdcZd5vlq5mRUWklwAiChanubKtBtS3Iwu7gvzqjhQPID5B34eWRRHENaXfGZPQKRywvwR2svax53QJbVNIm3RLcR0691~L527KuqDRS1wa7HNVwJWbTi5WxNxrc16G-HSA__"" alt=""Swiftline Logo"">
+//                        </div>
         }
     }
 }

@@ -22,6 +22,8 @@ namespace Domain.Interfaces
 
         public Task<Line?> GetFirstLineMember(long eventId);
         public Task<bool> ServeUser(long lineMemberId);
+
+        public Task NotifyFifthMember(long eventId);
     }
     public interface ILineService
     {
