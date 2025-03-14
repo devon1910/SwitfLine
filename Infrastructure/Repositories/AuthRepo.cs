@@ -351,6 +351,12 @@ namespace Infrastructure.Repositories
                                 color: #6B8E6E; /* Sage green */
                                 text-decoration: underline;
                             }
+                             .center {
+                                display: block;
+                                margin-left: auto;
+                                margin-right: auto;
+                                width: 30%;
+                            }
                         </style>
                     </head>
                     <body>
@@ -359,7 +365,7 @@ namespace Infrastructure.Repositories
                         <div class=""container"">
                             
                             <div class=""header"">
-                                 <img src = ""https://res.cloudinary.com/dddabj5ub/image/upload/v1741908218/swifline_logo_cpsacv.webp"" alt=""Swiftline"" class=""logo"">
+                                 <img src = ""https://res.cloudinary.com/dddabj5ub/image/upload/v1741908218/swifline_logo_cpsacv.webp"" alt=""Swiftline"" class=""center"">
                             </div>
                             <p>Hello {{UserName}},</p>
         
