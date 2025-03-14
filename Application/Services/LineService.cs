@@ -40,15 +40,6 @@ namespace Application.Services
             return Result<bool>.Ok(lineQueuestatus);
         }
 
-        public async Task<Result<bool>> ExitQueue(long lineMemberId)
-        {
-            bool isServed = await lineRepo.ExitQueue(lineMemberId);
-
-            if (isServed)
-            {
-                return Result<bool>.Ok(true);
-            }
-            return Result<bool>.Failed("Failed to Exit Line.");
-        }
+        
     }
 }

@@ -24,11 +24,6 @@ namespace SwiftLine.API.Controllers
             var res =  lineService.GetUserQueueStatus(UserId);
             return res.ToActionResult();
         } 
-        [HttpPost("{LineMemberId}")]
-        public async Task<ActionResult<Result<bool>>> ExitQueue(long LineMemberId)
-        {
-            var res = await lineService.ExitQueue(LineMemberId);
-            return res.ToActionResult();
-        }
+       
     }
 }

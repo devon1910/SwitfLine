@@ -14,14 +14,14 @@ namespace Domain.Interfaces
     {
         public Task<List<Line>> GetLines();
         public Task<bool> IsUserAttendedTo(Line line);  
-        public Task<bool> MarkUserAsAttendedTo(Line line);
+        public Task<bool> MarkUserAsAttendedTo(Line line,string status);
         //public Task<LineInfoRes> GetLineInfo(long LineMemberId);
         public Task<LineInfoRes> GetUserLineInfo(string UserId);
 
         public bool GetUserQueueStatus(string UserId);
 
         public Task<Line?> GetFirstLineMember(long eventId);
-        public Task<bool> ExitQueue(long lineMemberId);
+       
 
         public Task NotifyFifthMember(Line line);
     }
@@ -35,7 +35,6 @@ namespace Domain.Interfaces
 
         public Result<bool> GetUserQueueStatus(string UserId);
 
-        public Task<Result<bool>> ExitQueue(long lineMemberId);
 
     }
 }

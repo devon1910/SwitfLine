@@ -18,14 +18,7 @@ namespace SwiftLine.API.Controllers
             return res.ToActionResult();
         }
 
-        [HttpPost]
-        public async Task<ActionResult<Result<bool>>> JoinEvent(long EventId)
-        {
-
-            var res = await eventService.JoinEvent(UserId, EventId);
-            return res.ToActionResult();
-        }
-
+      
         [HttpPut]
         public async Task<ActionResult<Result<bool>>> EditEvent(EditEventReq req)
         {

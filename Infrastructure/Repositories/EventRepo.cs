@@ -102,30 +102,29 @@ namespace Infrastructure.Repositories
 
         }
 
-        public async Task<bool> JoinEvent(string userId, long eventId)
+        public async Task<LineMember> JoinEvent(string userId, long eventId)
         {
-            if (!await isUserInLine(userId)) 
+            if (await isUserInLine(userId)) return new LineMember();
+
+            LineMember newQueueMember = new LineMember
             {
-                LineMember newQueueMember = new LineMember
-                {
-                    EventId = eventId,
-                    UserId = userId
-                };
+                EventId = eventId,
+                UserId = userId
+            };
 
-                await dbContext.LineMembers.AddAsync(newQueueMember);
-                await dbContext.SaveChangesAsync();
+            await dbContext.LineMembers.AddAsync(newQueueMember);
+            await dbContext.SaveChangesAsync();
 
-                Line queue = new()
-                {
-                    LineMemberId = newQueueMember.Id
-                };
-                await dbContext.Lines.AddAsync(queue);
-                SwiftLineUser user = await dbContext.SwiftLineUsers.FindAsync(userId);
-                user.IsInQueue = true;
-                await dbContext.SaveChangesAsync();
-                return true;
-            }
-            return false;
+            Line queue = new()
+            {
+                LineMemberId = newQueueMember.Id
+            };
+            await dbContext.Lines.AddAsync(queue);
+
+            SwiftLineUser user = await dbContext.SwiftLineUsers.FindAsync(userId);
+            user.IsInQueue = true;
+            await dbContext.SaveChangesAsync();
+            return newQueueMember;
 
 
         }
@@ -145,6 +144,15 @@ namespace Infrastructure.Repositories
         public async Task<List<Event>> GetUserEvents(string userId)
         {
             return await dbContext.Events.Where(x => x.CreatedBy == userId).ToListAsync();
+        }
+
+        public async Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "")
+        {
+            Line line = dbContext.Lines.FirstOrDefault(x => x.LineMemberId == lineMemberId);
+
+            await lineRepo.MarkUserAsAttendedTo(line,"");
+            await lineRepo.NotifyFifthMember(line);
+            return true;
         }
     }
 }

@@ -16,7 +16,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace Infrastructure.Repositories
 {
-    public class LineRepo(SwiftLineDatabaseContext dbContext, IConfiguration _configuration, IFluentEmail _fluentEmail,INotifierRepo notifier) : ILineRepo
+    public class LineRepo(SwiftLineDatabaseContext dbContext, IConfiguration _configuration, IFluentEmail _fluentEmail) : ILineRepo
     {
         
 
@@ -60,10 +60,11 @@ namespace Infrastructure.Repositories
             return false;
         }
 
-        public async Task<bool> MarkUserAsAttendedTo(Line line)
+        public async Task<bool> MarkUserAsAttendedTo(Line line, string status)
         {
-           line.IsAttendedTo = true;
-           line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
+            line.IsAttendedTo = true;
+            line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
+            line.Status = status;
             SwiftLineUser? user = await dbContext.SwiftLineUsers.FindAsync(line.LineMember.UserId);
             user.IsInQueue = false;
             await dbContext.SaveChangesAsync();
@@ -82,16 +83,6 @@ namespace Infrastructure.Repositories
                 .FirstOrDefaultAsync();      
         }
 
-        public async Task<bool> ExitQueue(long lineMemberId)
-        {
-            Line line = dbContext.Lines.FirstOrDefault(x => x.LineMemberId == lineMemberId);
-
-            await MarkUserAsAttendedTo(line);
-            await notifier.BroadcastLineUpdate(line);
-            await NotifyFifthMember(line);
-
-            return true;
-        }
 
         public async Task<LineInfoRes> GetUserLineInfo(string UserId)
         {

@@ -15,7 +15,7 @@ namespace Domain.Interfaces
 
         public Task<bool> EditEvent(EditEventReq req);
 
-        public Task<bool> JoinEvent(string userId, long eventId);
+        public Task<LineMember> JoinEvent(string userId, long eventId);
 
         //public Task<bool> ServeLineMember(string userId, long eventId);
 
@@ -31,12 +31,14 @@ namespace Domain.Interfaces
 
         public void DeleteEvent(long Id);
 
+        public Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "");
+
     }
     public interface IEventService
     {
         public Task<Result<bool>> CreateEvent(string userId, CreateEventModel req);
 
-        public Task<Result<bool>> JoinEvent(string userId, long eventId);
+        public Task<Result<LineMember>> JoinEvent(string userId, long eventId);
 
         public Task<Result<bool>> EditEvent(EditEventReq req);
 
@@ -49,6 +51,5 @@ namespace Domain.Interfaces
         public Task<Result<List<Event>>> GetUserEvents(string userId);
 
         public Result<bool> DeleteEvent(long Id);
-
     }
 }

@@ -19,7 +19,7 @@ namespace Domain.Models
 
         public DateTime DateStartedBeingAttendedTo { get; set; }
         public DateTime DateCompletedBeingAttendedTo { get; set; }
-        [AllowedValues(["pending","served","left"],ErrorMessage ="The value passed is not allowed")]
+        [AllowedValues(["pending","served","exitedByUser","exitedByAdmin"],ErrorMessage ="The value passed is not allowed")]
         public string Status { get; set; } = "pending";
     }
 }

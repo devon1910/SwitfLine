@@ -8,15 +8,18 @@ using System.Threading.Tasks;
 
 namespace Domain.Interfaces
 {
-    public interface INotifier
+    public interface INotifier //calls repo methods within it
     {
         public Task JoinQueueGroup(int eventId, string userId, string ConnectionId);
         public Task OnDisconnectedAsync(string ConnectionId);
         public Task NotifyUserPositionChange(string userId, LineInfoRes lineInfoRes);
+        public Task ExitQueue(string userId,long lineMemberId, string adminId= "");
 
     }
-    public interface INotifierRepo
+    public interface INotifierRepo // Repo methods needed for INotifier
     {
         public Task BroadcastLineUpdate(Line line);
+
+        public Task ExitQueue(string userId, long lineMemberId, string adminId = "");
     }
 }

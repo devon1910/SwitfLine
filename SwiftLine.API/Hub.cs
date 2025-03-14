@@ -40,9 +40,10 @@ namespace SwiftLine.API
             await notifier.NotifyUserPositionChange(userId, lineInfoRes);
            
         }
-   
 
-
-
+        public async Task ExitQueue(string userId, long lineMemberId, string adminId = "")
+        {
+            await notifier.ExitQueue(userId, lineMemberId, adminId);
+        }
     }
 }

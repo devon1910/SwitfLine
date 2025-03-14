@@ -7,9 +7,14 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace SwiftLine.API
 {
-    public class Notifier(IHubContext<SwiftLineHub> _hubContext, IEventRepo eventRepo) : INotifier
+    public class Notifier(IHubContext<SwiftLineHub> _hubContext, IEventRepo eventRepo,INotifierRepo notifierRepo) : INotifier
     {
         private static Dictionary<string, string> _userConnections = new Dictionary<string, string>();
+
+        public async Task ExitQueue(string userId, long lineMemberId, string adminId = "")
+        {
+            await notifierRepo.ExitQueue(userId,lineMemberId,adminId);
+        }
 
         public async Task JoinQueueGroup(int eventId, string userId, string ConnectionId)
         {

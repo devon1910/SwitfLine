@@ -44,7 +44,7 @@ namespace Infrastructure.BackgroundServices
 
                         if (line is not null && await linesRepo.IsUserAttendedTo(line))
                         {
-                            await linesRepo.MarkUserAsAttendedTo(line);
+                            await linesRepo.MarkUserAsAttendedTo(line,"served");
                             await notifier.BroadcastLineUpdate(line);
                             await linesRepo.NotifyFifthMember(line);
                         }

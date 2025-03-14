@@ -14,9 +14,21 @@ namespace Infrastructure.Repositories
 {
     public class NotifierRepo(SwiftLineDatabaseContext dbContext, ILineRepo lineRepo, INotifier notifierHub) : INotifierRepo
     {
-        public async Task BroadcastLineUpdate(Line line)
+
+        public async Task ExitQueue(string userId, long lineMemberId, string adminId = "")
         {
-            
+            Line line = dbContext.Lines.FirstOrDefault(x => x.LineMemberId == lineMemberId);
+            if (line is null)
+            {
+                return;
+            }
+            await lineRepo.MarkUserAsAttendedTo(line, string.IsNullOrEmpty(adminId) ? "exitedByUser" : "exitedByAdmin");
+            await BroadcastLineUpdate(line);
+            await lineRepo.NotifyFifthMember(line);
+
+        }
+        public async Task BroadcastLineUpdate(Line line)
+        {      
             var othersInLines = await dbContext.Lines
                  .Where(x => !x.IsAttendedTo && x.IsActive)
                  .Include(x => x.LineMember).ThenInclude(x=>x.Event)
@@ -55,5 +67,7 @@ namespace Infrastructure.Repositories
             //    await notifierHub.NotifyUserPositionChange(userId, lineinfo);
             //});
         }
+
+        
     }
 }
