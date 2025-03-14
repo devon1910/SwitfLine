@@ -12,7 +12,7 @@ namespace Domain.Models
         public int Id { get; set; }
 
         [Required]
-        [MaxLength(30)]
+        [MaxLength(50)]
         public string Username { get; set; } = string.Empty;
 
         [Required]
