@@ -24,6 +24,8 @@ namespace Domain.Interfaces
        
 
         public Task NotifyFifthMember(Line line);
+
+
     }
     public interface ILineService
     {

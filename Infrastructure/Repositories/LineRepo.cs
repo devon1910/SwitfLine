@@ -18,8 +18,7 @@ namespace Infrastructure.Repositories
 {
     public class LineRepo(SwiftLineDatabaseContext dbContext, IConfiguration _configuration, IFluentEmail _fluentEmail) : ILineRepo
     {
-        
-
+       
         private static string GetOrdinal(int number)
         {
             int lastTwo = number % 100;
@@ -27,10 +26,10 @@ namespace Infrastructure.Repositories
 
             return (number % 10) switch
             {
-                1 => number+ "st",
-                2 => number+ "nd",
-                3 => number+ "rd",
-                _ => number+ "th",
+                1 => number + "st",
+                2 => number + "nd",
+                3 => number + "rd",
+                _ => number + "th",
             };
         }
 
@@ -160,7 +159,9 @@ namespace Infrastructure.Repositories
             }
             return true;
         }
+       
 
+    
         private string GetEmailTemplate()
         {
             return @"<!DOCTYPE html>

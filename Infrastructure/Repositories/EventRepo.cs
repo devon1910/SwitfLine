@@ -14,17 +14,17 @@ using System.Threading.Tasks;
 namespace Infrastructure.Repositories
 {
 
-    public class EventRepo(SwiftLineDatabaseContext dbContext, ILineRepo lineRepo) : IEventRepo
+    public class EventRepo(SwiftLineDatabaseContext dbContext, ILineRepo lineRepo, INotifierRepo notifier) : IEventRepo 
     {
         public async Task<bool> CreateEvent(string userId, CreateEventModel req)
         {
-            
+
             var newEvent = new Event
             {
                 Title = req.Title,
                 Description = req.Description,
                 AverageTime = req.AverageTime,
-                CreatedBy = userId,              
+                CreatedBy = userId,
                 EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default,
                 EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default
 
@@ -46,7 +46,7 @@ namespace Infrastructure.Repositories
             @event.Title = req.Title;
             @event.AverageTime = req.AverageTime;
             @event.EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default;
-            @event.EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default;   
+            @event.EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default;
             @event.Description = req.Description;
             await dbContext.SaveChangesAsync();
             return true;
@@ -57,7 +57,7 @@ namespace Infrastructure.Repositories
         {
             var timeNow = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1));
 
-            var unfinishedEvents = await dbContext.Lines.Where(x=>!x.IsAttendedTo).Include(x=>x.LineMember).Select(x => x.LineMember.EventId).ToListAsync();
+            var unfinishedEvents = await dbContext.Lines.Where(x => !x.IsAttendedTo).Include(x => x.LineMember).Select(x => x.LineMember.EventId).ToListAsync();
             return await dbContext.Events
                 .AsNoTracking()
                 .Where(x => x.IsActive &&
@@ -73,7 +73,7 @@ namespace Infrastructure.Repositories
 
         public async Task<List<Event>> GetAllEvents()
         {
-            List<Event> events = await dbContext.Events.Where(x=>x.IsActive).ToListAsync();
+            List<Event> events = await dbContext.Events.Where(x => x.IsActive).ToListAsync();
             foreach (var @event in events)
             {
                 @event.UsersInQueue = await dbContext.Lines
@@ -93,9 +93,9 @@ namespace Infrastructure.Repositories
         public async Task<List<Line>> GetEventQueue(long eventId)
         {
             var lines = await dbContext.Lines
-                        .Where(x =>!x.IsAttendedTo)
+                        .Where(x => !x.IsAttendedTo)
                         .Include(x => x.LineMember)
-                        .ThenInclude(x=>x.SwiftLineUser)
+                        .ThenInclude(x => x.SwiftLineUser)
                         .Where(x => x.LineMember.EventId == eventId)
                         .ToListAsync();
             return lines;
@@ -130,8 +130,9 @@ namespace Infrastructure.Repositories
         }
         public void DeleteEvent(long Id)
         {
-            Event eventToDelete =  dbContext.Events.Find(Id);        
+            Event eventToDelete = dbContext.Events.Find(Id);
             dbContext.Events.Remove(eventToDelete);
+            dbContext.SaveChanges();
         }
 
         private async Task<bool> isUserInLine(string userId)
@@ -150,9 +151,11 @@ namespace Infrastructure.Repositories
         {
             Line line = dbContext.Lines.FirstOrDefault(x => x.LineMemberId == lineMemberId);
 
-            await lineRepo.MarkUserAsAttendedTo(line,"");
+            await lineRepo.MarkUserAsAttendedTo(line, "");
+            await notifier.BroadcastLineUpdate(line);
             await lineRepo.NotifyFifthMember(line);
             return true;
         }
+
     }
 }

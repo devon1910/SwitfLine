@@ -7,13 +7,14 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace SwiftLine.API
 {
-    public class Notifier(IHubContext<SwiftLineHub> _hubContext, IEventRepo eventRepo,INotifierRepo notifierRepo) : INotifier
+    public class Notifier(IHubContext<SwiftLineHub> _hubContext, Lazy<IEventRepo> eventRepo) : INotifier
     {
         private static Dictionary<string, string> _userConnections = new Dictionary<string, string>();
 
         public async Task ExitQueue(string userId, long lineMemberId, string adminId = "")
         {
-            await notifierRepo.ExitQueue(userId,lineMemberId,adminId);
+             await eventRepo.Value.ExitQueue(userId,lineMemberId,adminId);
+
         }
 
         public async Task JoinQueueGroup(int eventId, string userId, string ConnectionId)
@@ -22,7 +23,7 @@ namespace SwiftLine.API
 
             _userConnections[userId] = ConnectionId;
 
-            await eventRepo.JoinEvent(userId, eventId);
+            await eventRepo.Value.JoinEvent(userId, eventId);
 
         }
 
@@ -33,8 +34,6 @@ namespace SwiftLine.API
                 await _hubContext.Clients.Client(connectionId).SendAsync("ReceivePositionUpdate", lineInfoRes);
             }
         }
-
-       
 
         public async Task OnDisconnectedAsync(string ConnectionId)
         {

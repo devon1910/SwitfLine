@@ -20,6 +20,5 @@ namespace Domain.Interfaces
     {
         public Task BroadcastLineUpdate(Line line);
 
-        public Task ExitQueue(string userId, long lineMemberId, string adminId = "");
     }
 }

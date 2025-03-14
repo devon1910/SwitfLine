@@ -37,6 +37,7 @@ builder.Services.AddDbContext<SwiftLineDatabaseContext>(options =>
 });
 builder.Services.AddOpenApi();
 
+builder.Services.AddTransient(typeof(Lazy<>), typeof(LazyFactory<>));
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRepo, EventRepo>();
 builder.Services.AddScoped<ILineRepo, LineRepo>();
@@ -46,6 +47,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAuthRepo, AuthRepo>();
 builder.Services.AddScoped<INotifier, Notifier>();
 builder.Services.AddScoped<INotifierRepo, NotifierRepo>();
+builder.Services.AddScoped<IExitQueue, ExitQueueRepo>();
 builder.Services.AddHostedService<LineManager>();
 
 
@@ -193,6 +195,14 @@ internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvi
                 });
             }
         }
+    }
+}
+
+public class LazyFactory<T> : Lazy<T> where T : class
+{
+    public LazyFactory(IServiceProvider provider)
+        : base(() => provider.GetRequiredService<T>())
+    {
     }
 }
 

@@ -37,9 +37,10 @@ namespace SwiftLine.API
 
         public async Task NotifyUserPositionChange(string userId, LineInfoRes lineInfoRes)
         {
-            await notifier.NotifyUserPositionChange(userId, lineInfoRes);
-           
+            await notifier.NotifyUserPositionChange(userId, lineInfoRes);     
         }
+
+        
 
         public async Task ExitQueue(string userId, long lineMemberId, string adminId = "")
         {
