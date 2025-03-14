@@ -34,13 +34,7 @@ namespace SwiftLine.API
                 await _hubContext.Clients.Client(connectionId).SendAsync("ReceivePositionUpdate", lineInfoRes);
             }
         }
-        public async Task SendSingleUserMessage(string userId, long LineMemberId)
-        {
-            if (_userConnections.TryGetValue(userId, out string connectionId))
-            {
-                await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveLineMemberId", LineMemberId);
-            }
-        }
+
 
         public async Task OnDisconnectedAsync(string ConnectionId)
         {

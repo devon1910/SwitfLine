@@ -20,8 +20,6 @@ namespace SwiftLine.API
         {
             long lineMemberId= await notifier.JoinQueueGroup(eventId, userId, Context.ConnectionId);
 
-            await notifier.SendSingleUserMessage(userId, lineMemberId);
-
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
@@ -42,8 +40,6 @@ namespace SwiftLine.API
         {
             await notifier.NotifyUserPositionChange(userId, lineInfoRes);     
         }
-
-        
 
         public async Task ExitQueue(string userId, long lineMemberId, string adminId = "")
         {

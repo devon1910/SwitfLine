@@ -15,7 +15,6 @@ namespace Domain.Interfaces
         public Task NotifyUserPositionChange(string userId, LineInfoRes lineInfoRes);
         public Task ExitQueue(string userId,long lineMemberId, string adminId= "");
 
-        public Task SendSingleUserMessage(string userId, long lineMemberId);
 
     }
     public interface INotifierRepo // Repo methods needed for INotifier

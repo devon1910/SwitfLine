@@ -148,7 +148,10 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "")
         {
-            Line line = dbContext.Lines.FirstOrDefault(x => x.LineMemberId == lineMemberId);
+            Line line = dbContext.Lines
+                .Where(x => x.LineMemberId == lineMemberId)
+                .Include(x=>x.LineMember)
+                .FirstOrDefault();
 
             await lineRepo.MarkUserAsAttendedTo(line, "");
             await notifier.BroadcastLineUpdate(line);
