@@ -17,13 +17,13 @@ namespace SwiftLine.API
 
         }
 
-        public async Task JoinQueueGroup(int eventId, string userId, string ConnectionId)
+        public async Task<long> JoinQueueGroup(int eventId, string userId, string ConnectionId)
         {
             await _hubContext.Groups.AddToGroupAsync(ConnectionId, $"queue-{eventId}");
 
             _userConnections[userId] = ConnectionId;
 
-            await eventRepo.Value.JoinEvent(userId, eventId);
+            return await eventRepo.Value.JoinEvent(userId, eventId);
 
         }
 
@@ -32,6 +32,13 @@ namespace SwiftLine.API
             if (_userConnections.TryGetValue(userId, out string connectionId))
             {
                 await _hubContext.Clients.Client(connectionId).SendAsync("ReceivePositionUpdate", lineInfoRes);
+            }
+        }
+        public async Task SendSingleUserMessage(string userId, long LineMemberId)
+        {
+            if (_userConnections.TryGetValue(userId, out string connectionId))
+            {
+                await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveLineMemberId", LineMemberId);
             }
         }
 

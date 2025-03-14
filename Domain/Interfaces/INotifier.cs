@@ -10,10 +10,12 @@ namespace Domain.Interfaces
 {
     public interface INotifier //calls repo methods within it
     {
-        public Task JoinQueueGroup(int eventId, string userId, string ConnectionId);
+        public Task<long> JoinQueueGroup(int eventId, string userId, string ConnectionId);
         public Task OnDisconnectedAsync(string ConnectionId);
         public Task NotifyUserPositionChange(string userId, LineInfoRes lineInfoRes);
         public Task ExitQueue(string userId,long lineMemberId, string adminId= "");
+
+        public Task SendSingleUserMessage(string userId, long lineMemberId);
 
     }
     public interface INotifierRepo // Repo methods needed for INotifier

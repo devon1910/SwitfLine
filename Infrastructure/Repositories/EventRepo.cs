@@ -102,9 +102,9 @@ namespace Infrastructure.Repositories
 
         }
 
-        public async Task<LineMember> JoinEvent(string userId, long eventId)
+        public async Task<long> JoinEvent(string userId, long eventId)
         {
-            if (await isUserInLine(userId)) return new LineMember();
+            if (await isUserInLine(userId)) return 0;
 
             LineMember newQueueMember = new LineMember
             {
@@ -124,8 +124,7 @@ namespace Infrastructure.Repositories
             SwiftLineUser user = await dbContext.SwiftLineUsers.FindAsync(userId);
             user.IsInQueue = true;
             await dbContext.SaveChangesAsync();
-            return newQueueMember;
-
+            return newQueueMember.Id;
 
         }
         public void DeleteEvent(long Id)

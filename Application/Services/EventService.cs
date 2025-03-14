@@ -24,17 +24,6 @@ namespace Application.Services
             return Result<bool>.Failed("Failed to create event");
         }
 
-        public async Task<Result<LineMember>> JoinEvent(string userId, long eventId)
-        {
-            var joined = await eventRepo.JoinEvent(userId, eventId);
-
-            if (joined is null)
-            {
-                return Result<LineMember>.Failed("User is already in a Queue");
-            }
-            return Result<LineMember>.Ok(joined);
-
-        }
 
         public async Task<Result<bool>> EditEvent(EditEventReq req)
         {
