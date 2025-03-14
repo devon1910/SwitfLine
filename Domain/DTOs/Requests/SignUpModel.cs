@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
@@ -11,12 +12,13 @@ namespace Domain.DTOs.Requests
     {
 
         [Required]
-        [MaxLength(30)]
+        [MaxLength(50)]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         [Required]
-        [MaxLength(30)]
+        [MaxLength(40)]
+        [PasswordPropertyText]
         public string Password { get; set; } = string.Empty;
     }
 }
