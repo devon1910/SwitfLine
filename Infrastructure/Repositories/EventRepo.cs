@@ -102,11 +102,6 @@ namespace Infrastructure.Repositories
 
         }
 
-        public async Task<List<Event>> GetUserEvents(string userId)
-        {
-            return await dbContext.Events.Where(x => x.CreatedBy == userId).ToListAsync();
-        }
-
         public async Task<bool> JoinEvent(string userId, long eventId)
         {
             if (!await isUserInLine(userId)) 
@@ -134,6 +129,11 @@ namespace Infrastructure.Repositories
 
 
         }
+        public void DeleteEvent(long Id)
+        {
+            Event eventToDelete =  dbContext.Events.Find(Id);        
+            dbContext.Events.Remove(eventToDelete);
+        }
 
         private async Task<bool> isUserInLine(string userId)
         {
@@ -142,6 +142,9 @@ namespace Infrastructure.Repositories
             return user.IsInQueue;
         }
 
-
+        public async Task<List<Event>> GetUserEvents(string userId)
+        {
+            return await dbContext.Events.Where(x => x.CreatedBy == userId).ToListAsync();
+        }
     }
 }

@@ -19,7 +19,7 @@ namespace Domain.Interfaces
 
         //public Task<bool> ServeLineMember(string userId, long eventId);
 
-        public Task<Event> GetEvent(long eventId);
+        public Task<Event> GetEvent(long Id);
 
         public Task<List<Event>> GetActiveEvents();
 
@@ -28,6 +28,8 @@ namespace Domain.Interfaces
         public Task<List<Line>> GetEventQueue(long eventId);
 
         public Task<List<Event>> GetUserEvents(string userId);
+
+        public void DeleteEvent(long Id);
 
     }
     public interface IEventService
@@ -45,6 +47,8 @@ namespace Domain.Interfaces
         public Task<Result<List<Event>>> GetAllEvents();
 
         public Task<Result<List<Event>>> GetUserEvents(string userId);
+
+        public Result<bool> DeleteEvent(long Id);
 
     }
 }

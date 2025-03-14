@@ -75,5 +75,11 @@ namespace Application.Services
 
             return Result<List<Event>>.Ok(userEvents);
         }
+
+        public Result<bool> DeleteEvent(long Id)
+        {
+            eventRepo.DeleteEvent(Id);
+            return Result<bool>.Ok(true);
+        }
     }
 }

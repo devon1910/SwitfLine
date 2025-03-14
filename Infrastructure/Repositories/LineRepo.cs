@@ -288,12 +288,11 @@ namespace Infrastructure.Repositories
                         </head>
                         <body>
                             <div class=""container"">
-                                <!-- Header -->
-                                <div class=""header"">
+
+                                <div>
                                     <img src = ""https://res.cloudinary.com/dddabj5ub/image/upload/v1741908218/swifline_logo_cpsacv.webp"" alt=""Swiftline"" class=""center"">
                                 </div>
                                 
-                                <!-- Main Content -->
                                 <div class=""content"">
                                     <h1>You're Almost Up!</h1>
             

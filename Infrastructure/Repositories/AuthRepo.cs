@@ -364,7 +364,7 @@ namespace Infrastructure.Repositories
     
                         <div class=""container"">
                             
-                            <div class=""header"">
+                            <div>
                                  <img src = ""https://res.cloudinary.com/dddabj5ub/image/upload/v1741908218/swifline_logo_cpsacv.webp"" alt=""Swiftline"" class=""center"">
                             </div>
                             <p>Hello {{UserName}},</p>
