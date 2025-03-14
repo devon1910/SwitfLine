@@ -25,12 +25,10 @@ namespace SwiftLine.API.Controllers
             return res.ToActionResult();
         } 
         [HttpPost("{LineMemberId}")]
-        [Authorize(Roles = Roles.Admin)]
-        public async Task<ActionResult<Result<bool>>> ServeUser(long LineMemberId)
+        public async Task<ActionResult<Result<bool>>> ExitQueue(long LineMemberId)
         {
-            var res = await lineService.ServeUser(LineMemberId);
+            var res = await lineService.ExitQueue(LineMemberId);
             return res.ToActionResult();
         }
-
     }
 }

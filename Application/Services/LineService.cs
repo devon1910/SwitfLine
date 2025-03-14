@@ -40,15 +40,15 @@ namespace Application.Services
             return Result<bool>.Ok(lineQueuestatus);
         }
 
-        public async Task<Result<bool>> ServeUser(long lineMemberId)
+        public async Task<Result<bool>> ExitQueue(long lineMemberId)
         {
-            bool isServed = await lineRepo.ServeUser(lineMemberId);
+            bool isServed = await lineRepo.ExitQueue(lineMemberId);
 
             if (isServed)
             {
                 return Result<bool>.Ok(true);
             }
-            return Result<bool>.Failed("Failed to Attend to User.");
+            return Result<bool>.Failed("Failed to Exit Line.");
         }
     }
 }

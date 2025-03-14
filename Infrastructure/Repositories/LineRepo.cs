@@ -16,7 +16,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace Infrastructure.Repositories
 {
-    public class LineRepo(SwiftLineDatabaseContext dbContext, IConfiguration _configuration, IFluentEmail _fluentEmail) : ILineRepo
+    public class LineRepo(SwiftLineDatabaseContext dbContext, IConfiguration _configuration, IFluentEmail _fluentEmail,INotifierRepo notifier) : ILineRepo
     {
         
 
@@ -82,11 +82,15 @@ namespace Infrastructure.Repositories
                 .FirstOrDefaultAsync();      
         }
 
-        public async Task<bool> ServeUser(long lineMemberId)
+        public async Task<bool> ExitQueue(long lineMemberId)
         {
             Line line = dbContext.Lines.FirstOrDefault(x => x.LineMemberId == lineMemberId);
 
-            return await MarkUserAsAttendedTo(line);
+            await MarkUserAsAttendedTo(line);
+            await notifier.BroadcastLineUpdate(line);
+            await NotifyFifthMember(line);
+
+            return true;
         }
 
         public async Task<LineInfoRes> GetUserLineInfo(string UserId)
@@ -108,6 +112,7 @@ namespace Infrastructure.Repositories
                        .Include(x => x.LineMember)
                        .AsSplitQuery()
                        .Where(x => x.LineMember.EventId == line.LineMember.EventId)
+                       .OrderBy(x => x.CreatedAt)
                        .ToListAsync();
 
                 position = othersInLines.IndexOf(line) + 1;
@@ -124,8 +129,9 @@ namespace Infrastructure.Repositories
             
         }
 
-        public async Task NotifyFifthMember(long eventId)
+        public async Task NotifyFifthMember(Line line)
         {
+            var eventId = line.LineMember.EventId;
             var user = await dbContext.Lines
                 .Where(x => x.IsActive && !x.IsAttendedTo)
                 .Include(x => x.LineMember).ThenInclude(x => x.Event)

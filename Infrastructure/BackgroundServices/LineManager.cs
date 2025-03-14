@@ -42,11 +42,11 @@ namespace Infrastructure.BackgroundServices
                     {
                         Line? line = await linesRepo.GetFirstLineMember(e.Id);
 
-                        if (line is not null  && await linesRepo.IsUserAttendedTo(line))
+                        if (line is not null && await linesRepo.IsUserAttendedTo(line))
                         {
                             await linesRepo.MarkUserAsAttendedTo(line);
                             await notifier.BroadcastLineUpdate(line);
-                            await linesRepo.NotifyFifthMember(e.Id);
+                            await linesRepo.NotifyFifthMember(line);
                         }
                     }
                     await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);

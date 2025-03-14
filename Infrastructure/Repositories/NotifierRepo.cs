@@ -23,6 +23,7 @@ namespace Infrastructure.Repositories
                  .Include(x => x.LineMember.SwiftLineUser)
                  .AsSplitQuery()
                  .Where(x => x.LineMember.EventId == line.LineMember.EventId)
+                 .OrderBy(x => x.CreatedAt)
                  .AsNoTracking()
                  .ToListAsync();
 
@@ -32,7 +33,6 @@ namespace Infrastructure.Repositories
 
             foreach (var l in othersInLines)
             {
-
                 userId = l.LineMember.SwiftLineUser.Id;
                 lineinfo = await lineRepo.GetUserLineInfo(userId);
                 await notifierHub.NotifyUserPositionChange(userId, lineinfo);

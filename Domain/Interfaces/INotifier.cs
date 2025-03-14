@@ -14,9 +14,7 @@ namespace Domain.Interfaces
         public Task OnDisconnectedAsync(string ConnectionId);
         public Task NotifyUserPositionChange(string userId, LineInfoRes lineInfoRes);
 
-
     }
-
     public interface INotifierRepo
     {
         public Task BroadcastLineUpdate(Line line);

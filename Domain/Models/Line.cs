@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Security.Principal;
@@ -18,5 +19,7 @@ namespace Domain.Models
 
         public DateTime DateStartedBeingAttendedTo { get; set; }
         public DateTime DateCompletedBeingAttendedTo { get; set; }
+        [AllowedValues(["pending","served","left"],ErrorMessage ="The value passed is not allowed")]
+        public string Status { get; set; } = "pending";
     }
 }

@@ -21,9 +21,9 @@ namespace Domain.Interfaces
         public bool GetUserQueueStatus(string UserId);
 
         public Task<Line?> GetFirstLineMember(long eventId);
-        public Task<bool> ServeUser(long lineMemberId);
+        public Task<bool> ExitQueue(long lineMemberId);
 
-        public Task NotifyFifthMember(long eventId);
+        public Task NotifyFifthMember(Line line);
     }
     public interface ILineService
     {
@@ -35,6 +35,7 @@ namespace Domain.Interfaces
 
         public Result<bool> GetUserQueueStatus(string UserId);
 
-        public Task<Result<bool>> ServeUser(long lineMemberId);
+        public Task<Result<bool>> ExitQueue(long lineMemberId);
+
     }
 }
