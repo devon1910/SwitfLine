@@ -64,7 +64,8 @@ namespace Infrastructure.Repositories
         {
            line.IsAttendedTo = true;
            line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
-           line.LineMember.SwiftLineUser.IsInQueue = false;
+            SwiftLineUser? user = await dbContext.SwiftLineUsers.FindAsync(line.LineMember.UserId);
+            user.IsInQueue = false;
             await dbContext.SaveChangesAsync();
             return true;
         }
@@ -74,8 +75,7 @@ namespace Infrastructure.Repositories
             return await  dbContext.Lines
                 .Where(x => x.IsActive && !x.IsAttendedTo)
                 .Include(x => x.LineMember)
-                .Include(x => x.LineMember.Event)
-                .Include(x => x.LineMember.SwiftLineUser)
+                .ThenInclude(x => x.Event)
                 .AsSplitQuery()
                 .Where(x => x.LineMember.EventId == eventId)
                 .OrderBy(x => x.CreatedAt)
@@ -128,19 +128,18 @@ namespace Infrastructure.Repositories
         {
             var user = await dbContext.Lines
                 .Where(x => x.IsActive && !x.IsAttendedTo)
-                .Include(x => x.LineMember)
-                .Include(x => x.LineMember.Event)
+                .Include(x => x.LineMember).ThenInclude(x => x.Event)
                 .Include(x => x.LineMember.SwiftLineUser)
                 .AsSplitQuery()
                 .Where(x => x.LineMember.EventId == eventId)
                 .OrderBy(x => x.CreatedAt)
-                .Skip(4)
+                .Skip(1)
                 .FirstOrDefaultAsync();
 
            
             if (user is not null) 
             {
-                int EstimatedTime = (user.LineMember.Event.AverageTimeToServeSeconds * 5) / 60; 
+                int EstimatedTime = (user.LineMember.Event.AverageTimeToServeSeconds) / 60; //nptifies the 2nd person for now
                 await SendReminderMail(user.LineMember.SwiftLineUser.Email, EstimatedTime);
             }
 

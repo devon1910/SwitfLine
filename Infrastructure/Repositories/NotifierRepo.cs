@@ -19,9 +19,8 @@ namespace Infrastructure.Repositories
             
             var othersInLines = await dbContext.Lines
                  .Where(x => !x.IsAttendedTo && x.IsActive)
-                 .Include(x => x.LineMember)
-                 .Include(x => x.LineMember.Event)
-                 .Include(x=>x.LineMember.SwiftLineUser)
+                 .Include(x => x.LineMember).ThenInclude(x=>x.Event)
+                 .Include(x => x.LineMember.SwiftLineUser)
                  .AsSplitQuery()
                  .Where(x => x.LineMember.EventId == line.LineMember.EventId)
                  .AsNoTracking()
