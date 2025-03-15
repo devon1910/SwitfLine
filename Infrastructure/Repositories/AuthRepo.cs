@@ -377,7 +377,9 @@ namespace Infrastructure.Repositories
         
                             <p class=""expiry-note"">⏱️ This verification link expires in 1 hour</p>
         
-                            <p>If the button above doesn't work, you can copy and paste the following link into your browser:</p>
+                            <p>If this mail came in your spam folder, the button above wouldn't work. Click on the ""Report as not a spam button"" above to move the mail to your inbox and try to click on the button.
+                               OR 
+                            you can copy and paste the following link into your browser:</p>
         
                             <p style=""word-break: break-all; font-size: 14px; color: #666;"">{{VerificationLink}}</p>
         
