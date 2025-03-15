@@ -81,7 +81,7 @@ namespace Infrastructure.Repositories
             // adding role to user
             var addUserToRoleResult = await _userManager.AddToRoleAsync(user: user, role: Roles.User);
 
-            if (addUserToRoleResult.Succeeded == false)
+            if (!addUserToRoleResult.Succeeded)
             {
                 var errors = addUserToRoleResult.Errors.Select(e => e.Description);
                 _logger.LogError($"Failed to add role to the user. Errors : {string.Join(",", errors)}");
@@ -105,12 +105,17 @@ namespace Infrastructure.Repositories
 
             var token = _tokenService.GenerateAccessToken(authClaims);
             //Send Email Verification
-            bool isMailSent= await SendEmailVerifyLink(user.Email, token); 
+            bool isMailSent= await SendEmailVerifyLink(user.Email, token);
+
+            if (isMailSent)
+            {
+                return new(true, "Almost done🎉! a welcome mail has been sent to your email address, kindly follow the instructions. Didn't get it in your inbox? Please check your spam folder or contact the support team. Thanks!", "", "", user.Id, user.Email, user.IsInQueue);
+            }
+            else 
+            {
+                return new(false, "User account created but unable to send out emails at the moment.", "", "", user.Id, user.Email, user.IsInQueue);
+            }
            
-            return new(isMailSent ? true : false,
-                isMailSent ? "Almost done🎉! a welcome mail has been sent to your email address, kindly follow the instructions. Didn't get it in your inbox? Please check your spam folder or contact the support team. Thanks!"
-                : "User account created but unable to send out emails at the moment.",
-                "", "", user.Id, user.Email,user.IsInQueue);
 
         }
 
