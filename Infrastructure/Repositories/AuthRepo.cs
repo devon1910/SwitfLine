@@ -32,90 +32,101 @@ namespace Infrastructure.Repositories
  
         public async Task<AuthRes> Signup(SignupModel model)
         {
-            var existingUser = await _userManager.FindByNameAsync(model.Email);
-            if (existingUser != null)
+            using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                return new AuthRes(false,
-                    existingUser.IsEmailVerified 
-                    ? "User already exists"
-                    : "User already exists but email is not verified. Please check your email for the verification link and follow the instructions.", "","","","",false);
-            }
-
-           
-            // Create User role if it doesn't exist
-            if ((await _roleManager.RoleExistsAsync(Roles.User)) == false)
-            {
-                var roleResult = await _roleManager
-                      .CreateAsync(new IdentityRole(Roles.User));
-
-                if (!roleResult.Succeeded)
+                try
                 {
-                    var roleErros = roleResult.Errors.Select(e => e.Description);
-                    _logger.LogError($"Failed to create user role. Errors : {string.Join(",", roleErros)}");
-                    return new AuthRes(false,$"Failed to create user role. Errors : {string.Join(",", roleErros)}","","","","", false);
+                    var existingUser = await _userManager.FindByNameAsync(model.Email);
+                    if (existingUser != null)
+                    {
+                        return new AuthRes(
+                            false,
+                            existingUser.IsEmailVerified
+                                ? "User already exists"
+                                : "User already exists but email is not verified. Please check your email for the verification link and follow the instructions.",
+                            "", "", "", "", false);
+                    }
+
+                    // Create User role if it doesn't exist
+                    if (!(await _roleManager.RoleExistsAsync(Roles.User)))
+                    {
+                        var roleResult = await _roleManager.CreateAsync(new IdentityRole(Roles.User));
+                        if (!roleResult.Succeeded)
+                        {
+                            var roleErrors = roleResult.Errors.Select(e => e.Description);
+                            _logger.LogError($"Failed to create user role. Errors: {string.Join(", ", roleErrors)}");
+                            return new AuthRes(false, $"Failed to create user role. Errors: {string.Join(", ", roleErrors)}", "", "", "", "", false);
+                        }
+                    }
+
+                    // Create the new user
+                    SwiftLineUser user = new()
+                    {
+                        Email = model.Email,
+                        SecurityStamp = Guid.NewGuid().ToString(),
+                        UserName = model.Email,
+                        EmailConfirmed = true
+                    };
+
+                    var createUserResult = await _userManager.CreateAsync(user, model.Password);
+                    if (!createUserResult.Succeeded)
+                    {
+                        var errors = createUserResult.Errors.Select(e => e.Description);
+                        _logger.LogError($"Failed to create user. Errors: {string.Join(", ", errors)}");
+                        return new AuthRes(false, $"Failed to create user. Errors: {string.Join(", ", errors)}", "", "", "", "", false);
+                    }
+
+                    // Add the user to the role
+                    var addUserToRoleResult = await _userManager.AddToRoleAsync(user, Roles.User);
+                    if (!addUserToRoleResult.Succeeded)
+                    {
+                        var errors = addUserToRoleResult.Errors.Select(e => e.Description);
+                        _logger.LogError($"Failed to add role to the user. Errors: {string.Join(", ", errors)}");
+                        return new AuthRes(false, $"Failed to add role to the user. Errors: {string.Join(", ", errors)}", "", "", "", "", false);
+                    }
+
+                    // Build authentication claims including a claim to signal email verification purpose
+                    List<Claim> authClaims = new()
+            {
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim("purpose", "Email_Verification")
+            };
+
+                    var userRoles = await _userManager.GetRolesAsync(user);
+                    foreach (var userRole in userRoles)
+                    {
+                        authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+                    }
+
+                    var token = _tokenService.GenerateAccessToken(authClaims);
+
+                    // Send Email Verification
+                    bool isMailSent = await SendEmailVerifyLink(user.Email, token);
+
+                    // If sending the email fails, throw to trigger rollback.
+                    if (!isMailSent)
+                    {
+                        throw new Exception("User account created but unable to send out verification email at the moment.");
+                    }
+
+                    // Commit transaction if everything succeeded
+                    await transaction.CommitAsync();
+
+                    return new AuthRes(true,
+                        "Almost done🎉! A welcome mail has been sent to your email address. Kindly follow the instructions. Didn't get it in your inbox? Please check your spam folder or contact the support team. Thanks!",
+                        "", "", user.Id, user.Email, user.IsInQueue);
+                }
+                catch (Exception ex)
+                {
+                    // Roll back all changes if any error occurs
+                    await transaction.RollbackAsync();
+                    _logger.LogError($"Signup transaction failed: {ex.Message}");
+                    return new AuthRes(false, ex.Message, "", "", "", "", false);
                 }
             }
 
-            SwiftLineUser user = new()
-            {
-                Email = model.Email,
-                SecurityStamp = Guid.NewGuid().ToString(),
-                UserName = model.Email,
-                EmailConfirmed = true
-            };
-
-            // Attempt to create a user
-            var createUserResult = await _userManager.CreateAsync(user, model.Password);
-
-            // Validate user creation. If user is not created, log the error and
-            // return the BadRequest along with the errors
-            if (!createUserResult.Succeeded)
-            {
-                var errors = createUserResult.Errors.Select(e => e.Description);
-                _logger.LogError(
-                    $"Failed to create user. Errors: {string.Join(", ", errors)}"
-                );
-                return new AuthRes(false, $"Failed to create user. Errors: {string.Join(", ", errors)}", "", "","", "", false);
-            }
-
-            // adding role to user
-            var addUserToRoleResult = await _userManager.AddToRoleAsync(user: user, role: Roles.User);
-
-            if (!addUserToRoleResult.Succeeded)
-            {
-                var errors = addUserToRoleResult.Errors.Select(e => e.Description);
-                _logger.LogError($"Failed to add role to the user. Errors : {string.Join(",", errors)}");
-            }
-
-            List<Claim> authClaims = [
-                   new (ClaimTypes.Name, user.UserName),
-                        new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                        new (ClaimTypes.NameIdentifier, user.Id),
-                        new ("purpose", "Email_Verification"),
-                        // unique id for token
-                        ];
-
-            var userRoles = await _userManager.GetRolesAsync(user);
-
-            // adding roles to the claims. So that we can get the user role from the token.
-            foreach (var userRole in userRoles)
-            {
-                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-            }
-
-            var token = _tokenService.GenerateAccessToken(authClaims);
-            //Send Email Verification
-            bool isMailSent= await SendEmailVerifyLink(user.Email, token);
-
-            if (isMailSent)
-            {
-                return new(true, "Almost done🎉! a welcome mail has been sent to your email address, kindly follow the instructions. Didn't get it in your inbox? Please check your spam folder or contact the support team. Thanks!", "", "", user.Id, user.Email, user.IsInQueue);
-            }
-            else 
-            {
-                return new(false, "User account created but unable to send out emails at the moment.", "", "", user.Id, user.Email, user.IsInQueue);
-            }
-           
 
         }
 
