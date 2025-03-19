@@ -63,7 +63,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CreatedBy");
 
-                    b.ToTable("Events");
+                    b.ToTable("Events", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.Line", b =>
@@ -100,7 +100,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("LineMemberId");
 
-                    b.ToTable("Lines");
+                    b.ToTable("Lines", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.LineMember", b =>
@@ -134,7 +134,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("LineMembers");
+                    b.ToTable("LineMembers", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.SwiftLineUser", b =>
@@ -234,7 +234,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TokenInfos");
+                    b.ToTable("TokenInfos", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

@@ -19,6 +19,7 @@ namespace SwiftLine.API.Controllers
             return res.ToActionResult();
         }  
         [HttpGet()]
+        [AllowAnonymous]
         public ActionResult<Result<bool>> GetUserQueueStatus()
         {
             var res =  lineService.GetUserQueueStatus(UserId);

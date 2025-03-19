@@ -115,7 +115,7 @@ namespace Infrastructure.Repositories
         public bool GetUserQueueStatus(string UserId)
         {
             var user=  dbContext.SwiftLineUsers.Find( UserId);
-            return user.IsInQueue;
+            return user is not null ? user.IsInQueue : false;
             
         }
 

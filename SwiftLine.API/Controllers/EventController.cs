@@ -3,6 +3,7 @@ using Domain.DTOs.Requests;
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SwiftLine.API.Extensions;
 
@@ -33,6 +34,7 @@ namespace SwiftLine.API.Controllers
             return res.ToActionResult();
         }
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<Result<List<Event>>>> GetAllEvents()
         {
             var res = await eventService.GetAllEvents();
