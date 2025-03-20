@@ -104,7 +104,7 @@ namespace Infrastructure.Repositories
 
         public async Task<long> JoinEvent(string userId, long eventId)
         {
-            if (await isUserInLine(userId)) return 0;
+            if (string.IsNullOrWhiteSpace(userId) || await isUserInLine(userId)) return 0;
 
             LineMember newQueueMember = new LineMember
             {

@@ -16,10 +16,9 @@ namespace SwiftLine.API
     public class SwiftLineHub(INotifier notifier) : Hub
     {
 
-        public async Task JoinQueueGroup(int eventId, string userId)
+        public async Task<long> JoinQueueGroup(int eventId, string userId)
         {
-            long lineMemberId= await notifier.JoinQueueGroup(eventId, userId, Context.ConnectionId);
-
+            return await notifier.JoinQueueGroup(eventId, userId, Context.ConnectionId);
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
