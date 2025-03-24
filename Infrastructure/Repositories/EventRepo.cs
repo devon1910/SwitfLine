@@ -87,7 +87,7 @@ namespace Infrastructure.Repositories
 
         public async Task<Event> GetEvent(long eventId)
         {
-            return await dbContext.Events.FindAsync(eventId);
+            return await dbContext.Events.Include(x => x.SwiftLineUser).FirstOrDefaultAsync(x=>x.Id ==eventId);
         }
 
         public async Task<List<Line>> GetEventQueue(long eventId)
