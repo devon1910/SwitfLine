@@ -14,12 +14,16 @@ namespace Domain.Interfaces
         public Task OnDisconnectedAsync(string ConnectionId);
         public Task NotifyUserPositionChange(string userId, LineInfoRes lineInfoRes);
         public Task ExitQueue(string userId,long lineMemberId, string adminId= "");
+        public Task ToggleQueueActivity(bool status, string userId, long eventId);  
+        public Task NotifyUserQueueStatusUpdate(string userId, bool isQueueActive);
 
 
     }
     public interface INotifierRepo // Repo methods needed for INotifier
     {
         public Task BroadcastLineUpdate(Line line);
+
+        public Task BroadcastLineActivity(Line line, bool status);
 
     }
 }

@@ -34,7 +34,7 @@ namespace SwiftLine.API
                 await _hubContext.Clients.Client(connectionId).SendAsync("ReceivePositionUpdate", lineInfoRes);
             }
         }
-
+       
 
         public async Task OnDisconnectedAsync(string ConnectionId)
         {
@@ -43,6 +43,19 @@ namespace SwiftLine.API
             {
                 _userConnections.Remove(userId);
             }
+        }
+
+        public async Task NotifyUserQueueStatusUpdate(string userId, bool isQueueActive)
+        {
+            if (_userConnections.TryGetValue(userId, out string connectionId))
+            {
+                await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveQueueStatusUpdate", isQueueActive);
+            }
+        }
+
+        public async Task ToggleQueueActivity(bool status, string userId, long eventId)
+        {
+            await eventRepo.Value.ToggleQueueActivity(status, userId, eventId);
         }
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,12 @@ namespace Infrastructure.Repositories
 {
     public class NotifierRepo(SwiftLineDatabaseContext dbContext, ILineRepo lineRepo, INotifier notifierHub) : INotifierRepo
     {
+        public async Task BroadcastLineActivity(Line line, bool status)
+        {
+            string userId = line.LineMember.SwiftLineUser.Id;
+            await notifierHub.NotifyUserQueueStatusUpdate(userId, status);
+        }
+
         public async Task BroadcastLineUpdate(Line line)
         {
             var othersInLines = await dbContext.Lines

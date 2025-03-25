@@ -33,7 +33,7 @@ builder.Services.AddIdentity<SwiftLineUser, IdentityRole>().AddEntityFrameworkSt
 
 builder.Services.AddDbContext<SwiftLineDatabaseContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Database"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Database"), options => options.EnableRetryOnFailure());
 });
 builder.Services.AddOpenApi();
 
@@ -47,7 +47,6 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAuthRepo, AuthRepo>();
 builder.Services.AddScoped<INotifier, Notifier>();
 builder.Services.AddScoped<INotifierRepo, NotifierRepo>();
-builder.Services.AddScoped<IExitQueue, ExitQueueRepo>();
 builder.Services.AddHostedService<LineManager>();
 
 

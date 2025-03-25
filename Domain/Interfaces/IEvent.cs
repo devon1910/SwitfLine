@@ -33,6 +33,8 @@ namespace Domain.Interfaces
 
         public Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "");
 
+        public Task<bool> ToggleQueueActivity(bool status, string userId, long eventId);
+
     }
     public interface IEventService
     {

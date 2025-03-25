@@ -159,5 +159,20 @@ namespace Infrastructure.Repositories
             return true;
         }
 
+        public async Task<bool> ToggleQueueActivity(bool status, string userId, long eventId)
+        {
+            Event @event = dbContext.Events.Find(eventId);
+            @event.IsActive = status;
+            await dbContext.SaveChangesAsync();
+
+            List<Line> Lines = await GetEventQueue(eventId);
+
+            foreach (var line in Lines)
+            {
+                await notifier.BroadcastLineActivity(line,status);
+            }
+
+            return true;
+        }
     }
 }

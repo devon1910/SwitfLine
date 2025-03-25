@@ -52,6 +52,12 @@ namespace SwiftLine.API.Controllers
             var res = await eventService.GetUserEvents(UserId);
             return res.ToActionResult();
         }
+        [HttpPut]
+        public async Task<ActionResult<Result<List<Event>>>> PauseEvent()
+        {
+            var res = await eventService.GetUserEvents(UserId);
+            return res.ToActionResult();
+        }
         [HttpDelete("{Id}")]
         public async Task<ActionResult<Result<bool>>> DeleteEvent(long Id)
         {

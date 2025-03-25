@@ -44,5 +44,10 @@ namespace SwiftLine.API
         {
             await notifier.ExitQueue(userId, lineMemberId, adminId);
         }
+
+        public async Task ToggleQueueActivity(bool status, string userId, long eventId) 
+        {
+            await notifier.ToggleQueueActivity(status, userId, eventId);
+        }
     }
 }
