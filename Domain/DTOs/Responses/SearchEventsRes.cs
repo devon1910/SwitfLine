@@ -1,15 +1,11 @@
 ﻿using Domain.Models;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Interfaces
+namespace Domain.DTOs.Responses
 {
-    public interface IExitQueue
-    {
-       
-    }
+    public record SearchEventsRes(List<Event> Events, int TotalPages);
 }

@@ -174,5 +174,35 @@ namespace Infrastructure.Repositories
 
             return true;
         }
+
+        public async Task<SearchEventsRes> SearchEvents(int page, int size, string query)
+        {
+
+            var allEvents =  dbContext.Events
+                .Where(x => x.IsActive);
+
+            int pageCount = (allEvents.Count() + size - 1) / size;
+
+            if (string.IsNullOrEmpty(query))
+            {
+               
+                var events= await dbContext.Events
+                    .Where(x => x.IsActive)
+                    .OrderBy(x => x.EventStartTime)
+                    .Skip((page - 1) * size)
+                    .Take(size)
+                    .ToListAsync();
+                return new SearchEventsRes ( events, pageCount);
+            }
+
+            var searchResults = await dbContext.Events
+                .Where(x => x.IsActive && x.Title.Contains(query))
+                .OrderBy(x => x.EventStartTime)
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToListAsync();
+
+            return new SearchEventsRes (searchResults, pageCount);
+        }
     }
 }

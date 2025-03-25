@@ -64,8 +64,16 @@ namespace SwiftLine.API.Controllers
             var res =eventService.DeleteEvent(Id);
             return res.ToActionResult();
         }
-       
 
-        
+        [HttpGet, AllowAnonymous]
+        public async Task<ActionResult<Result<SearchEventsRes>>> SearchEvents(int page, int size, string query="")
+        {
+           var res = await eventService.SearchEvents(page,size,query);
+
+            return res.ToActionResult();
+        }
+
+
+
     }
 }
