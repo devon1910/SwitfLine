@@ -61,13 +61,58 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> MarkUserAsAttendedTo(Line line, string status)
         {
+            //line.IsAttendedTo = true;
+            //line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
+            //line.Status = status;
+            //SwiftLineUser? user = await dbContext.SwiftLineUsers.FindAsync(line.LineMember.UserId);
+            //user.IsInQueue = false;
+            //await dbContext.SaveChangesAsync();
+            //return true;
+
+            // Explicitly load the LineMember with its SwiftLineUser
+            await dbContext.Entry(line)
+                .Reference(l => l.LineMember)
+                .Query()
+                .Include(lm => lm.SwiftLineUser)
+                .LoadAsync();
+
             line.IsAttendedTo = true;
             line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
             line.Status = status;
-            SwiftLineUser? user = await dbContext.SwiftLineUsers.FindAsync(line.LineMember.UserId);
-            user.IsInQueue = false;
-            await dbContext.SaveChangesAsync();
-            return true;
+
+            line.LineMember.SwiftLineUser.IsInQueue = false;
+
+            using var transaction = await dbContext.Database.BeginTransactionAsync();
+            try
+            {
+                await dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                await transaction.RollbackAsync();
+                // Implement concurrency handling
+                foreach (var entry in ex.Entries)
+                {
+                    var databaseValues = await entry.GetDatabaseValuesAsync();
+                    if (databaseValues != null)
+                    {
+                        entry.OriginalValues.SetValues(databaseValues);
+                        entry.CurrentValues.SetValues(databaseValues);
+                        line.LineMember.SwiftLineUser.IsInQueue = false; // Re-apply
+                    }
+                }
+                await dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+
         }
 
         public async Task<Line?> GetFirstLineMember(long eventId)
