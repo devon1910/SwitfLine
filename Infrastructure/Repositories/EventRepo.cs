@@ -24,6 +24,7 @@ namespace Infrastructure.Repositories
                 Title = req.Title,
                 Description = req.Description,
                 AverageTime = req.AverageTime,
+                AverageTimeToServeSeconds = req.AverageTime * 60,
                 CreatedBy = userId,
                 EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default,
                 EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default
@@ -45,6 +46,7 @@ namespace Infrastructure.Repositories
 
             @event.Title = req.Title;
             @event.AverageTime = req.AverageTime;
+            @event.AverageTimeToServeSeconds = req.AverageTime * 60;
             @event.EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default;
             @event.EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default;
             @event.Description = req.Description;
@@ -175,6 +177,7 @@ namespace Infrastructure.Repositories
             Line line = dbContext.Lines
                 .Where(x => x.LineMemberId == lineMemberId)
                 .Include(x=>x.LineMember)
+                .ThenInclude(x => x.Event)
                 .FirstOrDefault();
 
             await lineRepo.MarkUserAsAttendedTo(line, "");

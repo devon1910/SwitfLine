@@ -17,10 +17,9 @@ namespace Domain.Models
         public string Description { get; set; }
         public string CreatedBy { get; set; }
         public int AverageTime { get; set; }
-        [NotMapped]
         public int AverageTimeToServeSeconds
         {
-            get => AverageTime * 60;
+            get; set;
         }
         [ForeignKey("CreatedBy")]
         public SwiftLineUser SwiftLineUser { get; set; }
