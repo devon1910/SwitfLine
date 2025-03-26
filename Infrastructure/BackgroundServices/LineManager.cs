@@ -23,20 +23,10 @@ namespace Infrastructure.BackgroundServices
                 var linesRepo = scope.ServiceProvider.GetRequiredService<ILineRepo>();
                 var eventsRepo = scope.ServiceProvider.GetRequiredService<IEventRepo>();
                 var notifier = scope.ServiceProvider.GetRequiredService<INotifierRepo>();
-                // Initialize cache and refresh tracking
-                IEnumerable<Event> cachedEvents = [];
-                DateTime lastCacheRefresh = DateTime.MinValue;
-                TimeSpan cacheRefreshInterval = TimeSpan.FromMinutes(1); // Adjust interval as needed
 
                 while (!stoppingToken.IsCancellationRequested)
                 {
-
-                    // Refresh cache only if the interval has elapsed
-                    if (DateTime.UtcNow.AddHours(1) - lastCacheRefresh > cacheRefreshInterval)
-                    {
-                        cachedEvents = await eventsRepo.GetActiveEvents();
-                        lastCacheRefresh = DateTime.UtcNow;
-                    }
+                    var cachedEvents = await eventsRepo.GetActiveEvents();
 
                     foreach (var e in cachedEvents)
                     {
@@ -49,7 +39,7 @@ namespace Infrastructure.BackgroundServices
                             await linesRepo.NotifyFifthMember(line);
                         }
                     }
-                    await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+                    await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
                 }
             }
             catch (Exception ex)

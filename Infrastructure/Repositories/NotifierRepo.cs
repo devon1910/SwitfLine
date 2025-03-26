@@ -26,15 +26,13 @@ namespace Infrastructure.Repositories
             var othersInLines = await dbContext.Lines
                  .Where(x => !x.IsAttendedTo && x.IsActive)
                  .Include(x => x.LineMember)
-                 .ThenInclude(x => x.Event)
-                 .Include(x => x.LineMember.SwiftLineUser)
                  .AsSplitQuery()
                  .Where(x => x.LineMember.EventId == line.LineMember.EventId)
                  .OrderBy(x => x.CreatedAt)
                  .AsNoTracking()
                  .ToListAsync();
 
-            string userId = line.LineMember.SwiftLineUser.Id;
+            string userId = line.LineMember.UserId;
             var lineinfo = await lineRepo.GetUserLineInfo(userId);
             await notifierHub.NotifyUserPositionChange(userId, lineinfo);
 

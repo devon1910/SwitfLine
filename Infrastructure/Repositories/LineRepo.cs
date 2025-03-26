@@ -77,8 +77,9 @@ namespace Infrastructure.Repositories
                 line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
                 line.Status = status;
                 SwiftLineUser? user = await dbContext.SwiftLineUsers.FindAsync(line.LineMember.UserId);
+                Event @event = await dbContext.Events.FindAsync(line.LineMember.EventId);
                 user.IsInQueue = false;
-                line.LineMember.Event.UsersInQueue -= 1;
+                @event.UsersInQueue -= 1;
 
                 await dbContext.SaveChangesAsync();
                 return true;
@@ -143,7 +144,6 @@ namespace Infrastructure.Repositories
                 .AsSplitQuery()
                 .Where(x => !x.IsAttendedTo && x.IsActive)
                 .Include(x => x.LineMember)
-                .ThenInclude(x => x.Event)
                 .Where(x => x.LineMember.UserId == UserId)
                 .FirstOrDefaultAsync();
 
@@ -160,7 +160,9 @@ namespace Infrastructure.Repositories
 
                 position = othersInLines.IndexOf(line) + 1;
 
-                int timeTillYourTurn = ((line.LineMember.Event.AverageTimeToServeSeconds * position) - line.LineMember.Event.AverageTimeToServeSeconds) / 60;
+                Event @event = dbContext.Events.Find(line.LineMember.EventId);
+
+                int timeTillYourTurn = ((@event.AverageTimeToServeSeconds * position) - @event.AverageTimeToServeSeconds) / 60;
                 //+ GetOrdinal(position)
                 return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn, GetOrdinal(position), line.LineMember.Event.Title);  
         }
@@ -174,22 +176,32 @@ namespace Infrastructure.Repositories
 
         public async Task NotifyFifthMember(Line line)
         {
-            var eventId = line.LineMember.EventId;
+            long eventId = line.LineMember.EventId;
+            Event @event = dbContext.Events.Find(line.LineMember.EventId);
             var user = await dbContext.Lines
                 .Where(x => x.IsActive && !x.IsAttendedTo)
-                .Include(x => x.LineMember).ThenInclude(x => x.Event)
                 .Include(x => x.LineMember.SwiftLineUser)
                 .AsSplitQuery()
                 .Where(x => x.LineMember.EventId == eventId)
                 .OrderBy(x => x.CreatedAt)
                 .Skip(1)
                 .FirstOrDefaultAsync();
+            
 
            
             if (user is not null) 
             {
-                int EstimatedTime = (user.LineMember.Event.AverageTimeToServeSeconds) / 60; //nptifies the 2nd person for now
-                await SendReminderMail(user.LineMember.SwiftLineUser.Email, EstimatedTime);
+                int EstimatedTime = (@event.AverageTimeToServeSeconds) / 60; //nptifies the 2nd person for now
+                try
+                {
+                    await SendReminderMail(user.LineMember.SwiftLineUser.Email, EstimatedTime);
+                }
+                catch (Exception ex)
+                {
+
+                    throw;
+                }
+                
             }
 
         }
