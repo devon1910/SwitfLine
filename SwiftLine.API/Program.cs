@@ -33,7 +33,7 @@ builder.Services.AddIdentity<SwiftLineUser, IdentityRole>().AddEntityFrameworkSt
 
 builder.Services.AddDbContext<SwiftLineDatabaseContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Database"), options => options.EnableRetryOnFailure());
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Database"));
 });
 builder.Services.AddOpenApi();
 

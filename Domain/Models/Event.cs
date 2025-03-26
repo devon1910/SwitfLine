@@ -27,10 +27,11 @@ namespace Domain.Models
         public required TimeOnly EventStartTime { get; set; }
         public required TimeOnly EventEndTime {get; set; }
 
-        [NotMapped]
         public int UsersInQueue { get; set; }
         [MaxLength(450)]
         [NotMapped]
         public string Organizer { get; set; }
+        [NotMapped]
+        public bool IsOngoing { get; set; }
     }
 }

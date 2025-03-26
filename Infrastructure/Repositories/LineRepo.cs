@@ -74,6 +74,7 @@ namespace Infrastructure.Repositories
                 .Reference(l => l.LineMember)
                 .Query()
                 .Include(lm => lm.SwiftLineUser)
+                .Include(lm=>lm.Event)
                 .LoadAsync();
 
             line.IsAttendedTo = true;
@@ -81,6 +82,7 @@ namespace Infrastructure.Repositories
             line.Status = status;
 
             line.LineMember.SwiftLineUser.IsInQueue = false;
+            line.LineMember.Event.UsersInQueue -= 1;
 
             using var transaction = await dbContext.Database.BeginTransactionAsync();
             try

@@ -106,6 +106,10 @@ namespace Infrastructure.Repositories
         {
             if (string.IsNullOrWhiteSpace(userId) || await isUserInLine(userId)) return 0;
 
+
+            //event is active rn
+            if (!isEventActiveRightNow(eventId)) return -1;
+
             LineMember newQueueMember = new LineMember
             {
                 EventId = eventId,
@@ -122,11 +126,15 @@ namespace Infrastructure.Repositories
             await dbContext.Lines.AddAsync(queue);
 
             SwiftLineUser user = await dbContext.SwiftLineUsers.FindAsync(userId);
+            Event @event = await dbContext.Events.FindAsync(eventId);
             user.IsInQueue = true;
+            @event.UsersInQueue += 1;
             await dbContext.SaveChangesAsync();
             return newQueueMember.Id;
 
         }
+
+       
         public void DeleteEvent(long Id)
         {
             Event eventToDelete = dbContext.Events.Find(Id);
@@ -185,24 +193,82 @@ namespace Infrastructure.Repositories
 
             if (string.IsNullOrEmpty(query))
             {
-               
-                var events= await dbContext.Events
-                    .Where(x => x.IsActive)
-                    .OrderBy(x => x.EventStartTime)
-                    .Skip((page - 1) * size)
-                    .Take(size)
-                    .ToListAsync();
+
+                var eventsData = await dbContext.Events
+                 .Where(x => x.IsActive)
+                 .OrderBy(x => x.EventStartTime)
+                 .Skip((page - 1) * size)
+                 .Take(size)
+                 .Include(x => x.SwiftLineUser)
+                 .ToListAsync();
+
+                var events = eventsData.Select(x => new Event()
+                {
+                    Id = x.Id,
+                    Title = x.Title,
+                    Description = x.Description,
+                    AverageTime = x.AverageTime,
+                    EventStartTime = x.EventStartTime,
+                    EventEndTime = x.EventEndTime,
+                    UsersInQueue = x.UsersInQueue,
+                    Organizer = x.SwiftLineUser.Email,
+                    IsOngoing = isEventActiveRightNow(x)
+                }).ToList();
                 return new SearchEventsRes ( events, pageCount);
             }
 
-            var searchResults = await dbContext.Events
-                .Where(x => x.IsActive && x.Title.Contains(query))
-                .OrderBy(x => x.EventStartTime)
-                .Skip((page - 1) * size)
-                .Take(size)
-                .ToListAsync();
+            var searchEventsData = await dbContext.Events
+                 .Where(x => x.IsActive && x.Title.Contains(query))
+                 .OrderBy(x => x.EventStartTime)
+                 .Skip((page - 1) * size)
+                 .Take(size)
+                 .Include(x => x.SwiftLineUser)
+                 .ToListAsync();
 
-            return new SearchEventsRes (searchResults, pageCount);
+            var searchEvents = searchEventsData.Select(x => new Event()
+            {
+                Id = x.Id,
+                Title = x.Title,
+                Description = x.Description,
+                AverageTime = x.AverageTime,
+                EventStartTime = x.EventStartTime,
+                EventEndTime = x.EventEndTime,
+                UsersInQueue = x.UsersInQueue,
+                Organizer = x.SwiftLineUser.Email,
+                IsOngoing = isEventActiveRightNow(x)
+            }).ToList();
+            return new SearchEventsRes(searchEvents, pageCount);
+        }
+
+        private bool isEventActiveRightNow(long eventId)
+        {
+
+            var timeNow = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1));
+            Event @event = dbContext.Events.Find(eventId);
+
+            if (@event.EventStartTime <= @event.EventEndTime)
+            {
+                return timeNow >= @event.EventStartTime && timeNow <= @event.EventEndTime;
+            }
+            else
+            {
+                return timeNow >= @event.EventStartTime || timeNow <= @event.EventEndTime;
+            }
+        }
+        
+        private bool isEventActiveRightNow(Event @event)
+        {
+
+            var timeNow = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1));
+
+            if (@event.EventStartTime <= @event.EventEndTime)
+            {
+                return timeNow >= @event.EventStartTime && timeNow <= @event.EventEndTime;
+            }
+            else
+            {
+                return timeNow >= @event.EventStartTime || timeNow <= @event.EventEndTime;
+            }
         }
     }
 }
