@@ -97,7 +97,23 @@ namespace Infrastructure.Repositories
                         .Include(x => x.LineMember)
                         .ThenInclude(x => x.SwiftLineUser)
                         .Where(x => x.LineMember.EventId == eventId)
-                        .ToListAsync();
+                        .Select(x => new Line
+                        {
+                            Id = x.Id,
+                            CreatedAt = x.CreatedAt.AddHours(-1),
+                            LineMemberId = x.LineMemberId,
+                            LineMember = new LineMember()
+                            {
+                                Id = x.LineMemberId,
+                                SwiftLineUser = new SwiftLineUser
+                                {
+                                    Email = x.LineMember.SwiftLineUser.Email
+                                }
+                            },
+
+                        }).ToListAsync();
+
+
             return lines;
 
         }
