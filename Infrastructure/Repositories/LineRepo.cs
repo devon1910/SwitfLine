@@ -143,9 +143,10 @@ namespace Infrastructure.Repositories
         {
 
                 var line = await  dbContext.Lines
-                .AsSplitQuery()
+                
                 .Where(x => !x.IsAttendedTo && x.IsActive)
                 .Include(x => x.LineMember)
+                .AsSplitQuery()
                 .Where(x => x.LineMember.UserId == UserId)
                 .FirstOrDefaultAsync();
 
@@ -162,11 +163,11 @@ namespace Infrastructure.Repositories
 
                 position = othersInLines.IndexOf(line) + 1;
 
-                Event @event = dbContext.Events.Find(line.LineMember.EventId);
+                Event @event = dbContext.Events.AsNoTracking().FirstOrDefault(x=>x.Id==line.LineMember.EventId);
 
-                int timeTillYourTurn = ((@event.AverageTimeToServeSeconds * position) - @event.AverageTimeToServeSeconds) / 60;
+            int timeTillYourTurn = ((@event.AverageTimeToServeSeconds * position) - @event.AverageTimeToServeSeconds) / 60;
                 //+ GetOrdinal(position)
-                return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn, GetOrdinal(position), line.LineMember.Event.Title);  
+                return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn, GetOrdinal(position), @event.Title);  
         }
 
         public bool GetUserQueueStatus(string UserId)
@@ -189,7 +190,6 @@ namespace Infrastructure.Repositories
                 .Skip(1)
                 .FirstOrDefaultAsync();
             
-
            
             if (user is not null) 
             {

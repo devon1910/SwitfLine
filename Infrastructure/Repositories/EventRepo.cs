@@ -178,7 +178,6 @@ namespace Infrastructure.Repositories
             Line line = dbContext.Lines
                 .Where(x => x.LineMemberId == lineMemberId)
                 .Include(x=>x.LineMember)
-                .ThenInclude(x => x.Event)
                 .FirstOrDefault();
 
             await lineRepo.MarkUserAsAttendedTo(line, "");
