@@ -110,6 +110,7 @@ namespace Infrastructure.Repositories
                         .ThenInclude(x => x.SwiftLineUser)
                         .Include(x => x.LineMember).ThenInclude(x => x.Event)
                         .Where(x => x.LineMember.EventId == eventId)
+                        .OrderBy(x=>x.CreatedAt)
                         .Select(x => new Line
                         {
                             Id = x.Id,
