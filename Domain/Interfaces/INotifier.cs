@@ -23,7 +23,7 @@ namespace Domain.Interfaces
     {
         public Task BroadcastLineUpdate(Line line);
 
-        public Task BroadcastLineActivity(Line line, bool status);
+        public Task BroadcastLineActivity(long eventId, bool status);
 
     }
 }

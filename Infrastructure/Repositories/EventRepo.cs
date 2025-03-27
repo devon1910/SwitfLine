@@ -59,7 +59,16 @@ namespace Infrastructure.Repositories
         {
             var timeNow = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1));
 
-            var unfinishedEvents = await dbContext.Lines.Where(x => !x.IsAttendedTo).Include(x => x.LineMember).Select(x => x.LineMember.EventId).ToListAsync();
+            var unfinishedEvents = await dbContext.Lines
+                .AsNoTracking()
+                .Where(x => !x.IsAttendedTo)
+                .Include(x => x.LineMember)
+                .ThenInclude(x => x.Event)
+                .AsSplitQuery()
+                .Where(x => x.LineMember.Event.IsActive)
+                .Select(x => x.LineMember.EventId)            
+                .ToListAsync();
+
             return await dbContext.Events
                 .AsNoTracking()
                 .Where(x => x.IsActive &&
@@ -92,12 +101,14 @@ namespace Infrastructure.Repositories
             return await dbContext.Events.Include(x => x.SwiftLineUser).FirstOrDefaultAsync(x=>x.Id ==eventId);
         }
 
-        public async Task<List<Line>> GetEventQueue(long eventId)
+        public async Task<EventQueueRes> GetEventQueue(long eventId)
         {
             var lines = await dbContext.Lines
+                        .AsNoTracking()
                         .Where(x => !x.IsAttendedTo)
                         .Include(x => x.LineMember)
                         .ThenInclude(x => x.SwiftLineUser)
+                        .Include(x => x.LineMember).ThenInclude(x => x.Event)
                         .Where(x => x.LineMember.EventId == eventId)
                         .Select(x => new Line
                         {
@@ -107,6 +118,7 @@ namespace Infrastructure.Repositories
                             LineMember = new LineMember()
                             {
                                 Id = x.LineMemberId,
+                                UserId =x.LineMember.UserId,
                                 SwiftLineUser = new SwiftLineUser
                                 {
                                     Email = x.LineMember.SwiftLineUser.Email
@@ -114,9 +126,10 @@ namespace Infrastructure.Repositories
                             },
 
                         }).ToListAsync();
+            Event @event =  dbContext.Events.AsNoTracking().FirstOrDefault(x=>x.Id==eventId);
 
 
-            return lines;
+            return new EventQueueRes(lines,!@event.IsActive);
 
         }
 
@@ -191,14 +204,7 @@ namespace Infrastructure.Repositories
             Event @event = dbContext.Events.Find(eventId);
             @event.IsActive = status;
             await dbContext.SaveChangesAsync();
-
-            List<Line> Lines = await GetEventQueue(eventId);
-
-            foreach (var line in Lines)
-            {
-                await notifier.BroadcastLineActivity(line,status);
-            }
-
+            await notifier.BroadcastLineActivity(eventId, status);
             return true;
         }
 

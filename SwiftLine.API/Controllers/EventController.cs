@@ -41,7 +41,7 @@ namespace SwiftLine.API.Controllers
             return res.ToActionResult();
         }
         [HttpGet("{EventId}")]
-        public async Task<ActionResult<Result<List<Line>>>> GetEventQueue(long EventId)
+        public async Task<ActionResult<Result<EventQueueRes>>> GetEventQueue(long EventId)
         {
             var res = await eventService.GetEventQueue(EventId);
             return res.ToActionResult();
