@@ -7,6 +7,7 @@ using FluentEmail.Core;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -76,10 +77,11 @@ namespace Infrastructure.Repositories
                 line.IsAttendedTo = true;
                 line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
                 line.Status = status;
-                SwiftLineUser? user = await dbContext.SwiftLineUsers.FindAsync(line.LineMember.UserId);
-                Event @event = await dbContext.Events.FindAsync(line.LineMember.EventId);
-                user.IsInQueue = false;
-                @event.UsersInQueue -= 1;
+
+                await dbContext.Database.ExecuteSqlInterpolatedAsync(
+   $"UPDATE public.\"Events\" set \"UsersInQueue\"=\"UsersInQueue\" - 1 where \"Id\"={line.LineMember.EventId}");
+                await dbContext.Database.ExecuteSqlInterpolatedAsync(
+   $"UPDATE public.\"AspNetUsers\" set \"IsInQueue\"='false' where \"Id\"={line.LineMember.UserId}");
 
                 await dbContext.SaveChangesAsync();
                 return true;

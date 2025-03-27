@@ -38,7 +38,7 @@ namespace Infrastructure.Repositories
 
             foreach (var l in othersInLines)
             {
-                userId = l.LineMember.SwiftLineUser.Id;
+                userId = l.LineMember.UserId;
                 lineinfo = await lineRepo.GetUserLineInfo(userId);
                 await notifierHub.NotifyUserPositionChange(userId, lineinfo);
             }

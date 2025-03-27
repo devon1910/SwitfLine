@@ -124,7 +124,6 @@ namespace Infrastructure.Repositories
         {
             if (string.IsNullOrWhiteSpace(userId) || await isUserInLine(userId)) return 0;
 
-
             //event is active rn
             if (!isEventActiveRightNow(eventId)) return -1;
 
@@ -144,9 +143,11 @@ namespace Infrastructure.Repositories
             await dbContext.Lines.AddAsync(queue);
 
             SwiftLineUser user = await dbContext.SwiftLineUsers.FindAsync(userId);
-            Event @event = await dbContext.Events.FindAsync(eventId);
             user.IsInQueue = true;
-            @event.UsersInQueue += 1;
+
+            await dbContext.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE public.\"Events\" set \"UsersInQueue\"=\"UsersInQueue\" + 1 where \"Id\"={eventId}");
+
             await dbContext.SaveChangesAsync();
             return newQueueMember.Id;
 
