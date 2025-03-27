@@ -203,7 +203,7 @@ namespace Infrastructure.Repositories
             return true;
         }
 
-        public async Task<SearchEventsRes> SearchEvents(int page, int size, string query)
+        public async Task<SearchEventsRes> SearchEvents(int page, int size, string query, string userId)
         {
 
             var allEvents =  dbContext.Events
@@ -234,7 +234,7 @@ namespace Infrastructure.Repositories
                     Organizer = x.SwiftLineUser.Email,
                     IsOngoing = isEventActiveRightNow(x)
                 }).ToList();
-                return new SearchEventsRes ( events, pageCount);
+                return new SearchEventsRes ( events, pageCount, GetUserQueueStatus(userId));
             }
 
             var searchEventsData = await dbContext.Events
@@ -257,7 +257,14 @@ namespace Infrastructure.Repositories
                 Organizer = x.SwiftLineUser.Email,
                 IsOngoing = isEventActiveRightNow(x)
             }).ToList();
-            return new SearchEventsRes(searchEvents, pageCount);
+            return new SearchEventsRes(searchEvents, pageCount, GetUserQueueStatus(userId));
+        }
+
+        private bool GetUserQueueStatus(string UserId)
+        {
+            var user = dbContext.SwiftLineUsers.Find(UserId);
+            return user is not null ? user.IsInQueue : false;
+
         }
 
         private bool isEventActiveRightNow(long eventId)

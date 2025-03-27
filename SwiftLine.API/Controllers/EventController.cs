@@ -68,7 +68,7 @@ namespace SwiftLine.API.Controllers
         [HttpGet, AllowAnonymous]
         public async Task<ActionResult<Result<SearchEventsRes>>> SearchEvents(int page, int size, string query="")
         {
-           var res = await eventService.SearchEvents(page,size,query);
+           var res = await eventService.SearchEvents(page,size,query, UserId);
 
             return res.ToActionResult();
         }

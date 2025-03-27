@@ -7,5 +7,5 @@ using System.Threading.Tasks;
 
 namespace Domain.DTOs.Responses
 {
-    public record SearchEventsRes(List<Event> Events, int TotalPages);
+    public record SearchEventsRes(List<Event> Events, int TotalPages, bool IsUserInQueue);
 }

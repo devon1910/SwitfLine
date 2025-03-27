@@ -72,9 +72,9 @@ namespace Application.Services
             return Result<bool>.Ok(true);
         }
 
-        public async Task<Result<SearchEventsRes>> SearchEvents(int page, int size, string searchQuery)
+        public async Task<Result<SearchEventsRes>> SearchEvents(int page, int size, string searchQuery, string userId)
         {
-            var result = await eventRepo.SearchEvents(page, size, searchQuery);
+            var result = await eventRepo.SearchEvents(page, size, searchQuery, userId);
 
             return Result<SearchEventsRes>.Ok(result);
         }
