@@ -16,6 +16,7 @@ using System.Linq;
 using System.Numerics;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -44,7 +45,7 @@ namespace Infrastructure.Repositories
                             existingUser.IsEmailVerified
                                 ? "User already exists"
                                 : "User already exists but email is not verified. Please check your email for the verification link and follow the instructions.",
-                            "", "", "", "", false);
+                            "", "", "", "", false,"");
                     }
 
                     // Create User role if it doesn't exist
@@ -55,7 +56,7 @@ namespace Infrastructure.Repositories
                         {
                             var roleErrors = roleResult.Errors.Select(e => e.Description);
                             _logger.LogError($"Failed to create user role. Errors: {string.Join(", ", roleErrors)}");
-                            return new AuthRes(false, $"Failed to create user role. Errors: {string.Join(", ", roleErrors)}", "", "", "", "", false);
+                            return new AuthRes(false, $"Failed to create user role. Errors: {string.Join(", ", roleErrors)}", "", "", "", "", false,"");
                         }
                     }
 
@@ -64,8 +65,8 @@ namespace Infrastructure.Repositories
                     {
                         Email = model.Email,
                         SecurityStamp = Guid.NewGuid().ToString(),
-                        UserName = model.Email,
-                        EmailConfirmed = true
+                        UserName = await GetUniqueUsername(model.Email),
+                        EmailConfirmed = true,            
                     };
 
                     var createUserResult = await _userManager.CreateAsync(user, model.Password);
@@ -73,7 +74,7 @@ namespace Infrastructure.Repositories
                     {
                         var errors = createUserResult.Errors.Select(e => e.Description);
                         _logger.LogError($"Failed to create user. Errors: {string.Join(", ", errors)}");
-                        return new AuthRes(false, $"Failed to create user. Errors: {string.Join(", ", errors)}", "", "", "", "", false);
+                        return new AuthRes(false, $"Failed to create user. Errors: {string.Join(", ", errors)}", "", "", "", "", false, "");
                     }
 
                     // Add the user to the role
@@ -82,7 +83,7 @@ namespace Infrastructure.Repositories
                     {
                         var errors = addUserToRoleResult.Errors.Select(e => e.Description);
                         _logger.LogError($"Failed to add role to the user. Errors: {string.Join(", ", errors)}");
-                        return new AuthRes(false, $"Failed to add role to the user. Errors: {string.Join(", ", errors)}", "", "", "", "", false);
+                        return new AuthRes(false, $"Failed to add role to the user. Errors: {string.Join(", ", errors)}", "", "", "", "", false,"");
                     }
 
                     // Build authentication claims including a claim to signal email verification purpose
@@ -116,19 +117,74 @@ namespace Infrastructure.Repositories
 
                     return new AuthRes(true,
                         "Almost done🎉! A welcome mail has been sent to your email address. Kindly follow the instructions. Didn't get it in your inbox? Please check your spam folder or contact the support team. Thanks!",
-                        "", "", user.Id, user.Email, user.IsInQueue);
+                        "", "", user.Id, user.Email, user.IsInQueue,user.UserName);
                 }
                 catch (Exception ex)
                 {
                     // Roll back all changes if any error occurs
                     await transaction.RollbackAsync();
                     _logger.LogError($"Signup transaction failed: {ex.Message}");
-                    return new AuthRes(false, ex.Message, "", "", "", "", false);
+                    return new AuthRes(false, ex.Message, "", "", "", "", false, "");
                 }
             }
 
 
         }
+        private static string GenerateUsernameFromEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                throw new ArgumentException("Email cannot be null or empty", nameof(email));
+            }
+
+            // Split the email into local part and domain
+            string[] parts = email.Split('@');
+            if (parts.Length != 2)
+            {
+                throw new ArgumentException("Invalid email format", nameof(email));
+            }
+
+            string localPart = parts[0];
+
+            // Remove any non-alphanumeric characters
+            string cleanUsername = Regex.Replace(localPart, @"[^a-zA-Z0-9]", "");
+
+            // If the cleaned username is too short, add some characters from the domain
+            if (cleanUsername.Length < 4)
+            {
+                string domainPart = parts[1].Split('.')[0];
+                cleanUsername += domainPart.Substring(0, Math.Min(4, domainPart.Length));
+            }
+
+            // Ensure the username is between 4 and 20 characters
+            cleanUsername = cleanUsername.Length > 20
+                ? cleanUsername[..20]
+                : cleanUsername;
+
+            // If the username is still too short, add numbers
+            while (cleanUsername.Length < 4)
+            {
+                cleanUsername += new Random().Next(0, 9);
+            }
+
+            return cleanUsername.ToLower();
+        }
+        
+        private async Task<string> GetUniqueUsername(string email)
+        {
+            string baseUsername = GenerateUsernameFromEmail(email);
+            string uniqueUsername = baseUsername;
+            int counter = 1;
+
+            while (await _userManager.FindByNameAsync(uniqueUsername) is not null)
+            {
+                uniqueUsername = $"{baseUsername}{counter}";
+                counter++;
+            }
+
+            return uniqueUsername;
+        }
+
 
         public async Task<AuthRes> Login(LoginModel model)
         {
@@ -136,12 +192,12 @@ namespace Infrastructure.Repositories
             bool isValidPassword = await _userManager.CheckPasswordAsync(user, model.Password);
             if (user is null || !isValidPassword)
             {
-                return new AuthRes(false, "Invalid user name or password.", "", "", "", "",false);
+                return new AuthRes(false, "Invalid user name or password.", "", "", "", "",false,"");
             }
 
             if (!user.IsEmailVerified)
             {
-                return new AuthRes(false, "Email address not verified, please check your email for the verification link and follow the instructions.", "", "", "", "", false);
+                return new AuthRes(false, "Email address not verified, please check your email for the verification link and follow the instructions.", "", "", "", "", false,"");
             }
 
 
@@ -191,7 +247,7 @@ namespace Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
 
-            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id,user.Email,user.IsInQueue);
+            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id,user.Email,user.IsInQueue,user.UserName);
            
         }
 
@@ -206,7 +262,7 @@ namespace Infrastructure.Repositories
                 || tokenInfo.RefreshToken != tokenModel.RefreshToken
                 || tokenInfo.ExpiredAt <= DateTime.UtcNow)
             {
-                return new AuthRes(false,"Invalid refresh token. Please login again.","","", "", "", false);
+                return new AuthRes(false,"Invalid refresh token. Please login again.","","", "", "", false,"");
             }
 
             var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims);
@@ -217,7 +273,7 @@ namespace Infrastructure.Repositories
 
             var user = await _userManager.FindByNameAsync(username); 
 
-            return new AuthRes(true, "Refresh token updated.", newAccessToken, newRefreshToken,user.Id,user.Email, user.IsInQueue);
+            return new AuthRes(true, "Refresh token updated.", newAccessToken, newRefreshToken,user.Id,user.Email, user.IsInQueue,user.UserName);
            
         }
 
@@ -281,7 +337,7 @@ namespace Infrastructure.Repositories
 
                 if (user is null)
                 {
-                    return new AuthRes(false, "Could not found user with the provided token.", "", "", "", "", false);
+                    return new AuthRes(false, "Could not found user with the provided token.", "", "", "", "", false,"");
                 }
                 user.IsEmailVerified = true;
                 _context.SaveChanges();
@@ -289,7 +345,8 @@ namespace Infrastructure.Repositories
                     user.Id, 
                     user.Email,
                     user.IsInQueue,
-                    principal.FindFirst("purpose")?.Value);
+                    user.UserName,
+                principal.FindFirst("purpose")?.Value);
             }
             catch (Exception ex)
             {

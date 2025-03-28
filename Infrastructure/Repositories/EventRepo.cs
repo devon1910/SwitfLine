@@ -242,7 +242,7 @@ namespace Infrastructure.Repositories
                     EventStartTime = x.EventStartTime,
                     EventEndTime = x.EventEndTime,
                     UsersInQueue = x.UsersInQueue,
-                    Organizer = x.SwiftLineUser.Email,
+                    Organizer = x.SwiftLineUser.UserName,
                     IsOngoing = isEventActiveRightNow(x)
                 }).ToList();
                 return new SearchEventsRes ( events, pageCount, GetUserQueueStatus(userId));
@@ -265,7 +265,7 @@ namespace Infrastructure.Repositories
                 EventStartTime = x.EventStartTime,
                 EventEndTime = x.EventEndTime,
                 UsersInQueue = x.UsersInQueue,
-                Organizer = x.SwiftLineUser.Email,
+                Organizer = x.SwiftLineUser.UserName,
                 IsOngoing = isEventActiveRightNow(x)
             }).ToList();
             return new SearchEventsRes(searchEvents, pageCount, GetUserQueueStatus(userId));
