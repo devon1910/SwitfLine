@@ -18,7 +18,12 @@ namespace Infrastructure.Repositories
     {
         public async Task<bool> CreateEvent(string userId, CreateEventModel req)
         {
+            Event existingEvent= dbContext.Events.FirstOrDefault(x => x.Title == req.Title);
 
+            if (existingEvent != null)
+            {
+                return false;
+            }
             var newEvent = new Event
             {
                 Title = req.Title,

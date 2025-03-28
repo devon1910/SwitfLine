@@ -21,7 +21,7 @@ namespace Application.Services
             {
                 return Result<bool>.Ok(true);
             }
-            return Result<bool>.Failed("Failed to create event");
+            return Result<bool>.Failed("Event title exists already. Please use a different event title and try again.");
         }
 
 
