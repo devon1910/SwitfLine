@@ -350,7 +350,8 @@ namespace Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                throw ex; // Invalid token
+                //log exception
+                return new AuthRes(false, "Sorry, Something went wrong. Please sign up or contact the support team if this error persists.", "", "", "", "", false, "");
             }
         }
 
