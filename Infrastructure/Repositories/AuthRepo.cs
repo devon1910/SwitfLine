@@ -298,7 +298,7 @@ namespace Infrastructure.Repositories
             string link =  _configuration["SwiftLineBaseUrl"] +token; //come back to this
             var email = await _fluentEmail
                 .To(RecipientEmail)
-                .Subject($"Welcome to Swiftline⚡ - Verify Your Email Address")
+                .Subject($"Welcome to Swiftline ⏭ - Verify Your Email Address")
                 .Body(htmlTemplate
                 .Replace("{{UserName}}",RecipientEmail)
                 .Replace("{{VerificationLink}}", link), true) 

@@ -213,7 +213,7 @@ namespace Infrastructure.Repositories
             string link = _configuration["SwiftLineBaseUrlForReminder"]; 
             var email = await _fluentEmail
                 .To(RecipientEmail)
-                .Subject($"Your Turn is Coming Up Soon - Swiftline")
+                .Subject($"Your Turn is Coming Up Soon - Swiftline ⏭")
                 .Body(htmlTemplate
                 .Replace("[UserName]", RecipientEmail)
                 .Replace("[swiftlinelink]", link)
