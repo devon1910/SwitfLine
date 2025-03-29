@@ -184,7 +184,7 @@ namespace Infrastructure.Repositories
         {
             var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
 
-            return user.IsInQueue;
+            return user is not null ? user.IsInQueue : false;
         }
 
         public async Task<List<Event>> GetUserEvents(string userId)
@@ -225,7 +225,6 @@ namespace Infrastructure.Repositories
             {
 
                 var eventsData = await allEvents
-                 .Where(x => x.IsActive)
                  .OrderBy(x => x.EventStartTime)
                  .Skip((page - 1) * size)
                  .Take(size)
@@ -242,13 +241,14 @@ namespace Infrastructure.Repositories
                     EventEndTime = x.EventEndTime,
                     UsersInQueue = x.UsersInQueue,
                     Organizer = x.SwiftLineUser.UserName,
-                    IsOngoing = isEventActiveRightNow(x)
+                    HasStarted = isEventActiveRightNow(x),
+                    IsActive = x.IsActive
                 }).ToList();
                 return new SearchEventsRes ( events, pageCount, GetUserQueueStatus(userId));
             }
 
             var searchEventsData = await allEvents
-                 .Where(x => x.IsActive && x.Title.Contains(query))
+                 .Where(x => x.Title.Contains(query))
                  .OrderBy(x => x.EventStartTime)
                  .Skip((page - 1) * size)
                  .Take(size)
@@ -265,7 +265,8 @@ namespace Infrastructure.Repositories
                 EventEndTime = x.EventEndTime,
                 UsersInQueue = x.UsersInQueue,
                 Organizer = x.SwiftLineUser.UserName,
-                IsOngoing = isEventActiveRightNow(x)
+                HasStarted = isEventActiveRightNow(x),
+                IsActive = x.IsActive
             }).ToList();
             return new SearchEventsRes(searchEvents, pageCount, GetUserQueueStatus(userId));
         }

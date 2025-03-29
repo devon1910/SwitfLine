@@ -31,6 +31,6 @@ namespace Domain.Models
         [NotMapped]
         public string Organizer { get; set; }
         [NotMapped]
-        public bool IsOngoing { get; set; }
+        public bool HasStarted { get; set; }
     }
 }
