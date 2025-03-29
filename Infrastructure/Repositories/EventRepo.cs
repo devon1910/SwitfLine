@@ -217,15 +217,14 @@ namespace Infrastructure.Repositories
         public async Task<SearchEventsRes> SearchEvents(int page, int size, string query, string userId)
         {
 
-            var allEvents =  dbContext.Events
-                .Where(x => x.IsActive);
+            var allEvents =  dbContext.Events.AsQueryable();
 
             int pageCount = (allEvents.Count() + size - 1) / size;
 
             if (string.IsNullOrEmpty(query))
             {
 
-                var eventsData = await dbContext.Events
+                var eventsData = await allEvents
                  .Where(x => x.IsActive)
                  .OrderBy(x => x.EventStartTime)
                  .Skip((page - 1) * size)
@@ -248,7 +247,7 @@ namespace Infrastructure.Repositories
                 return new SearchEventsRes ( events, pageCount, GetUserQueueStatus(userId));
             }
 
-            var searchEventsData = await dbContext.Events
+            var searchEventsData = await allEvents
                  .Where(x => x.IsActive && x.Title.Contains(query))
                  .OrderBy(x => x.EventStartTime)
                  .Skip((page - 1) * size)
