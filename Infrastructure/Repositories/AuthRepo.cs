@@ -105,7 +105,7 @@ namespace Infrastructure.Repositories
                     var token = _tokenService.GenerateAccessToken(authClaims);
 
                     // Send Email Verification
-                    bool isMailSent = await SendEmailVerifyLink(user.Email, token);
+                    bool isMailSent = await SendEmailVerifyLink(user.Email, token, user.UserName);
 
                     // If sending the email fails, throw to trigger rollback.
                     if (!isMailSent)
@@ -293,7 +293,7 @@ namespace Infrastructure.Repositories
             return true;
         }
 
-        public async Task<bool> SendEmailVerifyLink(string RecipientEmail, string token)
+        public async Task<bool> SendEmailVerifyLink(string RecipientEmail, string token, string username)
         {
             string htmlTemplate = GetEmailTemplate(); 
             string link =  _configuration["SwiftLineBaseUrl"] +token; //come back to this
@@ -301,7 +301,7 @@ namespace Infrastructure.Repositories
                 .To(RecipientEmail)
                 .Subject($"Welcome to Swiftline ⏭ - Verify Your Email Address")
                 .Body(htmlTemplate
-                .Replace("{{UserName}}",RecipientEmail)
+                .Replace("{{UserName}}", username)
                 .Replace("{{VerificationLink}}", link), true) 
                 .SendAsync();
             _logger.LogInformation("Email Sent Successfully");

@@ -196,7 +196,7 @@ namespace Infrastructure.Repositories
                 int EstimatedTime = (@event.AverageTimeToServeSeconds) / 60; //nptifies the 2nd person for now
                 try
                 {
-                    await SendReminderMail(user.LineMember.SwiftLineUser.Email, EstimatedTime);
+                    await SendReminderMail(user.LineMember.SwiftLineUser.Email, EstimatedTime, user.LineMember.SwiftLineUser.UserName);
                 }
                 catch (Exception ex)
                 {
@@ -207,7 +207,7 @@ namespace Infrastructure.Repositories
             }
 
         }
-        private async Task<bool> SendReminderMail(string RecipientEmail, int EstimatedTime)
+        private async Task<bool> SendReminderMail(string RecipientEmail, int EstimatedTime, string username)
         {
             string htmlTemplate = GetEmailTemplate();
             string link = _configuration["SwiftLineBaseUrlForReminder"]; 
@@ -215,7 +215,7 @@ namespace Infrastructure.Repositories
                 .To(RecipientEmail)
                 .Subject($"Your Turn is Coming Up Soon - Swiftline ⏭")
                 .Body(htmlTemplate
-                .Replace("[UserName]", RecipientEmail)
+                .Replace("[UserName]", username)
                 .Replace("[swiftlinelink]", link)
                 .Replace("[estimatedTime]",EstimatedTime.ToString()), true)
                 .SendAsync();
