@@ -82,11 +82,17 @@ namespace Application.Services
             return Result<AuthRes>.Ok(authRes);
         }
 
-        public async Task<Result<bool>> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
+        public async Task<Result<AuthRes>> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
         {
-            var revokeRes = await authRepo.LoginWithGoogleAsync(claimsPrincipal);
+            var loginRes = await authRepo.LoginWithGoogleAsync(claimsPrincipal);
 
-            return Result<bool>.Created(revokeRes);
+            if(loginRes.status)
+            {
+                return Result<AuthRes>.Created(loginRes);
+               
+            }
+
+            return Result<AuthRes>.Failed("Failed to Login with Google", loginRes);
         }
     }
 }

@@ -17,10 +17,11 @@ using Microsoft.EntityFrameworkCore;
 using SwiftLine.API.Extensions;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Newtonsoft.Json.Linq;
 
 namespace SwiftLine.API.Controllers
 {
-    public class AuthController(IAuthService service, LinkGenerator _lineGenerator, SignInManager<SwiftLineUser> _signInManager) : BaseController
+    public class AuthController(IAuthService service,IConfiguration _config, LinkGenerator _lineGenerator, SignInManager<SwiftLineUser> _signInManager) : BaseController
     {
         [HttpPost]
         [AllowAnonymous]
@@ -68,24 +69,24 @@ namespace SwiftLine.API.Controllers
             return res.ToActionResult();
         }
 
-        [HttpGet("login/google"),AllowAnonymous]
-        public IActionResult LoginWithGoogle([FromQuery] string returnUrl)
+        [HttpGet(),AllowAnonymous]
+        public IActionResult LoginWithGoogle()
         {
+            string returnUrl = _config["SwiftLineBaseUrlForReminder"];
+
             var callbackUrl = _lineGenerator.GetPathByName(
                 HttpContext,
                 "GoogleLoginCallback",
                 values: new { returnUrl });
 
-           
-
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(
                 "Google",
-                $"{callbackUrl}?returnUrl={returnUrl}");
+                $"{callbackUrl}");
 
             return Challenge(properties, "Google");
         }
 
-        [HttpGet("login/google/callback", Name = "GoogleLoginCallback"),AllowAnonymous]
+        [HttpGet(Name = "GoogleLoginCallback"),AllowAnonymous]
         public async Task<IActionResult> GoogleLoginCallback([FromQuery] string returnUrl)
         {
             var authenticateResult = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
@@ -95,7 +96,19 @@ namespace SwiftLine.API.Controllers
                 return Unauthorized();
             }
 
-            await service.LoginWithGoogleAsync(authenticateResult.Principal);
+            var result= await service.LoginWithGoogleAsync(authenticateResult.Principal);
+            // Adjust CookieOptions as necessary; for example, set HttpOnly to true if you don't need client JS to access it
+            var cookieOptions = new CookieOptions
+            {
+                Expires = DateTime.UtcNow.AddDays(7),
+                // Set HttpOnly to false if your client needs to read the token from JavaScript.
+                HttpOnly = false             
+            };
+
+            Response.Cookies.Append("accessToken", result.Data.AccessToken, cookieOptions);
+            Response.Cookies.Append("refreshToken", result.Data.RefreshToken, cookieOptions);
+            Response.Cookies.Append("username", result.Data.userName, cookieOptions);
+            Response.Cookies.Append("userId", result.Data.userId, cookieOptions);
 
             return Redirect(returnUrl);
         }

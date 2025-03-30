@@ -21,7 +21,7 @@ namespace Domain.Interfaces
 
         public AuthRes VerifyToken(string token);
 
-        public Task<bool> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
+        public Task<AuthRes> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
 
     }
 
@@ -32,6 +32,6 @@ namespace Domain.Interfaces
         public Task<Result<AuthRes>> RefreshToken(TokenModel tokenModel);
         public Task<Result<bool>> Revoke(ClaimsPrincipal User);
         public Result<AuthRes> VerifyToken(string token);
-        public Task<Result<bool>> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
+        public Task<Result<AuthRes>> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
     }
 }

@@ -12,6 +12,5 @@ namespace Domain.Models
         public string Name { get; set; } = string.Empty;
 
         public bool IsInQueue { get; set; } = false;    
-        public bool IsEmailVerified { get; set; } = false;  
     }
 }

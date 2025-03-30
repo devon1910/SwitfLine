@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -42,7 +43,7 @@ namespace Infrastructure.Repositories
                     {
                         return new AuthRes(
                             false,
-                            existingUser.IsEmailVerified
+                            existingUser.EmailConfirmed
                                 ? "User already exists"
                                 : "User already exists but email is not verified. Please check your email for the verification link and follow the instructions.",
                             "", "", "", "", false,"");
@@ -66,7 +67,7 @@ namespace Infrastructure.Repositories
                         Email = model.Email,
                         SecurityStamp = Guid.NewGuid().ToString(),
                         UserName = await GetUniqueUsername(model.Email),
-                        EmailConfirmed = true,            
+                        EmailConfirmed = false,            
                     };
 
                     var createUserResult = await _userManager.CreateAsync(user, model.Password);
@@ -195,7 +196,7 @@ namespace Infrastructure.Repositories
                 return new AuthRes(false, "Invalid user name or password.", "", "", "", "",false,"");
             }
 
-            if (!user.IsEmailVerified)
+            if (!user.EmailConfirmed)
             {
                 return new AuthRes(false, "Email address not verified, please check your email for the verification link and follow the instructions.", "", "", "", "", false,"");
             }
@@ -339,7 +340,7 @@ namespace Infrastructure.Repositories
                 {
                     return new AuthRes(false, "Could not found user with the provided token.", "", "", "", "", false,"");
                 }
-                user.IsEmailVerified = true;
+                user.EmailConfirmed = true;
                 _context.SaveChanges();
                 return new AuthRes(true,"Token Validated","","", 
                     user.Id, 
@@ -477,7 +478,7 @@ namespace Infrastructure.Repositories
                    
         }
 
-        public async Task<bool> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
+        public async Task<AuthRes> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
         {
             //if (claimsPrincipal == null)
             //{
@@ -495,13 +496,12 @@ namespace Infrastructure.Repositories
 
             if (user == null)
             {
-                var newUser = new SwiftLineUser
+                SwiftLineUser newUser = new()
                 {
-                    UserName = email,
                     Email = email,
-                   // FirstName = claimsPrincipal.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty,
-                   // LastName = claimsPrincipal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty,
-                    EmailConfirmed = true //work on this later
+                    SecurityStamp = Guid.NewGuid().ToString(),
+                    UserName = await GetUniqueUsername(email),
+                    EmailConfirmed = false,
                 };
 
                 var result = await _userManager.CreateAsync(newUser);
@@ -513,27 +513,64 @@ namespace Infrastructure.Repositories
                     //        result.Errors.Select(x => x.Description))}");
                     throw new Exception();
                 }
-
-
-
                 user = newUser;
             }
 
-            var info = new UserLoginInfo("Google",
+            var info = new UserLoginInfo(
+                "Google",
                 claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
                 "Google");
+            // creating the necessary claims
+            List<Claim> authClaims = [
+                    new (ClaimTypes.Name, user.UserName),
+                        new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                        new (ClaimTypes.NameIdentifier, user.Id),
+
+                        // unique id for token
+                        ];
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            // adding roles to the claims. So that we can get the user role from the token.
+            foreach (var userRole in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
 
             var loginResult = await _userManager.AddLoginAsync(user, info);
 
-            if (!loginResult.Succeeded)
+            var token = _tokenService.GenerateAccessToken(authClaims);
+            //save refreshToken with exp date in the database
+            var tokenInfo = _context.TokenInfos.
+                        FirstOrDefault(a => a.Username == user.UserName);
+
+            string refreshToken = _tokenService.GenerateRefreshToken();
+
+            // If tokenInfo is null for the user, create a new one
+            if (tokenInfo == null)
             {
-                //throw new ExternalLoginProviderException("Google",
-                //    $"Unable to login user: {string.Join(", ",
-                //        loginResult.Errors.Select(x => x.Description))}");
-                throw new Exception();
+                var ti = new TokenInfo
+                {
+                    Username = user.UserName,
+                    RefreshToken = refreshToken,
+                    ExpiredAt = DateTime.UtcNow.AddHours(1).AddDays(7)
+                };
+                _context.TokenInfos.Add(ti);
+            }
+            // Else, update the refresh token and expiration
+            else
+            {
+                tokenInfo.RefreshToken = refreshToken;
+                tokenInfo.ExpiredAt = DateTime.UtcNow.AddDays(7);
             }
 
-            //var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
+            await _context.SaveChangesAsync();
+
+            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id, user.Email, user.IsInQueue, user.UserName);
+
+
+        }
+        //var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
             //var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
 
             //var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
@@ -545,7 +582,5 @@ namespace Infrastructure.Repositories
 
             //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
             //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
-            return true;
-        }
     }
 }
