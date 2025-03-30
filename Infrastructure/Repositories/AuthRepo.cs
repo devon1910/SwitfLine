@@ -476,5 +476,76 @@ namespace Infrastructure.Repositories
 
                    
         }
+
+        public async Task<bool> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
+        {
+            //if (claimsPrincipal == null)
+            //{
+            //    throw new ExternalLoginProviderException("Google", "ClaimsPrincipal is null");
+            //}
+
+            var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
+
+            if (email == null)
+            {
+                throw new Exception();//ExternalLoginProviderException("Google", "Email is null");
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                var newUser = new SwiftLineUser
+                {
+                    UserName = email,
+                    Email = email,
+                   // FirstName = claimsPrincipal.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty,
+                   // LastName = claimsPrincipal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty,
+                    EmailConfirmed = true //work on this later
+                };
+
+                var result = await _userManager.CreateAsync(newUser);
+
+                if (!result.Succeeded)
+                {
+                    //throw new ExternalLoginProviderException("Google",
+                    //    $"Unable to create user: {string.Join(", ",
+                    //        result.Errors.Select(x => x.Description))}");
+                    throw new Exception();
+                }
+
+
+
+                user = newUser;
+            }
+
+            var info = new UserLoginInfo("Google",
+                claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
+                "Google");
+
+            var loginResult = await _userManager.AddLoginAsync(user, info);
+
+            if (!loginResult.Succeeded)
+            {
+                //throw new ExternalLoginProviderException("Google",
+                //    $"Unable to login user: {string.Join(", ",
+                //        loginResult.Errors.Select(x => x.Description))}");
+                throw new Exception();
+            }
+
+            //var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
+            //var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
+
+            //var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
+
+            //user.RefreshToken = refreshTokenValue;
+            //user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
+
+            //await _userManager.UpdateAsync(user);
+
+            //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
+            //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
+            return true;
+        }
     }
 }

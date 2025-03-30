@@ -11,5 +11,6 @@ namespace SwiftLine.API.Controllers
     public class BaseController : ControllerBase
     {
         protected string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
+
     }
 }

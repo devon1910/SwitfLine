@@ -82,5 +82,11 @@ namespace Application.Services
             return Result<AuthRes>.Ok(authRes);
         }
 
+        public async Task<Result<bool>> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
+        {
+            var revokeRes = await authRepo.LoginWithGoogleAsync(claimsPrincipal);
+
+            return Result<bool>.Created(revokeRes);
+        }
     }
 }

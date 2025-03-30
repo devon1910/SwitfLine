@@ -7,14 +7,13 @@ using Infrastructure.Data;
 using Infrastructure.Middleware;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SwiftLine.API;
@@ -71,7 +70,19 @@ builder.Services.AddAuthentication(options =>
            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:secret"]))
        };
    }
-);
+).AddCookie().AddGoogle(options =>
+{
+    var clientId= builder.Configuration["Authentication:Google:ClientId"];
+    var clientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+    if (clientId is null) throw new ArgumentNullException("ClientId is required");
+    if (clientSecret is null) throw new ArgumentNullException("ClientSecret is required");
+
+    options.ClientId = clientId;
+    options.ClientSecret = clientSecret;
+
+    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+});
 
 builder.Services.AddSwaggerGen(options =>
     {
