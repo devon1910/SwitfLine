@@ -46,6 +46,11 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAuthRepo, AuthRepo>();
 builder.Services.AddScoped<INotifier, Notifier>();
 builder.Services.AddScoped<INotifierRepo, NotifierRepo>();
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.User.RequireUniqueEmail = true;
+
+});
 builder.Services.AddHostedService<LineManager>();
 
 
@@ -80,7 +85,6 @@ builder.Services.AddAuthentication(options =>
 
     options.ClientId = clientId;
     options.ClientSecret = clientSecret;
-
     options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 });
 
@@ -143,7 +147,7 @@ builder.Services.AddOpenApi(options =>
 
 builder.Services.AddSignalR(options =>
 {
-    options.EnableDetailedErrors = true;
+    //options.EnableDetailedErrors = true;
 });
 
 var app = builder.Build();

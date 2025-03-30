@@ -38,7 +38,7 @@ namespace Infrastructure.Repositories
             {
                 try
                 {
-                    var existingUser = await _userManager.FindByNameAsync(model.Email);
+                    var existingUser = await _userManager.FindByEmailAsync(model.Email);
                     if (existingUser != null)
                     {
                         return new AuthRes(
@@ -89,12 +89,12 @@ namespace Infrastructure.Repositories
 
                     // Build authentication claims including a claim to signal email verification purpose
                     List<Claim> authClaims = new()
-            {
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim("purpose", "Email_Verification")
-            };
+                        {
+                            new Claim(ClaimTypes.Name, user.UserName),
+                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                            new Claim(ClaimTypes.NameIdentifier, user.Id),
+                            new Claim("purpose", "Email_Verification")
+                        };
 
                     var userRoles = await _userManager.GetRolesAsync(user);
                     foreach (var userRole in userRoles)
@@ -338,7 +338,7 @@ namespace Infrastructure.Repositories
 
                 if (user is null)
                 {
-                    return new AuthRes(false, "Could not found user with the provided token.", "", "", "", "", false,"");
+                    return new AuthRes(false, "user not found with the provided token.", "", "", "", "", false,"");
                 }
                 user.EmailConfirmed = true;
                 _context.SaveChanges();
