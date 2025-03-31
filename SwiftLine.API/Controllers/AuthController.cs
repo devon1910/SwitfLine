@@ -97,23 +97,12 @@ namespace SwiftLine.API.Controllers
             }
 
             var result= await service.LoginWithGoogleAsync(authenticateResult.Principal);
-            // Adjust CookieOptions as necessary; for example, set HttpOnly to true if you don't need client JS to access it
-            var cookieOptions = new CookieOptions
-            {
-                Expires = DateTime.UtcNow.AddDays(7),
-                // Set HttpOnly to false if your client needs to read the token from JavaScript.
-                HttpOnly = false,
-                Secure = true,    
-                SameSite = SameSiteMode.None,
-                Domain = _config["SwiftLineBaseUrlForReminder"]
-            };
+           
 
-            Response.Cookies.Append("accessToken", result.Data.AccessToken, cookieOptions);
-            Response.Cookies.Append("refreshToken", result.Data.RefreshToken, cookieOptions);
-            Response.Cookies.Append("username", result.Data.userName, cookieOptions);
-            Response.Cookies.Append("userId", result.Data.userId, cookieOptions);
 
-            return Redirect(returnUrl);
+            // Instead of using cookies, append tokens to the redirect URL:
+            return Redirect($"{returnUrl}?accessToken={result.Data.AccessToken}&refreshToken={result.Data.RefreshToken}&username={result.Data.userName}&userId={result.Data.userId}");
+
         }
 
     }
