@@ -102,7 +102,10 @@ namespace SwiftLine.API.Controllers
             {
                 Expires = DateTime.UtcNow.AddDays(7),
                 // Set HttpOnly to false if your client needs to read the token from JavaScript.
-                HttpOnly = false             
+                HttpOnly = false,
+                Secure = true,    
+                SameSite = SameSiteMode.None,
+                Domain = _config["SwiftLineBaseUrlForReminder"]
             };
 
             Response.Cookies.Append("accessToken", result.Data.AccessToken, cookieOptions);
