@@ -501,7 +501,7 @@ namespace Infrastructure.Repositories
                     Email = email,
                     SecurityStamp = Guid.NewGuid().ToString(),
                     UserName = await GetUniqueUsername(email),
-                    EmailConfirmed = false,
+                    EmailConfirmed = true,
                 };
 
                 var result = await _userManager.CreateAsync(newUser);
