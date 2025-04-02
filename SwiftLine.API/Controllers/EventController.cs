@@ -33,13 +33,6 @@ namespace SwiftLine.API.Controllers
             var res = await eventService.GetEvent(EventId);
             return res.ToActionResult();
         }
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<ActionResult<Result<List<Event>>>> GetAllEvents()
-        {
-            var res = await eventService.GetAllEvents();
-            return res.ToActionResult();
-        }
         [HttpGet("{EventId}")]
         public async Task<ActionResult<Result<EventQueueRes>>> GetEventQueue(long EventId)
         {

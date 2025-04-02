@@ -62,7 +62,7 @@ namespace SwiftLine.API.Controllers
             return res.ToActionResult();
         }
 
-        [HttpPost] //Add to UI later
+        [HttpPost] 
         public async Task<ActionResult<Result<bool>>> Logout()
         {
             var res = await service.Revoke(User);
