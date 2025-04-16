@@ -246,6 +246,7 @@ namespace Infrastructure.Repositories
                     UsersInQueue = x.UsersInQueue,
                     Organizer = x.SwiftLineUser.UserName,
                     HasStarted = isEventActiveRightNow(x),
+                    StaffCount = x.StaffCount,
                     IsActive = x.IsActive
                 }).ToList();
                 return new SearchEventsRes ( events, pageCount, GetUserQueueStatus(userId));
