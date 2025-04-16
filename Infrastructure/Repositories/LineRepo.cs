@@ -159,9 +159,10 @@ namespace Infrastructure.Repositories
                        .AsSplitQuery()
                        .Where(x => x.LineMember.EventId == line.LineMember.EventId)
                        .OrderBy(x => x.CreatedAt)
+                       .AsNoTracking()
                        .ToListAsync();
 
-                position = othersInLines.IndexOf(line) + 1;
+               
 
                 Event @event = dbContext.Events.AsNoTracking().FirstOrDefault(x=>x.Id==line.LineMember.EventId);
 
@@ -174,7 +175,9 @@ namespace Infrastructure.Repositories
                 // Ensure minimum wait time is at least the average service time
                 timeTillYourTurn = Math.Max(timeTillYourTurn, @event.AverageTime);
 
-                return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn, GetOrdinal(position), @event.Title);  
+                position = timeTillYourTurn/ @event.AverageTime;
+
+            return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn, GetOrdinal(position), @event.Title);  
         }
 
         public bool GetUserQueueStatus(string UserId)
