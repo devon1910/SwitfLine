@@ -26,6 +26,10 @@ namespace Domain.Models
         public required TimeOnly EventStartTime { get; set; }
         public required TimeOnly EventEndTime {get; set; }
 
+        public int Capacity { get; set; }
+
+        public int StaffCount { get; set; }
+
         public int UsersInQueue { get; set; }
         [MaxLength(450)]
         [NotMapped]

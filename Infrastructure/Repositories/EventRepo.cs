@@ -32,7 +32,9 @@ namespace Infrastructure.Repositories
                 AverageTimeToServeSeconds = req.AverageTime * 60,
                 CreatedBy = userId,
                 EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default,
-                EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default
+                EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default,
+                StaffCount = req.StaffCount,
+                Capacity = req.Capacity
 
             };
             await dbContext.Events.AddAsync(newEvent);
@@ -55,6 +57,8 @@ namespace Infrastructure.Repositories
             @event.EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default;
             @event.EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default;
             @event.Description = req.Description;
+            @event.StaffCount = req.StaffCount;
+            @event.Capacity = req.Capacity;
             await dbContext.SaveChangesAsync();
             return true;
 

@@ -164,7 +164,7 @@ app.UseHttpsRedirection();
 
 app.UseSwaggerUI(options =>
 {
-    options.SwaggerEndpoint("/openapi/v1.json", "SwiftLine Demo");
+    options.SwaggerEndpoint("/openapi/v1.json", "SwiftLine");
 
 });
 app.UseCors();

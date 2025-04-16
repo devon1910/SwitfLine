@@ -165,8 +165,15 @@ namespace Infrastructure.Repositories
 
                 Event @event = dbContext.Events.AsNoTracking().FirstOrDefault(x=>x.Id==line.LineMember.EventId);
 
-            int timeTillYourTurn = ((@event.AverageTimeToServeSeconds * position) - @event.AverageTimeToServeSeconds) / 60;
-                //+ GetOrdinal(position)
+                //int timeTillYourTurn = ((@event.AverageTimeToServeSeconds * position) - @event.AverageTimeToServeSeconds) / 60;
+                double totalMinutes = (othersInLines.Count * @event.AverageTime) / (double)@event.StaffCount;
+
+                // Round up to nearest minute
+                int timeTillYourTurn = (int)Math.Ceiling(totalMinutes);
+
+                // Ensure minimum wait time is at least the average service time
+                timeTillYourTurn = Math.Max(timeTillYourTurn, @event.AverageTime);
+
                 return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn, GetOrdinal(position), @event.Title);  
         }
 

@@ -13,6 +13,8 @@ namespace Domain.DTOs.Requests
         public required int AverageTime { get; init; }
         public required string EventStartTime { get; init; }
         public required string EventEndTime { get; init; }
+        public required int Capacity { get; init; }
+        public required int StaffCount { get; init; }
     }
     public record EditEventReq 
     {
@@ -22,5 +24,7 @@ namespace Domain.DTOs.Requests
         public required int AverageTime { get; init; }
         public required string EventStartTime { get; init; }
         public required string EventEndTime { get; init; }
+        public required int Capacity { get; init; }
+        public required int StaffCount { get; init; }
     }
 }
