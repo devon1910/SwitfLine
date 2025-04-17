@@ -175,9 +175,11 @@ namespace Infrastructure.Repositories
                 // Ensure minimum wait time is at least the average service time
                 timeTillYourTurn = Math.Max(timeTillYourTurn, @event.AverageTime);
 
-                position = timeTillYourTurn/ @event.AverageTime;
+                //HEREEEEE
 
-            return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn, GetOrdinal(position), @event.Title);  
+                position = (int) Math.Ceiling((decimal)timeTillYourTurn/ @event.AverageTime);
+
+                return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn, GetOrdinal(position), @event.Title, @event.IsActive);  
         }
 
         public bool GetUserQueueStatus(string UserId)
