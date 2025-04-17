@@ -179,7 +179,8 @@ namespace Infrastructure.Repositories
 
                 position = (int) Math.Ceiling((decimal)timeTillYourTurn/ @event.AverageTime);
 
-                return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn, GetOrdinal(position), @event.Title, @event.IsActive);  
+                return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn,
+                    GetOrdinal(position), @event.Title, @event.IsActive, @event.StaffCount);  
         }
 
         public bool GetUserQueueStatus(string UserId)

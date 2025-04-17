@@ -110,12 +110,12 @@ namespace Infrastructure.Repositories
             return await dbContext.Events.Include(x => x.SwiftLineUser).FirstOrDefaultAsync(x=>x.Id ==eventId);
         }
 
-        public async Task<EventQueueRes> GetEventQueue(int page, int size, long eventId)
+        public async Task<EventQueueRes> GetEventQueue(int page, int size, long eventId, bool isForPastMembers = false)
         {
 
             var lines = await dbContext.Lines
                         .AsNoTracking()
-                        .Where(x => !x.IsAttendedTo)
+                        .Where(x => isForPastMembers ? x.IsAttendedTo : !x.IsAttendedTo)
                         .Include(x => x.LineMember)
                         .ThenInclude(x => x.SwiftLineUser)
                         .Include(x => x.LineMember).ThenInclude(x => x.Event)
