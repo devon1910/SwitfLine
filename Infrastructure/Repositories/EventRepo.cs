@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Infrastructure.Repositories
 {
@@ -113,36 +114,38 @@ namespace Infrastructure.Repositories
         public async Task<EventQueueRes> GetEventQueue(int page, int size, long eventId, bool isForPastMembers = false)
         {
 
-            var lines = await dbContext.Lines
-                        .AsNoTracking()
-                        .Where(x => isForPastMembers ? x.IsAttendedTo : !x.IsAttendedTo)
-                        .Include(x => x.LineMember)
-                        .ThenInclude(x => x.SwiftLineUser)
-                        .Include(x => x.LineMember).ThenInclude(x => x.Event)
-                        .Where(x => x.LineMember.EventId == eventId)
-                        .OrderBy(x=>x.CreatedAt)
-                        .Select(x => new Line
-                        {
-                            Id = x.Id,
-                            CreatedAt = x.CreatedAt.AddHours(-1),
-                            LineMemberId = x.LineMemberId,
-                            LineMember = new LineMember()
-                            {
-                                Id = x.LineMemberId,
-                                UserId =x.LineMember.UserId,
-                                SwiftLineUser = new SwiftLineUser
-                                {
-                                    UserName = x.LineMember.SwiftLineUser.UserName,
-                                }
-                            },
+            var allIndividualsInQueue = dbContext.Lines
+                .Include(x => x.LineMember)
+                .Where(x => x.LineMember.EventId == eventId && (isForPastMembers ? x.IsAttendedTo : !x.IsAttendedTo))
+                .AsNoTracking();
 
-                        }).ToListAsync();
-           
-            Event @event =  dbContext.Events.AsNoTracking().FirstOrDefault(x=>x.Id==eventId);
+            int pageCount = (int)Math.Ceiling(await allIndividualsInQueue.CountAsync() / (double)size);
 
-            int pageCount = (lines.Count + size - 1) / size;
+            var lines = await allIndividualsInQueue
+               .OrderBy(x => x.CreatedAt)
+               .Skip((page - 1) * size)
+               .Take(size)
+               .Select(x => new Line
+               {
+                   Id = x.Id,
+                   CreatedAt = x.CreatedAt.AddHours(-1),
+                   LineMemberId = x.LineMemberId,
+                   LineMember = new LineMember
+                   {
+                       Id = x.LineMemberId,
+                       UserId = x.LineMember.UserId,
+                       SwiftLineUser = new SwiftLineUser
+                       {
+                           UserName = x.LineMember.SwiftLineUser.UserName
+                       }
+                   }
+               }).ToListAsync();
 
-            return new EventQueueRes(lines,!@event.IsActive, pageCount);
+            var @event = await dbContext.Events
+               .AsNoTracking()
+               .FirstOrDefaultAsync(x => x.Id == eventId);
+
+            return new EventQueueRes(lines, @event != null && !@event.IsActive, pageCount);
 
         }
 
@@ -187,12 +190,7 @@ namespace Infrastructure.Repositories
             dbContext.SaveChanges();
         }
 
-        private async Task<bool> isUserInLine(string userId)
-        {
-            var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
-
-            return user is not null ? user.IsInQueue : false;
-        }
+      
 
         public async Task<List<Event>> GetUserEvents(string userId)
         {
@@ -254,6 +252,13 @@ namespace Infrastructure.Repositories
             }).ToList();
 
             return new SearchEventsRes(events, pageCount, GetUserQueueStatus(userId));
+        }
+
+        private async Task<bool> isUserInLine(string userId)
+        {
+            var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
+
+            return user is not null ? user.IsInQueue : false;
         }
 
         private bool GetUserQueueStatus(string UserId)
