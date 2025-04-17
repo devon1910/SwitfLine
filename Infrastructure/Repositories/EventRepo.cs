@@ -110,8 +110,9 @@ namespace Infrastructure.Repositories
             return await dbContext.Events.Include(x => x.SwiftLineUser).FirstOrDefaultAsync(x=>x.Id ==eventId);
         }
 
-        public async Task<EventQueueRes> GetEventQueue(long eventId)
+        public async Task<EventQueueRes> GetEventQueue(int page, int size, long eventId)
         {
+
             var lines = await dbContext.Lines
                         .AsNoTracking()
                         .Where(x => !x.IsAttendedTo)
@@ -131,15 +132,17 @@ namespace Infrastructure.Repositories
                                 UserId =x.LineMember.UserId,
                                 SwiftLineUser = new SwiftLineUser
                                 {
-                                    Email = x.LineMember.SwiftLineUser.Email
+                                    UserName = x.LineMember.SwiftLineUser.UserName,
                                 }
                             },
 
                         }).ToListAsync();
+           
             Event @event =  dbContext.Events.AsNoTracking().FirstOrDefault(x=>x.Id==eventId);
 
+            int pageCount = (lines.Count + size - 1) / size;
 
-            return new EventQueueRes(lines,!@event.IsActive);
+            return new EventQueueRes(lines,!@event.IsActive, pageCount);
 
         }
 
@@ -220,47 +223,22 @@ namespace Infrastructure.Repositories
 
         public async Task<SearchEventsRes> SearchEvents(int page, int size, string query, string userId)
         {
+            var allEvents = dbContext.Events.AsQueryable();
 
-            var allEvents =  dbContext.Events.AsQueryable();
+            int pageCount = (await allEvents.CountAsync() + size - 1) / size;
 
-            int pageCount = (allEvents.Count() + size - 1) / size;
+            var filteredEvents = string.IsNullOrEmpty(query)
+                ? allEvents
+                : allEvents.Where(x => x.Title.Contains(query));
 
-            if (string.IsNullOrEmpty(query))
-            {
+            var eventsData = await filteredEvents
+                .OrderBy(x => x.EventStartTime)
+                .Skip((page - 1) * size)
+                .Take(size)
+                .Include(x => x.SwiftLineUser)
+                .ToListAsync();
 
-                var eventsData = await allEvents
-                 .OrderBy(x => x.EventStartTime)
-                 .Skip((page - 1) * size)
-                 .Take(size)
-                 .Include(x => x.SwiftLineUser)
-                 .ToListAsync();
-
-                var events = eventsData.Select(x => new Event()
-                {
-                    Id = x.Id,
-                    Title = x.Title,
-                    Description = x.Description,
-                    AverageTime = x.AverageTime,
-                    EventStartTime = x.EventStartTime,
-                    EventEndTime = x.EventEndTime,
-                    UsersInQueue = x.UsersInQueue,
-                    Organizer = x.SwiftLineUser.UserName,
-                    HasStarted = isEventActiveRightNow(x),
-                    StaffCount = x.StaffCount,
-                    IsActive = x.IsActive
-                }).ToList();
-                return new SearchEventsRes ( events, pageCount, GetUserQueueStatus(userId));
-            }
-
-            var searchEventsData = await allEvents
-                 .Where(x => x.Title.Contains(query))
-                 .OrderBy(x => x.EventStartTime)
-                 .Skip((page - 1) * size)
-                 .Take(size)
-                 .Include(x => x.SwiftLineUser)
-                 .ToListAsync();
-
-            var searchEvents = searchEventsData.Select(x => new Event()
+            var events = eventsData.Select(x => new Event
             {
                 Id = x.Id,
                 Title = x.Title,
@@ -271,9 +249,11 @@ namespace Infrastructure.Repositories
                 UsersInQueue = x.UsersInQueue,
                 Organizer = x.SwiftLineUser.UserName,
                 HasStarted = isEventActiveRightNow(x),
+                StaffCount = x.StaffCount,
                 IsActive = x.IsActive
             }).ToList();
-            return new SearchEventsRes(searchEvents, pageCount, GetUserQueueStatus(userId));
+
+            return new SearchEventsRes(events, pageCount, GetUserQueueStatus(userId));
         }
 
         private bool GetUserQueueStatus(string UserId)

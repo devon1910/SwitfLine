@@ -53,9 +53,9 @@ namespace Application.Services
             return Result<List<Event>>.Ok(allEvents);
         }
 
-        public async Task<Result<EventQueueRes>> GetEventQueue(long eventId)
+        public async Task<Result<EventQueueRes>> GetEventQueue(int page, int size, long eventId)
         {
-            var res = await  eventRepo.GetEventQueue(eventId);
+            var res = await  eventRepo.GetEventQueue(page, size, eventId);
             return Result<EventQueueRes>.Ok(res);
         }
 

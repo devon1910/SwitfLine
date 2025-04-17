@@ -25,7 +25,7 @@ namespace Domain.Interfaces
 
         public Task<List<Event>> GetAllEvents();
 
-        public Task<EventQueueRes> GetEventQueue(long eventId);
+        public Task<EventQueueRes> GetEventQueue(int page, int size, long eventId);
 
         public Task<List<Event>> GetUserEvents(string userId);
 
@@ -48,7 +48,7 @@ namespace Domain.Interfaces
 
         public Task<Result<Event>> GetEvent(long eventId);
 
-        public Task<Result<EventQueueRes>> GetEventQueue(long eventId);
+        public Task<Result<EventQueueRes>> GetEventQueue(int page, int size, long eventId);
 
         public Task<Result<List<Event>>> GetAllEvents();
         public Task<Result<List<Event>>> GetUserEvents(string userId);

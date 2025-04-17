@@ -33,10 +33,10 @@ namespace SwiftLine.API.Controllers
             var res = await eventService.GetEvent(EventId);
             return res.ToActionResult();
         }
-        [HttpGet("{EventId}")]
-        public async Task<ActionResult<Result<EventQueueRes>>> GetEventQueue(long EventId)
+        [HttpGet()]
+        public async Task<ActionResult<Result<EventQueueRes>>> GetEventQueue(int Page, int Size, long EventId)
         {
-            var res = await eventService.GetEventQueue(EventId);
+            var res = await eventService.GetEventQueue(Page, Size,EventId);
             return res.ToActionResult();
         }
         [HttpGet]
@@ -59,9 +59,9 @@ namespace SwiftLine.API.Controllers
         }
 
         [HttpGet, AllowAnonymous]
-        public async Task<ActionResult<Result<SearchEventsRes>>> SearchEvents(int page, int size, string query="")
+        public async Task<ActionResult<Result<SearchEventsRes>>> SearchEvents(int Page, int Size, string Query="")
         {
-           var res = await eventService.SearchEvents(page,size,query, UserId);
+           var res = await eventService.SearchEvents(Page,Size,Query, UserId);
 
             return res.ToActionResult();
         }
