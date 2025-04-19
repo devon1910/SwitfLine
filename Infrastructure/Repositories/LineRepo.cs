@@ -82,6 +82,9 @@ namespace Infrastructure.Repositories
    $"UPDATE public.\"Events\" set \"UsersInQueue\"=\"UsersInQueue\" - 1 where \"Id\"={line.LineMember.EventId}");
                 await dbContext.Database.ExecuteSqlInterpolatedAsync(
    $"UPDATE public.\"AspNetUsers\" set \"IsInQueue\"='false' where \"Id\"={line.LineMember.UserId}");
+                await dbContext.Database.ExecuteSqlInterpolatedAsync(
+   $"UPDATE public.\"AspNetUsers\" set \"LastEventJoined\"=0 where \"Id\"={line.LineMember.UserId}");
+
 
                 await dbContext.SaveChangesAsync();
                 return true;

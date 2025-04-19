@@ -151,7 +151,8 @@ namespace Infrastructure.Repositories
 
         public async Task<long> JoinEvent(string userId, long eventId)
         {
-            if (string.IsNullOrWhiteSpace(userId) || await isUserInLine(userId)) return 0;
+            var user = await getUser(userId);
+            if (string.IsNullOrWhiteSpace(userId) || user is null ? false : user.IsInQueue) return 0;
 
             //event is active rn
             if (!isEventActiveRightNow(eventId)) return -1;
@@ -171,8 +172,8 @@ namespace Infrastructure.Repositories
             };
             await dbContext.Lines.AddAsync(queue);
 
-            SwiftLineUser user = await dbContext.SwiftLineUsers.FindAsync(userId);
             user.IsInQueue = true;
+            user.LastEventJoined = eventId;
 
             await dbContext.Database.ExecuteSqlInterpolatedAsync(
                 $"UPDATE public.\"Events\" set \"UsersInQueue\"=\"UsersInQueue\" + 1 where \"Id\"={eventId}");
@@ -190,8 +191,7 @@ namespace Infrastructure.Repositories
             dbContext.SaveChanges();
         }
 
-      
-
+     
         public async Task<List<Event>> GetUserEvents(string userId)
         {
             return await dbContext.Events.Where(x => x.CreatedBy == userId).ToListAsync();
@@ -250,22 +250,14 @@ namespace Infrastructure.Repositories
                 StaffCount = x.StaffCount,
                 IsActive = x.IsActive
             }).ToList();
-
-            return new SearchEventsRes(events, pageCount, GetUserQueueStatus(userId));
+            var user= await getUser(userId);
+            return new SearchEventsRes(events, pageCount, user is null ? false : user.IsInQueue,
+                user is null ? 0 : user.LastEventJoined);
         }
 
-        private async Task<bool> isUserInLine(string userId)
+        private async Task<SwiftLineUser> getUser(string userId)
         {
-            var user = await dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId);
-
-            return user is not null ? user.IsInQueue : false;
-        }
-
-        private bool GetUserQueueStatus(string UserId)
-        {
-            var user = dbContext.SwiftLineUsers.Find(UserId);
-            return user is not null ? user.IsInQueue : false;
-
+            return await dbContext.SwiftLineUsers.FindAsync(userId);
         }
 
         private bool isEventActiveRightNow(long eventId)
