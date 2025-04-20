@@ -130,6 +130,10 @@ namespace Infrastructure.Repositories
                    Id = x.Id,
                    CreatedAt = x.CreatedAt.AddHours(-1),
                    LineMemberId = x.LineMemberId,
+                   DateCompletedBeingAttendedTo = x.DateCompletedBeingAttendedTo,
+                   DateStartedBeingAttendedTo = x.DateStartedBeingAttendedTo,
+                   IsAttendedTo = x.IsAttendedTo,
+                   Status = x.Status,
                    LineMember = new LineMember
                    {
                        Id = x.LineMemberId,
