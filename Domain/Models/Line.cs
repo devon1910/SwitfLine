@@ -16,6 +16,7 @@ namespace Domain.Models
 
         [ForeignKey("LineMemberId")]
         public LineMember LineMember { get; set; }
+        public int TimeWaited { get; set; }
 
         public DateTime DateStartedBeingAttendedTo { get; set; }
         public DateTime DateCompletedBeingAttendedTo { get; set; }

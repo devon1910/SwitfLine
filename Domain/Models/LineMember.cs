@@ -14,6 +14,7 @@ namespace Domain.Models
 
         public string UserId { get; set; }
         public long EventId { get; set; }
+
         [ForeignKey("EventId")]
         public Event Event { get; set; }
         [ForeignKey("UserId")]

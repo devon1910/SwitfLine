@@ -8,5 +8,5 @@ using System.Threading.Tasks;
 
 namespace Domain.DTOs.Responses
 {
-    public record EventQueueRes(List<Line> Lines, bool IsEventPaused, int PageCount);
+    public record EventQueueRes(List<Line> Lines, bool IsEventPaused, int PageCount, int TotalServed, int AverageWaitTime);
 }

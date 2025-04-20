@@ -134,6 +134,7 @@ namespace Infrastructure.Repositories
                    DateStartedBeingAttendedTo = x.DateStartedBeingAttendedTo.AddHours(-1),
                    IsAttendedTo = x.IsAttendedTo,
                    Status = x.Status,
+                   TimeWaited = x.TimeWaited,
                    LineMember = new LineMember
                    {
                        Id = x.LineMemberId,
@@ -149,7 +150,17 @@ namespace Infrastructure.Repositories
                .AsNoTracking()
                .FirstOrDefaultAsync(x => x.Id == eventId);
 
-            return new EventQueueRes(lines, @event != null && !@event.IsActive, pageCount);
+            var AverageWaitTime = await dbContext.Lines
+                .Where(x => x.LineMember.EventId == eventId && x.IsAttendedTo)
+                .Select(x => x.TimeWaited).AverageAsync();
+
+            var TotalServed = await dbContext.Lines
+                .Where(x => x.LineMember.EventId == eventId && x.IsAttendedTo).ToListAsync();
+
+            int averageTime = (int) Math.Ceiling(TotalServed.Select(x=>x.TimeWaited).Average());
+
+
+            return new EventQueueRes(lines, @event != null && !@event.IsActive, pageCount, TotalServed.Count, averageTime);
 
         }
 
@@ -208,7 +219,7 @@ namespace Infrastructure.Repositories
                 .Include(x=>x.LineMember)
                 .FirstOrDefault();
 
-            await lineRepo.MarkUserAsAttendedTo(line, "");
+            await lineRepo.MarkUserAsAttendedTo(line, "left");
             await notifier.BroadcastLineUpdate(line);
             await lineRepo.NotifyFifthMember(line);
             return true;
