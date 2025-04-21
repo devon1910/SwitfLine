@@ -2,6 +2,8 @@ using Application.Services;
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
+using HealthChecks.UI.Client;
+using HealthChecks.UI.Configuration;
 using Infrastructure.BackgroundServices;
 using Infrastructure.Data;
 using Infrastructure.Middleware;
@@ -10,6 +12,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.AspNetCore.SignalR;
@@ -18,6 +21,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SwiftLine.API;
 using SwiftLine.API.Extensions;
+using SwiftLine.API.Extensions.Health;
 using System.Net.Mail;
 using System.Text;
 
@@ -59,9 +63,7 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-}
-)
-   .AddJwtBearer(options =>
+}).AddJwtBearer(options =>
    {
        options.SaveToken = true;
        options.RequireHttpsMetadata = false;
@@ -138,6 +140,8 @@ builder.Services.AddFluentEmail(builder.Configuration["Smtp:FromEmail"])
         builder.Configuration["Smtp:Password"])
     }).AddRazorRenderer();
 
+builder.Services.ConfigureHealthChecks(builder.Configuration);
+
 
 
 builder.Services.AddOpenApi(options =>
@@ -171,7 +175,18 @@ app.UseCors();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
+//HealthCheck Middleware
+app.MapHealthChecks("/api/health", new HealthCheckOptions()
+{
+    Predicate = _ => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+app.UseHealthChecksUI(delegate (Options options)
+{
+    options.UIPath = "/healthcheck-ui";
+    //options.AddCustomStylesheet("./HealthCheck/Custom.css");
 
+});
 
 app.MapHub<SwiftLineHub>("/queueHub");
 
