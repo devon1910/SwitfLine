@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.OpenApi;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -24,6 +25,7 @@ using SwiftLine.API.Extensions;
 using SwiftLine.API.Extensions.Health;
 using System.Net.Mail;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -142,16 +144,38 @@ builder.Services.AddFluentEmail(builder.Configuration["Smtp:FromEmail"])
 
 builder.Services.ConfigureHealthChecks(builder.Configuration);
 
-
-
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 });
 
-builder.Services.AddSignalR(options =>
+builder.Services.AddSignalR();
+
+// Configure rate limiting
+builder.Services.AddRateLimiter(options =>
 {
-    //options.EnableDetailedErrors = true;
+    options.AddFixedWindowLimiter("GenericRestriction", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);    // Time window of 1 minute
+        opt.PermitLimit = 25;                   
+        opt.QueueLimit = 0;                      // Queue limit of 2
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+
+    options.AddFixedWindowLimiter("LoginPolicy", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.PermitLimit = 10;
+        opt.QueueLimit = 0;
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+    options.AddFixedWindowLimiter("SignupPolicy", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.PermitLimit = 5;
+        opt.QueueLimit = 0;
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
 });
 
 var app = builder.Build();
@@ -181,12 +205,13 @@ app.MapHealthChecks("/api/health", new HealthCheckOptions()
     Predicate = _ => true,
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
 });
+
 app.UseHealthChecksUI(delegate (Options options)
 {
     options.UIPath = "/healthcheck-ui";
-    //options.AddCustomStylesheet("./HealthCheck/Custom.css");
-
 });
+
+app.UseRateLimiter();
 
 app.MapHub<SwiftLineHub>("/queueHub");
 

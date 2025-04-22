@@ -2,6 +2,7 @@
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
@@ -15,7 +16,7 @@ namespace SwiftLine.API
 {
     public class SwiftLineHub(INotifier notifier) : Hub
     {
-
+        [EnableRateLimiting("SignupPolicy")]
         public async Task<long> JoinQueueGroup(int eventId, string userId)
         {
             return await notifier.JoinQueueGroup(eventId, userId, Context.ConnectionId);

@@ -18,6 +18,7 @@ using SwiftLine.API.Extensions;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace SwiftLine.API.Controllers
 {
@@ -25,6 +26,7 @@ namespace SwiftLine.API.Controllers
     {
         [HttpPost]
         [AllowAnonymous]
+        [EnableRateLimiting("SignupPolicy")]
         //[Authorize(Roles = Roles.Admin)]
         public async Task<ActionResult<Result<AuthRes>>> Signup(SignupModel model)
         {
@@ -34,6 +36,8 @@ namespace SwiftLine.API.Controllers
 
         [HttpPost]
         [AllowAnonymous]
+        [EnableRateLimiting("LoginPolicy")]
+
         public async Task<ActionResult<Result<AuthRes>>> Login(LoginModel model)
         {
             var res = await service.Login(model);
