@@ -223,7 +223,7 @@ namespace Infrastructure.Repositories
                 .Include(x=>x.LineMember)
                 .FirstOrDefault();
 
-            await lineRepo.MarkUserAsAttendedTo(line, "left");
+            await lineRepo.MarkUserAsAttendedTo(line, adminId!= "" ? "Left" : "Served By Admin" );
             await notifier.BroadcastLineUpdate(line);
             await lineRepo.NotifyFifthMember(line);
             return true;

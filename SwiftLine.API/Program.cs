@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using SwiftLine.API;
 using SwiftLine.API.Extensions;
 using SwiftLine.API.Extensions.Health;
@@ -27,72 +28,87 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading.RateLimiting;
 
-var builder = WebApplication.CreateBuilder(args);
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateBootstrapLogger();
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-
-builder.Services.AddIdentity<SwiftLineUser, IdentityRole>().AddEntityFrameworkStores<SwiftLineDatabaseContext>().AddDefaultTokenProviders();
-
-builder.Services.AddDbContext<SwiftLineDatabaseContext>(options =>
+try
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Database"));
-});
-builder.Services.AddOpenApi();
+    Log.Information("Starting web application");
 
-builder.Services.AddTransient(typeof(Lazy<>), typeof(LazyFactory<>));
-builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddScoped<IEventRepo, EventRepo>();
-builder.Services.AddScoped<ILineRepo, LineRepo>();
-builder.Services.AddScoped<ILineService, LineService>();
-builder.Services.AddScoped<ITokenRepo, TokenRepo>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IAuthRepo, AuthRepo>();
-builder.Services.AddScoped<INotifier, Notifier>();
-builder.Services.AddScoped<INotifierRepo, NotifierRepo>();
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    options.User.RequireUniqueEmail = true;
+    var builder = WebApplication.CreateBuilder(args);
 
-});
-builder.Services.AddHostedService<LineManager>();
+    // Configure Serilog
+    builder.Host.UseSerilog((context, services, configuration) => configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext());
+
+    // Add services to the container.
+
+    builder.Services.AddControllers();
+    // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
+    builder.Services.AddIdentity<SwiftLineUser, IdentityRole>().AddEntityFrameworkStores<SwiftLineDatabaseContext>().AddDefaultTokenProviders();
+
+    builder.Services.AddDbContext<SwiftLineDatabaseContext>(options =>
+    {
+        options.UseNpgsql(builder.Configuration.GetConnectionString("Database"));
+    });
+    builder.Services.AddOpenApi();
+
+    builder.Services.AddTransient(typeof(Lazy<>), typeof(LazyFactory<>));
+    builder.Services.AddScoped<IEventService, EventService>();
+    builder.Services.AddScoped<IEventRepo, EventRepo>();
+    builder.Services.AddScoped<ILineRepo, LineRepo>();
+    builder.Services.AddScoped<ILineService, LineService>();
+    builder.Services.AddScoped<ITokenRepo, TokenRepo>();
+    builder.Services.AddScoped<IAuthService, AuthService>();
+    builder.Services.AddScoped<IAuthRepo, AuthRepo>();
+    builder.Services.AddScoped<INotifier, Notifier>();
+    builder.Services.AddScoped<INotifierRepo, NotifierRepo>();
+    builder.Services.Configure<IdentityOptions>(options =>
+    {
+        options.User.RequireUniqueEmail = true;
+
+    });
+    builder.Services.AddHostedService<LineManager>();
 
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
-   {
-       options.SaveToken = true;
-       options.RequireHttpsMetadata = false;
-       options.TokenValidationParameters = new TokenValidationParameters
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    }).AddJwtBearer(options =>
        {
-           ValidateIssuer = true,
-           ValidateAudience = true,
-           ValidAudience = builder.Configuration["JWT:ValidAudience"],
-           ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
-           ClockSkew = TimeSpan.Zero,
-           IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:secret"]))
-       };
-   }
-).AddCookie().AddGoogle(options =>
-{
-    var clientId= builder.Configuration["Authentication:Google:ClientId"];
-    var clientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+           options.SaveToken = true;
+           options.RequireHttpsMetadata = false;
+           options.TokenValidationParameters = new TokenValidationParameters
+           {
+               ValidateIssuer = true,
+               ValidateAudience = true,
+               ValidAudience = builder.Configuration["JWT:ValidAudience"],
+               ValidIssuer = builder.Configuration["JWT:ValidIssuer"],
+               ClockSkew = TimeSpan.Zero,
+               IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:secret"]))
+           };
+       }
+    ).AddCookie().AddGoogle(options =>
+    {
+        var clientId= builder.Configuration["Authentication:Google:ClientId"];
+        var clientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 
-    if (clientId is null) throw new ArgumentNullException("ClientId is required");
-    if (clientSecret is null) throw new ArgumentNullException("ClientSecret is required");
+        if (clientId is null) throw new ArgumentNullException("ClientId is required");
+        if (clientSecret is null) throw new ArgumentNullException("ClientSecret is required");
 
-    options.ClientId = clientId;
-    options.ClientSecret = clientSecret;
-    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-});
+        options.ClientId = clientId;
+        options.ClientSecret = clientSecret;
+        options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    });
 
-builder.Services.AddSwaggerGen(options =>
+    builder.Services.AddSwaggerGen(options =>
     {
         options.SwaggerDoc("v1", new OpenApiInfo { Title = "API", Version = "v1" });
         options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -120,106 +136,115 @@ builder.Services.AddSwaggerGen(options =>
 
     });
 
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(policy =>
+    builder.Services.AddCors(options =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://swiftline-olive.vercel.app") // Replace with your client origin
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials(); // Required for SignalR with credentials
+        options.AddDefaultPolicy(policy =>
+        {
+            policy.WithOrigins("http://localhost:5173", "https://swiftline-olive.vercel.app") // Replace with your client origin
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials(); // Required for SignalR with credentials
 
+        });
     });
-});
-builder.Services.AddFluentEmail(builder.Configuration["Smtp:FromEmail"]) 
-    .AddSmtpSender(new SmtpClient
+    builder.Services.AddFluentEmail(builder.Configuration["Smtp:FromEmail"]) 
+        .AddSmtpSender(new SmtpClient
+        {
+            Host = builder.Configuration["Smtp:Host"],
+            Port = int.Parse(builder.Configuration["Smtp:Port"]),
+            EnableSsl = true,
+            Credentials = new System.Net.NetworkCredential(
+                builder.Configuration["Smtp:Username"],
+            builder.Configuration["Smtp:Password"])
+        }).AddRazorRenderer();
+
+    builder.Services.ConfigureHealthChecks(builder.Configuration);
+
+    builder.Services.AddOpenApi(options =>
     {
-        Host = builder.Configuration["Smtp:Host"],
-        Port = int.Parse(builder.Configuration["Smtp:Port"]),
-        EnableSsl = true,
-        Credentials = new System.Net.NetworkCredential(
-            builder.Configuration["Smtp:Username"],
-        builder.Configuration["Smtp:Password"])
-    }).AddRazorRenderer();
-
-builder.Services.ConfigureHealthChecks(builder.Configuration);
-
-builder.Services.AddOpenApi(options =>
-{
-    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
-});
-
-builder.Services.AddSignalR();
-
-// Configure rate limiting
-builder.Services.AddRateLimiter(options =>
-{
-    options.AddFixedWindowLimiter("GenericRestriction", opt =>
-    {
-        opt.Window = TimeSpan.FromMinutes(1);    // Time window of 1 minute
-        opt.PermitLimit = 25;                   
-        opt.QueueLimit = 0;                      // Queue limit of 2
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
     });
 
-    options.AddFixedWindowLimiter("LoginPolicy", opt =>
-    {
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.PermitLimit = 10;
-        opt.QueueLimit = 0;
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-    });
-    options.AddFixedWindowLimiter("SignupPolicy", opt =>
-    {
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.PermitLimit = 5;
-        opt.QueueLimit = 0;
-        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-    });
-});
+    builder.Services.AddSignalR();
 
-var app = builder.Build();
+    // Configure rate limiting
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.AddFixedWindowLimiter("GenericRestriction", opt =>
+        {
+            opt.Window = TimeSpan.FromMinutes(1);    // Time window of 1 minute
+            opt.PermitLimit = 25;                   
+            opt.QueueLimit = 0;                      // Queue limit of 2
+            opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        });
 
-// Configure the HTTP request pipeline.
-app.MapOpenApi();
-if (app.Environment.IsDevelopment())
-{
-    app.ApplyMigrations();
+        options.AddFixedWindowLimiter("LoginPolicy", opt =>
+        {
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.PermitLimit = 10;
+            opt.QueueLimit = 0;
+            opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        });
+        options.AddFixedWindowLimiter("SignupPolicy", opt =>
+        {
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.PermitLimit = 5;
+            opt.QueueLimit = 0;
+            opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        });
+    });
+
+    var app = builder.Build();
+
+    // Configure the HTTP request pipeline.
+    app.MapOpenApi();
+    if (app.Environment.IsDevelopment())
+    {
+        app.ApplyMigrations();
+    }
+    //app.MapIdentityApi<SwiftLineUser>();
+
+    app.UseHttpsRedirection();
+
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "SwiftLine");
+
+    });
+    app.UseCors();
+    app.UseMiddleware<ExceptionMiddleware>();
+    app.UseAuthentication();
+    app.UseAuthorization();
+    //HealthCheck Middleware
+    app.MapHealthChecks("/api/health", new HealthCheckOptions()
+    {
+        Predicate = _ => true,
+        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    });
+
+    app.UseHealthChecksUI(delegate (Options options)
+    {
+        options.UIPath = "/healthcheck-ui";
+    });
+
+    app.UseRateLimiter();
+
+    app.MapHub<SwiftLineHub>("/queueHub");
+
+    app.MapControllers();
+
+    await DbSeeder.SeedData(app);  // Call this method to seed the data
+
+    app.Run();
 }
-//app.MapIdentityApi<SwiftLineUser>();
-
-app.UseHttpsRedirection();
-
-app.UseSwaggerUI(options =>
+catch (Exception ex)
 {
-    options.SwaggerEndpoint("/openapi/v1.json", "SwiftLine");
-
-});
-app.UseCors();
-app.UseMiddleware<ExceptionMiddleware>();
-app.UseAuthentication();
-app.UseAuthorization();
-//HealthCheck Middleware
-app.MapHealthChecks("/api/health", new HealthCheckOptions()
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
 {
-    Predicate = _ => true,
-    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-});
-
-app.UseHealthChecksUI(delegate (Options options)
-{
-    options.UIPath = "/healthcheck-ui";
-});
-
-app.UseRateLimiter();
-
-app.MapHub<SwiftLineHub>("/queueHub");
-
-app.MapControllers();
-
-await DbSeeder.SeedData(app);  // Call this method to seed the data
-
-app.Run();
+    Log.CloseAndFlush();
+}
 
 public class LazyFactory<T> : Lazy<T> where T : class
 {

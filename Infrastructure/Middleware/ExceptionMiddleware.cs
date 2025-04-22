@@ -1,6 +1,6 @@
 ﻿using Domain.DTOs.Responses;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
+using Serilog;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -14,10 +14,9 @@ namespace Infrastructure.Middleware
     public class ExceptionMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly ILogger<ExceptionMiddleware> _log;
-        public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> log)
+
+        public ExceptionMiddleware(RequestDelegate next)
         {
-            _log = log;
             _next = next;
         }
 
@@ -37,17 +36,22 @@ namespace Infrastructure.Middleware
         {
             var message = $"An error occured please try again later";
 
-            string error = string.Format("Oops!!!  => Context => {0} => {1} | {2} | {3}", context?.Request?.Path.Value, exception?.Message, exception?.InnerException?.InnerException, exception?.StackTrace);
+            string error = string.Format("Oops!!!  => Context => {0} => {1} | {2} | {3}", 
+                context?.Request?.Path.Value, 
+                exception?.Message, 
+                exception?.InnerException?.InnerException, 
+                exception?.StackTrace);
 
             var result = Result<string>.InternalError(message);
 
-            _log.LogInformation("Oops!!!  => Context => {0} => {1} | {2} | {3}", context?.Request?.Path.Value, exception?.Message, exception?.InnerException?.InnerException, exception?.StackTrace);
+            Log.Error(exception, "Unhandled exception occurred. Path: {Path}, Error: {Error}", 
+                context?.Request?.Path.Value, 
+                error);
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             return context.Response.WriteAsync(JsonConvert.SerializeObject(result));
         }
-
     }
 }
 

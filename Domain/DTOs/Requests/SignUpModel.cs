@@ -18,6 +18,7 @@ namespace Domain.DTOs.Requests
 
         [Required]
         [MaxLength(40)]
+        
         public string Password { get; set; } = string.Empty;
     }
 }
