@@ -5,6 +5,7 @@ using Domain.Interfaces;
 using Domain.Models;
 using FluentEmail.Core;
 using Infrastructure.Data;
+using Infrastructure.RetryLogic;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -105,8 +106,11 @@ namespace Infrastructure.Repositories
 
                     var token = _tokenService.GenerateAccessToken(authClaims);
 
-                    // Send Email Verification
-                    bool isMailSent = await SendEmailVerifyLink(user.Email, token, user.UserName);
+                    // Send Email Verification with retry logic
+                    bool isMailSent = await RetryPolicy.ExecuteAsync(async () =>
+                       await SendEmailVerifyLink(user.Email, token, user.UserName),
+                       maxRetryCount: 3,
+                       delayBetweenRetries: TimeSpan.FromSeconds(3));              
 
                     // If sending the email fails, throw to trigger rollback.
                     if (!isMailSent)
@@ -130,8 +134,8 @@ namespace Infrastructure.Repositories
                 }
             }
 
-
         }
+
         private static string GenerateUsernameFromEmail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
