@@ -21,7 +21,7 @@ using Newtonsoft.Json.Linq;
 
 namespace SwiftLine.API.Controllers
 {
-    public class AuthController(IAuthService service,IConfiguration _config, LinkGenerator _lineGenerator, SignInManager<SwiftLineUser> _signInManager) : BaseController
+    public class AuthController(IAuthService service, IConfiguration _config, LinkGenerator _lineGenerator, SignInManager<SwiftLineUser> _signInManager) : BaseController
     {
         [HttpPost]
         [AllowAnonymous]
@@ -52,8 +52,8 @@ namespace SwiftLine.API.Controllers
         {
             var res = await service.Revoke(User);
             return res.ToActionResult();
-        } 
-        
+        }
+
         [HttpPost]
         [AllowAnonymous]
         public ActionResult<Result<AuthRes>> VerifyToken([JwtTokenAttribute] string token)
@@ -62,14 +62,14 @@ namespace SwiftLine.API.Controllers
             return res.ToActionResult();
         }
 
-        [HttpPost] 
+        [HttpPost]
         public async Task<ActionResult<Result<bool>>> Logout()
         {
             var res = await service.Revoke(User);
             return res.ToActionResult();
         }
 
-        [HttpGet(),AllowAnonymous]
+        [HttpGet(), AllowAnonymous]
         public IActionResult LoginWithGoogle()
         {
             string returnUrl = _config["SwiftLineBaseUrlForReminder"];
@@ -86,7 +86,7 @@ namespace SwiftLine.API.Controllers
             return Challenge(properties, "Google");
         }
 
-        [HttpGet(Name = "GoogleLoginCallback"),AllowAnonymous]
+        [HttpGet(Name = "GoogleLoginCallback"), AllowAnonymous]
         public async Task<IActionResult> GoogleLoginCallback([FromQuery] string returnUrl)
         {
             var authenticateResult = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
@@ -96,12 +96,17 @@ namespace SwiftLine.API.Controllers
                 return Unauthorized();
             }
 
-            var result= await service.LoginWithGoogleAsync(authenticateResult.Principal);
-        
+            var result = await service.LoginWithGoogleAsync(authenticateResult.Principal);
+
             // Instead of using cookies, append tokens to the redirect URL:
             return Redirect($"{returnUrl}?accessToken={result.Data.AccessToken}&refreshToken={result.Data.RefreshToken}&username={result.Data.userName}&userId={result.Data.userId}");
 
         }
-
+        [HttpPost, AllowAnonymous]
+        public async Task<ActionResult<Result<TurnstileResponse>>> VerifyTurnstileToken([FromBody] TurnstileModel request)
+        {
+            var res = await service.VerifyTurnstile(request);
+            return res.ToActionResult();
+        }
     }
 }

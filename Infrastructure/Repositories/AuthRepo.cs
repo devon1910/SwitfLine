@@ -17,6 +17,7 @@ using System.Linq;
 using System.Numerics;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -570,17 +571,35 @@ namespace Infrastructure.Repositories
 
 
         }
+
+        public async Task<TurnstileResponse> VerifyTurnstile(TurnstileModel request)
+        {
+            using var client = new HttpClient();
+            string cloudfare_verify_url = _configuration["Cloudfare:VerifyTurnsTileTokenUrl"]; 
+            string cloudfare_secret_key = _configuration["Cloudfare:VerifyTurnsTileTokenSecret"];
+            var values = new Dictionary<string, string>
+            {
+                { "secret", cloudfare_secret_key },
+                { "response", request.TurnstileToken }
+            };
+
+            var content = new FormUrlEncodedContent(values);
+            var response = await client.PostAsync(cloudfare_verify_url, content);
+            var json = await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<TurnstileResponse>(json);
+        }
         //var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
-            //var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
+        //var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
 
-            //var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
+        //var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
 
-            //user.RefreshToken = refreshTokenValue;
-            //user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
+        //user.RefreshToken = refreshTokenValue;
+        //user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
 
-            //await _userManager.UpdateAsync(user);
+        //await _userManager.UpdateAsync(user);
 
-            //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
-            //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
+        //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
+        //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
     }
 }

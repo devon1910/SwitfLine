@@ -1,6 +1,7 @@
 ﻿using Domain.DTOs.Requests;
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
+using Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -93,6 +94,20 @@ namespace Application.Services
             }
 
             return Result<AuthRes>.Failed("Failed to Login with Google", loginRes);
+        }
+
+        public async Task<Result<TurnstileResponse>> VerifyTurnstile(TurnstileModel request)
+        {
+            var turnstileRes = await authRepo.VerifyTurnstile(request);
+
+            if (turnstileRes.success)
+            {
+                return Result<TurnstileResponse>.Ok(turnstileRes);
+            }
+            else
+            {
+                return Result<TurnstileResponse>.Failed("Failed to verify turnstile", turnstileRes);
+            }
         }
     }
 }

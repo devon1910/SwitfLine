@@ -1,5 +1,6 @@
 ﻿using Domain.DTOs.Requests;
 using Domain.DTOs.Responses;
+using Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,6 +24,8 @@ namespace Domain.Interfaces
 
         public Task<AuthRes> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
 
+        public Task<TurnstileResponse> VerifyTurnstile(TurnstileModel request);
+
     }
 
     public interface IAuthService
@@ -33,5 +36,6 @@ namespace Domain.Interfaces
         public Task<Result<bool>> Revoke(ClaimsPrincipal User);
         public Result<AuthRes> VerifyToken(string token);
         public Task<Result<AuthRes>> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
+        public Task<Result<TurnstileResponse>> VerifyTurnstile(TurnstileModel request);
     }
 }
