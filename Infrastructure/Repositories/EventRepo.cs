@@ -119,7 +119,7 @@ namespace Infrastructure.Repositories
                 .Where(x => x.LineMember.EventId == eventId && (isForPastMembers ? x.IsAttendedTo : !x.IsAttendedTo))
                 .AsNoTracking();
 
-            int pageCount = (int)Math.Ceiling(await allIndividualsInQueue.CountAsync() / (double)size);
+            int pageCount = (int) Math.Ceiling(await allIndividualsInQueue.CountAsync() / (double) size);
 
             var lines = await allIndividualsInQueue
                .OrderBy(x => x.CreatedAt)
@@ -159,6 +159,10 @@ namespace Infrastructure.Repositories
 
             int averageTime = (int) Math.Ceiling(TotalServed.Select(x=>x.TimeWaited).Average());
 
+            if (isForPastMembers) 
+            {
+                lines = lines.OrderByDescending(x => x.CreatedAt).ToList();
+            }
 
             return new EventQueueRes(lines, @event != null && !@event.IsActive, pageCount, TotalServed.Count, averageTime);
 
