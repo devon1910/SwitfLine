@@ -1,5 +1,6 @@
 ﻿using Domain.DTOs.Responses;
 using Microsoft.AspNetCore.Http;
+using Serilog;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -43,7 +44,7 @@ namespace Infrastructure.Middleware
 
             var result = Result<string>.InternalError(message);
 
-           
+            Log.Error(exception, "CRITICAL!!! Request failed: {Path}", context?.Request?.Path.Value);
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

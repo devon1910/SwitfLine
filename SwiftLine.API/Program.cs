@@ -21,6 +21,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Serilog.Events;
 using SwiftLine.API;
 using SwiftLine.API.Extensions;
 using SwiftLine.API.Extensions.Health;
@@ -31,15 +32,26 @@ using System.Threading.RateLimiting;
 
 try
 {
+    var configuration = new ConfigurationBuilder()
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
+        .AddEnvironmentVariables()
+        .Build();
+
+    Log.Logger = new LoggerConfiguration()
+        .ReadFrom.Configuration(configuration)
+        .CreateLogger();
+
     Log.Information("Starting web application");
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // Configure Serilog
-    builder.Host.UseSerilog((context, services, configuration) => configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
-        .Enrich.FromLogContext());
+    // Configure Serilog to integrate with App Insights
+    builder.Host.UseSerilog((context, services, loggerConfiguration) => 
+        loggerConfiguration
+            .ReadFrom.Configuration(context.Configuration)
+            .ReadFrom.Services(services)
+            .Enrich.FromLogContext());
 
     // Add services to the container.
 
