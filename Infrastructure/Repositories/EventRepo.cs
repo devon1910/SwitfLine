@@ -75,13 +75,13 @@ namespace Infrastructure.Repositories
                 .Include(x => x.LineMember)
                 .ThenInclude(x => x.Event)
                 .AsSplitQuery()
-                .Where(x => x.LineMember.Event.IsActive)
+                .Where(x => x.LineMember.Event.IsActive && !x.LineMember.Event.IsDeleted)
                 .Select(x => x.LineMember.EventId)            
                 .ToListAsync();
 
             return await dbContext.Events
                 .AsNoTracking()
-                .Where(x => x.IsActive &&
+                .Where(x => x.IsActive && !x.IsDeleted &&
                         (
                             // For events that do not span midnight:
                             x.EventStartTime <= x.EventEndTime
@@ -94,7 +94,7 @@ namespace Infrastructure.Repositories
 
         public async Task<List<Event>> GetAllEvents()
         {
-            List<Event> events = await dbContext.Events.Where(x => x.IsActive).ToListAsync();
+            List<Event> events = await dbContext.Events.Where(x => x.IsActive && !x.IsDeleted).ToListAsync();
             foreach (var @event in events)
             {
                 @event.UsersInQueue = await dbContext.Lines
@@ -108,7 +108,7 @@ namespace Infrastructure.Repositories
 
         public async Task<Event> GetEvent(long eventId)
         {
-            return await dbContext.Events.Include(x => x.SwiftLineUser).FirstOrDefaultAsync(x=>x.Id ==eventId);
+            return await dbContext.Events.Include(x => x.SwiftLineUser).FirstOrDefaultAsync(x=>x.Id ==eventId && !x.IsDeleted);
         }
 
         public async Task<EventQueueRes> GetEventQueue(int page, int size, long eventId, bool isForPastMembers = false)
@@ -206,14 +206,14 @@ namespace Infrastructure.Repositories
         public void DeleteEvent(long Id)
         {
             Event eventToDelete = dbContext.Events.Find(Id);
-            dbContext.Events.Remove(eventToDelete);
+            eventToDelete.IsDeleted = true;
             dbContext.SaveChanges();
         }
 
      
         public async Task<List<Event>> GetUserEvents(string userId)
         {
-            return await dbContext.Events.Where(x => x.CreatedBy == userId).ToListAsync();
+            return await dbContext.Events.Where(x => x.CreatedBy == userId && !x.IsDeleted).ToListAsync();
         }
 
         public async Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "")
@@ -253,6 +253,7 @@ namespace Infrastructure.Repositories
                 .Skip((page - 1) * size)
                 .Take(size)
                 .Include(x => x.SwiftLineUser)
+                .Where(x=>!x.IsDeleted)
                 .ToListAsync();
 
             var events = eventsData.Select(x => new Event
@@ -265,7 +266,7 @@ namespace Infrastructure.Repositories
                 EventEndTime = x.EventEndTime,
                 UsersInQueue = x.UsersInQueue,
                 Organizer = x.SwiftLineUser.UserName,
-                HasStarted = isEventActiveRightNow(x),
+                HasStarted = isEventActiveRightNow(x.Id),
                 StaffCount = x.StaffCount,
                 IsActive = x.IsActive
             }).ToList();
@@ -295,19 +296,5 @@ namespace Infrastructure.Repositories
             }
         }
         
-        private bool isEventActiveRightNow(Event @event)
-        {
-
-            var timeNow = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1));
-
-            if (@event.EventStartTime <= @event.EventEndTime)
-            {
-                return timeNow >= @event.EventStartTime && timeNow <= @event.EventEndTime;
-            }
-            else
-            {
-                return timeNow >= @event.EventStartTime || timeNow <= @event.EventEndTime;
-            }
-        }
     }
 }

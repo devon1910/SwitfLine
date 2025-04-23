@@ -36,5 +36,7 @@ namespace Domain.Models
         public string Organizer { get; set; }
         [NotMapped]
         public bool HasStarted { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
     }
 }
