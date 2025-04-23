@@ -11,9 +11,9 @@ namespace Domain.DTOs.Requests
     public record SignupModel
     {
 
-        [Required]
-        [MaxLength(50)]
-        [EmailAddress]
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Enter a valid email address.")]
+        [StringLength(100, ErrorMessage = "Email cannot be longer than 100 characters.")]
         public string Email { get; set; } = string.Empty;
 
         [Required]

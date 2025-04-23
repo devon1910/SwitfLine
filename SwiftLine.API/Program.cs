@@ -154,7 +154,7 @@ try
             builder.Configuration["Smtp:Password"])
         }).AddRazorRenderer();
 
-    builder.Services.ConfigureHealthChecks(builder.Configuration);
+    //builder.Services.ConfigureHealthChecks(builder.Configuration);
 
     builder.Services.AddOpenApi(options =>
     {
@@ -190,6 +190,8 @@ try
         });
     });
 
+    builder.Services.AddApplicationInsightsTelemetry();
+
     var app = builder.Build();
 
     // Configure the HTTP request pipeline.
@@ -212,16 +214,16 @@ try
     app.UseAuthentication();
     app.UseAuthorization();
     //HealthCheck Middleware
-    app.MapHealthChecks("/api/health", new HealthCheckOptions()
-    {
-        Predicate = _ => true,
-        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-    });
+    //app.MapHealthChecks("/api/health", new HealthCheckOptions()
+    //{
+    //    Predicate = _ => true,
+    //    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+    //});
 
-    app.UseHealthChecksUI(delegate (Options options)
-    {
-        options.UIPath = "/healthcheck-ui";
-    });
+    //app.UseHealthChecksUI(delegate (Options options)
+    //{
+    //    options.UIPath = "/healthcheck-ui";
+    //});
 
     app.UseRateLimiter();
 
