@@ -1,6 +1,5 @@
 ﻿using Domain.DTOs.Responses;
 using Microsoft.AspNetCore.Http;
-using Serilog;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -44,9 +43,7 @@ namespace Infrastructure.Middleware
 
             var result = Result<string>.InternalError(message);
 
-            Log.Error(exception, "Unhandled exception occurred. Path: {Path}, Error: {Error}", 
-                context?.Request?.Path.Value, 
-                error);
+           
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

@@ -28,10 +28,6 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading.RateLimiting;
 
-// Configure Serilog
-Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .CreateBootstrapLogger();
 
 try
 {

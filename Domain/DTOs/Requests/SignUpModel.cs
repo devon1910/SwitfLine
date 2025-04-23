@@ -18,7 +18,11 @@ namespace Domain.DTOs.Requests
 
         [Required]
         [MaxLength(40)]
-        
+        [DataType(DataType.Password)]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters.")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{6,}$",
+        ErrorMessage = "Password must include at least one uppercase letter, one lowercase letter, one number, and one special character.")]
+
         public string Password { get; set; } = string.Empty;
     }
 }
