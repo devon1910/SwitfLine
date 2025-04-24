@@ -152,7 +152,7 @@ namespace Infrastructure.Repositories
                     // If sending the email fails, throw to trigger rollback.
                     if (!isMailSent)
                     {
-                        throw new Exception("User account created but welcome Mail wasn't sent.");
+                        throw new Exception("User account created but Welcome Mail wasn't sent.");
                     }
 
                     // Commit transaction if everything succeeded
