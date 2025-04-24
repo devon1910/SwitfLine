@@ -361,7 +361,7 @@ namespace Infrastructure.Repositories
         {
 
             string htmlTemplate = GetWelcomeEmailTemplate();
-            string link = _configuration["SwiftLineBaseUrl"]; //come back to this
+            string link = _configuration["SwiftLineBaseUrlForReminder"]; //come back to this
             var email = await _fluentEmail
                 .To(RecipientEmail)
                 .Subject($"Welcome to Swiftline ⏭")
