@@ -366,7 +366,8 @@ namespace Infrastructure.Repositories
                 .To(RecipientEmail)
                 .Subject($"Welcome to Swiftline ⏭")
                 .Body(htmlTemplate
-                .Replace("{{UserName}}", username), true)
+                .Replace("{{UserName}}", username)
+                .Replace("{{SwiftlineUrl}}",link), true)
                 .SendAsync();
             _logger.LogInformation("Email Sent Successfully");
             if (!email.Successful)
@@ -554,12 +555,14 @@ namespace Infrastructure.Repositories
           @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
         body {
-            margin: 0;
+             margin: 0;
             padding: 0;
             font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f8f8f8;
+            line-height: 1.6;
             color: #333333;
+            background-color: #f5f5f5;
         }
+
         .container {
             max-width: 600px;
             margin: 0 auto;
@@ -569,6 +572,7 @@ namespace Infrastructure.Repositories
             background-color: #8BA888; /* Sage green */
             padding: 30px;
             text-align: center;
+            text-color: #ffffff
         }
         .logo {
             font-size: 28px;
@@ -671,55 +675,58 @@ namespace Infrastructure.Repositories
             color: #8BA888;
             text-decoration: none;
         }
+         .center {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 30%;
+        }
     </style>
 </head>
 <body>
     <div class=""container"">
-        <div class=""header"">
-            <div class=""logo""> <img src = ""https://res.cloudinary.com/dddabj5ub/image/upload/v1741908218/swifline_logo_cpsacv.webp"" alt=""Swiftline"" class=""center""></div>
-            <div class=""tagline"">Bypass the Wait, Reclaim your day</div>
-        </div>
-        
+       
         <div class=""content"">
             <h1>Welcome to a Smarter Way to Queue!</h1>
             
             <p>Hi {{UserName}},</p>
             
-            <p>Thank you for choosing Swiftline! We're excited to have you join our community of businesses and organizations that are transforming how people wait in line. Your account has been successfully created, and you're now ready to start managing queues more efficiently.</p>
+            <p>Thank you for choosing Swiftline! We're excited to have you join our community of businesses and organizations that are transforming how people wait in line. <br><br>
+            Your account has been successfully created, and you're now ready to start managing queues more efficiently.</p>
             
-            <a href=""#"" class=""button"">Set Up Your First Queue</a>
+            <a href=""{{SwiftlineUrl}}"" class=""button"">Set Up Your First Queue</a>
             
             <h2>Why Swiftline Makes Waiting Better</h2>
             
             <div class=""features"">
                 <div class=""feature"">
-                    <div class=""feature-icon"">🔄</div>
+                    <div>🔄</div>
                     <div class=""feature-content"">
-                        <div class=""feature-title"">Join From Anywhere</div>
+                        <div class=""feature-title""> Join From Anywhere</div>
                         <div class=""feature-description"">Your customers can join queues remotely from their devices, eliminating the need to physically stand in line.</div>
                     </div>
                 </div>
                 
                 <div class=""feature"">
-                    <div class=""feature-icon"">⏱️</div>
+                    <div>⏱️</div>
                     <div class=""feature-content"">
-                        <div class=""feature-title"">Real-Time Updates</div>
+                        <div class=""feature-title""> Real-Time Updates</div>
                         <div class=""feature-description"">Automatic notifications keep everyone informed about queue status, an email reminder is sent when it's almost your turn and estimated wait times.</div>
                     </div>
                 </div>
                 
                 <div class=""feature"">
-                    <div class=""feature-icon"">✓</div>
+                    <div>✓</div>
                     <div class=""feature-content"">
-                        <div class=""feature-title"">Time Efficiency</div>
+                        <div class=""feature-title""> Time Efficiency</div>
                         <div class=""feature-description"">Users can multitask and make better use of their time while waiting for their turn.</div>
                     </div>
                 </div>
                 
                 <div class=""feature"">
-                    <div class=""feature-icon"">📊</div>
+                    <div>📊</div>
                     <div class=""feature-content"">
-                        <div class=""feature-title"">Powerful Analytics</div>
+                        <div class=""feature-title""> Powerful Analytics</div>
                         <div class=""feature-description"">Gain insights into wait times, peak hours, and customer flow to optimize your operations.</div>
                     </div>
                 </div>
