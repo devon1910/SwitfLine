@@ -95,7 +95,7 @@ namespace Infrastructure.Repositories
                             new Claim(ClaimTypes.Name, user.UserName),
                             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                             new Claim(ClaimTypes.NameIdentifier, user.Id),
-                            new Claim("purpose", "Email_Verification")
+                            new Claim("purpose", "SignUp")//Email_Verification
                         };
 
                     var userRoles = await _userManager.GetRolesAsync(user);
