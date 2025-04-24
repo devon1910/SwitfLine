@@ -52,13 +52,6 @@ namespace SwiftLine.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Result<bool>>> Revoke()
-        {
-            var res = await service.Revoke(User);
-            return res.ToActionResult();
-        }
-
-        [HttpPost]
         [AllowAnonymous]
         public ActionResult<Result<AuthRes>> VerifyToken([JwtTokenAttribute] string token)
         {
