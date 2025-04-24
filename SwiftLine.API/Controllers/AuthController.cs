@@ -44,7 +44,7 @@ namespace SwiftLine.API.Controllers
             return res.ToActionResult();
         }
 
-        [HttpPost]
+        [HttpPost, AllowAnonymous]
         public async Task<ActionResult<Result<AuthRes>>> RefreshToken(TokenModel tokenModel)
         {
             var res = await service.RefreshToken(tokenModel);

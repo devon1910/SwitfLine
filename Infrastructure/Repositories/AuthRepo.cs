@@ -253,7 +253,7 @@ namespace Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
 
-            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id,user.Email,user.IsInQueue,user.UserName);
+            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id,user.Email,user.IsInQueue,user.UserName,"");
            
         }
 
@@ -279,7 +279,7 @@ namespace Infrastructure.Repositories
 
             var user = await _userManager.FindByNameAsync(username); 
 
-            return new AuthRes(true, "Refresh token updated.", newAccessToken, newRefreshToken,user.Id,user.Email, user.IsInQueue,user.UserName);
+            return new AuthRes(true, "Refresh token updated.", newAccessToken, newRefreshToken,user.Id,user.Email, user.IsInQueue,user.UserName,"");
            
         }
 
@@ -353,6 +353,7 @@ namespace Infrastructure.Repositories
                     user.IsInQueue,
                     user.UserName,
                 principal.FindFirst("purpose")?.Value);
+
             }
             catch (Exception ex)
             {

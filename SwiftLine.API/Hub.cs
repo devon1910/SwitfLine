@@ -2,12 +2,14 @@
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.SignalR;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -15,6 +17,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace SwiftLine.API
 {
+    [Authorize]
     public class SwiftLineHub(INotifier notifier) : Hub
     {
         [EnableRateLimiting("SignupPolicy")]
@@ -23,6 +26,7 @@ namespace SwiftLine.API
             Log.Information("User {UserId} joining queue group for event {EventId}", userId, eventId);
             try
             {
+                //var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 var result = await notifier.JoinQueueGroup(eventId, userId, Context.ConnectionId);
                 Log.Information("User {UserId} successfully joined queue group for event {EventId}", userId, eventId);
                 return result;
