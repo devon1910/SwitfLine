@@ -10,14 +10,14 @@ using SwiftLine.API.Extensions;
 
 namespace SwiftLine.API.Controllers
 {
+    //Can I convert these into minimal APIS?
     public class LineController(ILineService lineService) : BaseController
     {
         [HttpGet(), AllowAnonymous]
         public async Task<ActionResult<Result<LineInfoRes>>> GetUserLineInfo()
         {
             var res = await lineService.GetUserLineInfo(UserId);
-            return res.ToActionResult();
+            return res.ToActionResult(); 
         }  
-       
     }
 }

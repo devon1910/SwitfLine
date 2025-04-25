@@ -29,7 +29,8 @@ namespace Infrastructure.Data
         public DbSet<Event> Events { get; set; }
         public DbSet<LineMember> LineMembers { get; set; }
         public DbSet<Line> Lines { get; set; }
-
         public DbSet<TokenInfo> TokenInfos { get; set; }
+
+        public DbSet<Feedback> Feedbacks { get; set; }
     }
 }
