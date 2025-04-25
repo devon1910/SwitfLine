@@ -76,6 +76,8 @@ try
     builder.Services.AddScoped<IAuthRepo, AuthRepo>();
     builder.Services.AddScoped<INotifier, Notifier>();
     builder.Services.AddScoped<INotifierRepo, NotifierRepo>();
+    builder.Services.AddScoped<IFeedbackRepo, FeebackRepo>();
+    builder.Services.AddScoped<IFeedbackService, FeedbackService>();
     builder.Services.Configure<IdentityOptions>(options =>
     {
         options.User.RequireUniqueEmail = true;
@@ -281,6 +283,7 @@ try
 catch (Exception ex)
 {
     Log.Fatal(ex, "Application terminated unexpectedly");
+    throw ex;
 }
 finally
 {
