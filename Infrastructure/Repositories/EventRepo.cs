@@ -124,8 +124,7 @@ namespace Infrastructure.Repositories
 
             var lines = await allLines
                .Where(x => (isForPastMembers ? x.IsAttendedTo : !x.IsAttendedTo))
-               .OrderBy(x => x.CreatedAt)
-               .Skip((page - 1) * size)
+               .OrderBy(x => x.CreatedAt)             
                .Take(size)
                .Select(x => new Line
                {
@@ -159,7 +158,7 @@ namespace Infrastructure.Repositories
                 lines = lines.OrderByDescending(x => x.CreatedAt).ToList();
             }
 
-            return new EventQueueRes(lines, !isEventActive, pageCount, TotalServed, averageTime);
+            return new EventQueueRes(lines.Skip((page - 1) * size).ToList(), !isEventActive, pageCount, TotalServed, averageTime);
 
         }
 
