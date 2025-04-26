@@ -123,8 +123,7 @@ namespace Infrastructure.Repositories
             int pageCount = (int) Math.Ceiling(allIndividualsInQueue / (double) size);
 
             var lines = await allLines
-               .Where(x => (isForPastMembers ? x.IsAttendedTo : !x.IsAttendedTo))
-               .OrderBy(x => x.CreatedAt)             
+               .Where(x => (isForPastMembers ? x.IsAttendedTo : !x.IsAttendedTo))        
                .Take(size)
                .Select(x => new Line
                {
@@ -153,12 +152,11 @@ namespace Infrastructure.Repositories
 
             int averageTime = (int) Math.Ceiling(allLines.Select(x=>x.TimeWaited).Average());
 
-            if (isForPastMembers) 
-            {
-                lines = lines.OrderByDescending(x => x.CreatedAt).ToList();
-            }
+            lines = isForPastMembers ? [.. lines.OrderByDescending(x => x.CreatedAt)] : [.. lines.OrderBy(x => x.CreatedAt)];
+            lines = lines.Skip((page - 1) * size).Take(size).ToList();
 
-            return new EventQueueRes(lines.Skip((page - 1) * size).ToList(), !isEventActive, pageCount, TotalServed, averageTime);
+
+            return new EventQueueRes(lines, !isEventActive, pageCount, TotalServed, averageTime);
 
         }
 
