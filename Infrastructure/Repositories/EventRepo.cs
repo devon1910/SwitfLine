@@ -52,7 +52,7 @@ namespace Infrastructure.Repositories
                 return false;
             }
 
-            @event.Title = req.Title;
+            //@event.Title = req.Title;
             @event.AverageTime = req.AverageTime;
             @event.AverageTimeToServeSeconds = req.AverageTime * 60;
             @event.EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default;
