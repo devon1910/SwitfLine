@@ -113,15 +113,17 @@ namespace Infrastructure.Repositories
 
         public async Task<EventQueueRes> GetEventQueue(int page, int size, long eventId, bool isForPastMembers = false)
         {
-
-            var allIndividualsInQueue = dbContext.Lines
+            var allLines = dbContext.Lines
+                .Where(x => x.LineMember.EventId == eventId)
                 .Include(x => x.LineMember)
-                .Where(x => x.LineMember.EventId == eventId && (isForPastMembers ? x.IsAttendedTo : !x.IsAttendedTo))
                 .AsNoTracking();
 
-            int pageCount = (int) Math.Ceiling(await allIndividualsInQueue.CountAsync() / (double) size);
+            var allIndividualsInQueue = allLines.Where(x => (isForPastMembers ? x.IsAttendedTo : !x.IsAttendedTo)).Count();
 
-            var lines = await allIndividualsInQueue
+            int pageCount = (int) Math.Ceiling(allIndividualsInQueue / (double) size);
+
+            var lines = await allLines
+               .Where(x => (isForPastMembers ? x.IsAttendedTo : !x.IsAttendedTo))
                .OrderBy(x => x.CreatedAt)
                .Skip((page - 1) * size)
                .Take(size)
@@ -146,25 +148,18 @@ namespace Infrastructure.Repositories
                    }
                }).ToListAsync();
 
-            var @event = await dbContext.Events
-               .AsNoTracking()
-               .FirstOrDefaultAsync(x => x.Id == eventId);
+            var isEventActive =  dbContext.Events.Find(eventId).IsActive;
 
-            var AverageWaitTime = await dbContext.Lines
-                .Where(x => x.LineMember.EventId == eventId && x.IsAttendedTo)
-                .Select(x => x.TimeWaited).AverageAsync();
+            var TotalServed = allLines.Where(x => x.LineMember.EventId == eventId && x.Status.Contains("served")).Count();
 
-            var TotalServed = await dbContext.Lines
-                .Where(x => x.LineMember.EventId == eventId && x.IsAttendedTo).ToListAsync();
-
-            int averageTime = (int) Math.Ceiling(TotalServed.Select(x=>x.TimeWaited).Average());
+            int averageTime = (int) Math.Ceiling(allLines.Select(x=>x.TimeWaited).Average());
 
             if (isForPastMembers) 
             {
                 lines = lines.OrderByDescending(x => x.CreatedAt).ToList();
             }
 
-            return new EventQueueRes(lines, @event != null && !@event.IsActive, pageCount, TotalServed.Count, averageTime);
+            return new EventQueueRes(lines, !isEventActive, pageCount, TotalServed, averageTime);
 
         }
 
@@ -223,7 +218,7 @@ namespace Infrastructure.Repositories
                 .Include(x=>x.LineMember)
                 .FirstOrDefault();
 
-            await lineRepo.MarkUserAsAttendedTo(line, adminId!= "" ? "Left" : "Served By Admin" );
+            await lineRepo.MarkUserAsAttendedTo(line, adminId!= "" ? "left" : "served by Admin" );
             await notifier.BroadcastLineUpdate(line);
             await lineRepo.NotifyFifthMember(line);
             return true;
