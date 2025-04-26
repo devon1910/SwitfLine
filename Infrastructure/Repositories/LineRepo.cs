@@ -183,7 +183,7 @@ namespace Infrastructure.Repositories
 
                 position = (int) Math.Ceiling((decimal)timeTillYourTurn/ @event.AverageTime);
 
-                return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn,
+                return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn - @event.AverageTime,
                     GetOrdinal(position), @event.Title, @event.IsActive, @event.StaffCount);  
         }
 
