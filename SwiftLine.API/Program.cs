@@ -105,36 +105,36 @@ try
                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:secret"]))
            };
           
-           options.Events = new JwtBearerEvents
-           {
-               OnMessageReceived = context =>
-               {
-                   // Check for token in query string for WebSocket connections
-                   var accessToken = context.Request.Query["access_token"];
+           //options.Events = new JwtBearerEvents
+           //{
+           //    OnMessageReceived = context =>
+           //    {
+           //        // Check for token in query string for WebSocket connections
+           //        var accessToken = context.Request.Query["access_token"];
 
-                   // If the request is for your hub
-                   var path = context.HttpContext.Request.Path;
-                   if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/queueHub"))
-                   {
-                       context.Token = accessToken;
-                   }
+           //        // If the request is for your hub
+           //        var path = context.HttpContext.Request.Path;
+           //        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/queueHub"))
+           //        {
+           //            context.Token = accessToken;
+           //        }
 
-                   return Task.CompletedTask;
-               },
-               OnChallenge = context =>
-               {              
-                   context.Response.StatusCode = 401; // Unauthorized
-                   context.Response.ContentType = "application/json";
-                   return Task.CompletedTask;
-               },
-               OnAuthenticationFailed = context =>
-               {
-                   // Log the error or handle it as needed
-                   Log.Error("Signal R Authentication failed: {Error}", context.Exception.Message);
-                   return Task.CompletedTask;
-               },
+           //        return Task.CompletedTask;
+           //    },
+           //    OnChallenge = context =>
+           //    {              
+           //        context.Response.StatusCode = 401; // Unauthorized
+           //        context.Response.ContentType = "application/json";
+           //        return Task.CompletedTask;
+           //    },
+           //    OnAuthenticationFailed = context =>
+           //    {
+           //        // Log the error or handle it as needed
+           //        Log.Error("Signal R Authentication failed: {Error}", context.Exception.Message);
+           //        return Task.CompletedTask;
+           //    },
                
-           };
+           //};
        }
     ).AddCookie().AddGoogle(options =>
     {
@@ -214,7 +214,7 @@ try
         options.AddFixedWindowLimiter("GenericRestriction", opt =>
         {
             opt.Window = TimeSpan.FromMinutes(1);    // Time window of 1 minute
-            opt.PermitLimit = 25;                   
+            opt.PermitLimit = 30;                   
             opt.QueueLimit = 0;                      // Queue limit of 2
             opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         });

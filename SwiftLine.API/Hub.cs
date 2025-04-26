@@ -17,7 +17,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace SwiftLine.API
 {
-    [Authorize]
+    //[Authorize]
     public class SwiftLineHub(INotifier notifier) : Hub
     {
         [EnableRateLimiting("SignupPolicy")]
