@@ -77,7 +77,7 @@ namespace Infrastructure.Repositories
                 line.IsAttendedTo = true;
                 line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
                 line.Status = status;
-                line.TimeWaited = (int)(line.DateCompletedBeingAttendedTo - line.DateStartedBeingAttendedTo).TotalMinutes;
+                line.TimeWaited = (int)(line.DateCompletedBeingAttendedTo - (line.DateStartedBeingAttendedTo != default ? line.DateStartedBeingAttendedTo : DateTime.UtcNow.AddHours(1))).TotalMinutes;
 
                 await dbContext.Database.ExecuteSqlInterpolatedAsync(
    $"UPDATE public.\"Events\" set \"UsersInQueue\"=\"UsersInQueue\" - 1 where \"Id\"={line.LineMember.EventId}");
