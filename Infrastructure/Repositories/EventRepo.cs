@@ -265,7 +265,8 @@ namespace Infrastructure.Repositories
                 Organizer = x.SwiftLineUser.UserName,
                 HasStarted = isEventActiveRightNow(x.Id),
                 StaffCount = x.StaffCount,
-                IsActive = x.IsActive
+                IsActive = x.IsActive,
+                AllowAnonymousJoining = x.AllowAnonymousJoining,
             }).ToList();
             var user= await getUser(userId);
             return new SearchEventsRes(events, pageCount, user is null ? false : user.IsInQueue,
