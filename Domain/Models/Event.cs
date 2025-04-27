@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -38,7 +39,7 @@ namespace Domain.Models
         public bool HasStarted { get; set; }
 
         public bool IsDeleted { get; set; } = false;
-
-        public bool AllowAnonymousJoining { get; set; } = true;
+        [DefaultValue(true)]
+        public bool AllowAnonymousJoining { get; set; }
     }
 }

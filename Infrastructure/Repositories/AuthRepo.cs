@@ -890,11 +890,12 @@ namespace Infrastructure.Repositories
         {
 
             // Check if any users exist to prevent duplicate seeding
+            var name = "Anonymous_"+DateTime.UtcNow.AddHours(1).ToString().Replace("/","_").Replace(" ","_").Replace(":","_");
             var user = new SwiftLineUser
             {
                 Name = "Anonymous",
-                UserName = DateTime.UtcNow.AddHours(1) + "@gmail.com",
-                Email = DateTime.UtcNow.AddHours(1) + "@gmail.com",
+                UserName = name,
+                Email = name + "@gmail.com",
                 EmailConfirmed = true,
                 SecurityStamp = Guid.NewGuid().ToString()
             };
