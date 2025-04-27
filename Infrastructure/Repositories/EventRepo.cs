@@ -150,7 +150,12 @@ namespace Infrastructure.Repositories
 
             var TotalServed = allLines.Where(x => x.LineMember.EventId == eventId && x.Status.Contains("served")).Count();
 
-            int averageTime = (int) Math.Ceiling(allLines.Select(x=>x.TimeWaited).Average());
+            int averageTime = 0;
+
+            if (allLines.Count() > 0) 
+            {
+                 averageTime = (int)Math.Ceiling(allLines.Select(x => x.TimeWaited).Average());
+            }
 
             lines = isForPastMembers ? [.. lines.OrderByDescending(x => x.CreatedAt)] : [.. lines.OrderBy(x => x.CreatedAt)];
             lines = lines.Skip((page - 1) * size).Take(size).ToList();
