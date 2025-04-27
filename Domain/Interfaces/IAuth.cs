@@ -26,6 +26,8 @@ namespace Domain.Interfaces
 
         public Task<TurnstileResponse> VerifyTurnstile(TurnstileModel request);
 
+        public Task<AuthRes> CreateAnonymousUser();
+
     }
 
     public interface IAuthService
@@ -37,5 +39,7 @@ namespace Domain.Interfaces
         public Result<AuthRes> VerifyToken(string token);
         public Task<Result<AuthRes>> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
         public Task<Result<TurnstileResponse>> VerifyTurnstile(TurnstileModel request);
+
+        public Task<Result<AuthRes>> CreateAnonymousUser();
     }
 }

@@ -109,5 +109,19 @@ namespace Application.Services
                 return Result<TurnstileResponse>.Failed("Failed to verify turnstile", turnstileRes);
             }
         }
+
+        public async Task<Result<AuthRes>> CreateAnonymousUser()
+        {
+             var newUser= await authRepo.CreateAnonymousUser();
+
+            if (newUser.status)
+            {
+                return Result<AuthRes>.Ok(newUser);
+            }
+            else 
+            {
+                return Result<AuthRes>.Failed(newUser.message, newUser);
+            }
+        }
     }
 }

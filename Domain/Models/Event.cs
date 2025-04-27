@@ -39,6 +39,6 @@ namespace Domain.Models
 
         public bool IsDeleted { get; set; } = false;
 
-        public bool AllowAnonymousJoining { get; set; }
+        public bool AllowAnonymousJoining { get; set; } = true;
     }
 }

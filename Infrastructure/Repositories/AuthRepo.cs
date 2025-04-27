@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
+using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -27,13 +28,13 @@ namespace Infrastructure.Repositories
 {
     public class AuthRepo(UserManager<SwiftLineUser> _userManager,
                                 RoleManager<IdentityRole> _roleManager,
-                                SwiftLineDatabaseContext _context, 
+                                SwiftLineDatabaseContext _context,
                                 ITokenRepo _tokenService,
                                 IFluentEmail _fluentEmail,
                                 ILogger<AuthRepo> _logger,
                                 IConfiguration _configuration) : IAuthRepo
     {
- 
+
         public async Task<AuthRes> Signup(SignupModel model)
         {
             using (var transaction = await _context.Database.BeginTransactionAsync())
@@ -48,7 +49,7 @@ namespace Infrastructure.Repositories
                             existingUser.EmailConfirmed
                                 ? "User already exists"
                                 : "User already exists but email is not verified. Please check your email for the verification link and follow the instructions.",
-                            "", "", "", "", false,"");
+                            "", "", "", "", false, "");
                     }
 
                     // Create User role if it doesn't exist
@@ -59,7 +60,7 @@ namespace Infrastructure.Repositories
                         {
                             var roleErrors = roleResult.Errors.Select(e => e.Description);
                             _logger.LogError($"Failed to create user role. Errors: {string.Join(", ", roleErrors)}");
-                            return new AuthRes(false, $"Failed to create user role. Errors: {string.Join(", ", roleErrors)}", "", "", "", "", false,"");
+                            return new AuthRes(false, $"Failed to create user role. Errors: {string.Join(", ", roleErrors)}", "", "", "", "", false, "");
                         }
                     }
 
@@ -86,7 +87,7 @@ namespace Infrastructure.Repositories
                     {
                         var errors = addUserToRoleResult.Errors.Select(e => e.Description);
                         _logger.LogError($"Failed to add role to the user. Errors: {string.Join(", ", errors)}");
-                        return new AuthRes(false, $"Failed to add role to the user. Errors: {string.Join(", ", errors)}", "", "", "", "", false,"");
+                        return new AuthRes(false, $"Failed to add role to the user. Errors: {string.Join(", ", errors)}", "", "", "", "", false, "");
                     }
 
                     // Build authentication claims including a claim to signal email verification purpose
@@ -147,7 +148,7 @@ namespace Infrastructure.Repositories
                     bool isMailSent = await RetryPolicy.ExecuteAsync(async () =>
                        await SendWelcomeMail(user.Email, user.UserName),
                        maxRetryCount: 3,
-                       delayBetweenRetries: TimeSpan.FromSeconds(3));              
+                       delayBetweenRetries: TimeSpan.FromSeconds(3));
 
                     // If sending the email fails, throw to trigger rollback.
                     if (!isMailSent)
@@ -161,7 +162,7 @@ namespace Infrastructure.Repositories
                     //Almost done🎉! A welcome mail has been sent to your email address. Kindly follow the instructions. Didn't get it in your inbox? Please check your spam folder or contact the support team. Thanks!
                     return new AuthRes(true,
                         "Welcome!",
-                        token, refreshToken, user.Id, user.Email, user.IsInQueue,user.UserName,"SignUp");
+                        token, refreshToken, user.Id, user.Email, user.IsInQueue, user.UserName, "SignUp");
                 }
                 catch (Exception ex)
                 {
@@ -213,7 +214,7 @@ namespace Infrastructure.Repositories
 
             return cleanUsername.ToLower();
         }
-        
+
         private async Task<string> GetUniqueUsername(string email)
         {
             string baseUsername = GenerateUsernameFromEmail(email);
@@ -236,12 +237,12 @@ namespace Infrastructure.Repositories
             bool isValidPassword = await _userManager.CheckPasswordAsync(user, model.Password);
             if (user is null || !isValidPassword)
             {
-                return new AuthRes(false, "Invalid user name or password.", "", "", "", "",false,"");
+                return new AuthRes(false, "Invalid user name or password.", "", "", "", "", false, "");
             }
 
             if (!user.EmailConfirmed)
             {
-                return new AuthRes(false, "Email address not verified, please check your email for the verification link and follow the instructions.", "", "", "", "", false,"");
+                return new AuthRes(false, "Email address not verified, please check your email for the verification link and follow the instructions.", "", "", "", "", false, "");
             }
 
 
@@ -291,8 +292,8 @@ namespace Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
 
-            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id,user.Email,user.IsInQueue,user.UserName,"");
-           
+            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id, user.Email, user.IsInQueue, user.UserName, "");
+
         }
 
         public async Task<AuthRes> RefreshToken(TokenModel tokenModel)
@@ -306,7 +307,7 @@ namespace Infrastructure.Repositories
                 || tokenInfo.RefreshToken != tokenModel.RefreshToken
                 || tokenInfo.ExpiredAt <= DateTime.UtcNow)
             {
-                return new AuthRes(false,"Invalid refresh token. Please login again.","","", "", "", false,"");
+                return new AuthRes(false, "Invalid refresh token. Please login again.", "", "", "", "", false, "");
             }
 
             var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims);
@@ -315,10 +316,10 @@ namespace Infrastructure.Repositories
             tokenInfo.RefreshToken = newRefreshToken; // rotating the refresh token
             await _context.SaveChangesAsync();
 
-            var user = await _userManager.FindByNameAsync(username); 
+            var user = await _userManager.FindByNameAsync(username);
 
-            return new AuthRes(true, "Refresh token updated.", newAccessToken, newRefreshToken,user.Id,user.Email, user.IsInQueue,user.UserName,"");
-           
+            return new AuthRes(true, "Refresh token updated.", newAccessToken, newRefreshToken, user.Id, user.Email, user.IsInQueue, user.UserName, "");
+
         }
 
         public async Task<bool> Revoke(ClaimsPrincipal User)
@@ -338,14 +339,14 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> SendEmailVerifyLink(string RecipientEmail, string token, string username)
         {
-            string htmlTemplate = GetEmailTemplate(); 
-            string link =  _configuration["SwiftLineBaseUrl"] +token; //come back to this
+            string htmlTemplate = GetEmailTemplate();
+            string link = _configuration["SwiftLineBaseUrl"] + token; //come back to this
             var email = await _fluentEmail
                 .To(RecipientEmail)
                 .Subject($"Welcome to Swiftline ⏭ - Verify Your Email Address")
                 .Body(htmlTemplate
                 .Replace("{{UserName}}", username)
-                .Replace("{{VerificationLink}}", link), true) 
+                .Replace("{{VerificationLink}}", link), true)
                 .SendAsync();
             _logger.LogInformation("Email Sent Successfully");
             if (!email.Successful)
@@ -357,7 +358,7 @@ namespace Infrastructure.Repositories
             return true;
         }
 
-        private async Task<bool> SendWelcomeMail(string RecipientEmail, string username) 
+        private async Task<bool> SendWelcomeMail(string RecipientEmail, string username)
         {
 
             string htmlTemplate = GetWelcomeEmailTemplate();
@@ -367,7 +368,7 @@ namespace Infrastructure.Repositories
                 .Subject($"Welcome to Swiftline ⏭")
                 .Body(htmlTemplate
                 .Replace("{{UserName}}", username)
-                .Replace("{{SwiftlineUrl}}",link), true)
+                .Replace("{{SwiftlineUrl}}", link), true)
                 .SendAsync();
             _logger.LogInformation("Email Sent Successfully");
             if (!email.Successful)
@@ -398,16 +399,16 @@ namespace Infrastructure.Repositories
             {
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
                 string userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
-                var user= _context.SwiftLineUsers.Find(userId);
+                var user = _context.SwiftLineUsers.Find(userId);
 
                 if (user is null)
                 {
-                    return new AuthRes(false, "user not found with the provided token.", "", "", "", "", false,"");
+                    return new AuthRes(false, "user not found with the provided token.", "", "", "", "", false, "");
                 }
                 user.EmailConfirmed = true;
                 _context.SaveChanges();
-                return new AuthRes(true,"Token Validated","","", 
-                    user.Id, 
+                return new AuthRes(true, "Token Validated", "", "",
+                    user.Id,
                     user.Email,
                     user.IsInQueue,
                     user.UserName,
@@ -540,10 +541,10 @@ namespace Infrastructure.Repositories
                     </body>
                     </html>";
 
-                   
+
         }
 
-        private string GetWelcomeEmailTemplate() 
+        private string GetWelcomeEmailTemplate()
         {
             return @"<!DOCTYPE html>
 <html>
@@ -870,7 +871,7 @@ namespace Infrastructure.Repositories
         public async Task<TurnstileResponse> VerifyTurnstile(TurnstileModel request)
         {
             using var client = new HttpClient();
-            string cloudfare_verify_url = _configuration["Cloudfare:VerifyTurnsTileTokenUrl"]; 
+            string cloudfare_verify_url = _configuration["Cloudfare:VerifyTurnsTileTokenUrl"];
             string cloudfare_secret_key = _configuration["Cloudfare:VerifyTurnsTileTokenSecret"];
             var values = new Dictionary<string, string>
             {
@@ -884,17 +885,66 @@ namespace Infrastructure.Repositories
 
             return JsonSerializer.Deserialize<TurnstileResponse>(json);
         }
-        //var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
-        //var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
 
-        //var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
+        public async Task<AuthRes> CreateAnonymousUser()
+        {
 
-        //user.RefreshToken = refreshTokenValue;
-        //user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
+            // Check if any users exist to prevent duplicate seeding
+            var user = new SwiftLineUser
+            {
+                Name = "Anonymous",
+                UserName = DateTime.UtcNow.AddHours(1) + "@gmail.com",
+                Email = DateTime.UtcNow.AddHours(1) + "@gmail.com",
+                EmailConfirmed = true,
+                SecurityStamp = Guid.NewGuid().ToString()
+            };
 
-        //await _userManager.UpdateAsync(user);
 
-        //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
-        //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
+            // Attempt to create admin user
+            var createUserResult = await _userManager
+                  .CreateAsync(user: user, password: "Anonymous@123");
+
+            // Validate user creation
+            if (!createUserResult.Succeeded)
+            {
+                var errors = createUserResult.Errors.Select(e => e.Description);
+                _logger.LogError(
+                    $"Failed to create anonymous user. Errors: {string.Join(", ", errors)}"
+                );
+                return new AuthRes(false,
+                      "Failed to create anonymous user!",
+                      "", "", "", "", false, "Anonymous", "SignUp");
+            }
+
+            List<Claim> authClaims = new()
+                        {
+                            new Claim(ClaimTypes.Name, user.UserName),
+                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                            new Claim(ClaimTypes.NameIdentifier, user.Id),
+                        };
+
+
+            var token = _tokenService.GenerateAccessToken(authClaims);
+            await _context.SaveChangesAsync();
+
+            return new AuthRes(true,
+                      "Welcome!",
+                      token, "", user.Id, user.Email, user.IsInQueue, "Anonymous", "SignUp");
+
+
+
+            //var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
+            //var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
+
+            //var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
+
+            //user.RefreshToken = refreshTokenValue;
+            //user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
+
+            //await _userManager.UpdateAsync(user);
+
+            //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
+            //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
+        }
     }
-}
+    }
