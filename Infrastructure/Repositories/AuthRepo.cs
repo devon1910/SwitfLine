@@ -784,6 +784,7 @@ namespace Infrastructure.Repositories
             //}
 
             var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
+            var fullName = claimsPrincipal.FindFirstValue(ClaimTypes.Name);
 
             if (email == null)
             {
@@ -800,6 +801,7 @@ namespace Infrastructure.Repositories
                     SecurityStamp = Guid.NewGuid().ToString(),
                     UserName = await GetUniqueUsername(email),
                     EmailConfirmed = true,
+                    FullName = fullName,
                 };
 
                 var result = await _userManager.CreateAsync(newUser);
