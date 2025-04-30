@@ -68,6 +68,7 @@ namespace Infrastructure.Repositories
                     SwiftLineUser user = new()
                     {
                         Email = model.Email,
+                        FullName = model.FullName,
                         SecurityStamp = Guid.NewGuid().ToString(),
                         UserName = await GetUniqueUsername(model.Email),
                         EmailConfirmed = true,// just for now, veification later on.            
