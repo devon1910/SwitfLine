@@ -26,13 +26,7 @@ namespace SwiftLine.API.Controllers
             var res = await eventService.EditEvent(req);
             return res.ToActionResult();
         }
-        [HttpGet("{EventId}")]
-        public async Task<ActionResult<Result<Event>>> GetEvent(long EventId)
-        {
-
-            var res = await eventService.GetEvent(EventId);
-            return res.ToActionResult();
-        }
+       
         [HttpGet()]
         public async Task<ActionResult<Result<EventQueueRes>>> GetEventQueue(int Page, int Size, long EventId, bool IsForPastMembers= false)
         {

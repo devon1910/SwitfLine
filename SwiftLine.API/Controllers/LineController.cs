@@ -13,7 +13,7 @@ namespace SwiftLine.API.Controllers
     //Can I convert these into minimal APIS?
     public class LineController(ILineService lineService) : BaseController
     {
-        [HttpGet(), AllowAnonymous]
+        [HttpGet()]
         public async Task<ActionResult<Result<LineInfoRes>>> GetUserLineInfo()
         {
             var res = await lineService.GetUserLineInfo(UserId);
