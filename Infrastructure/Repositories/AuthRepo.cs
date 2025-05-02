@@ -981,10 +981,11 @@ namespace Infrastructure.Repositories
            return expiredAccounts;
         }
 
-        public async Task<bool> DeleteExpiredAccount(SwiftLineUser user)
+        public async Task DeleteExpiredAccount(SwiftLineUser user)
         {   
             await _userManager.DeleteAsync(user);
             await _context.SaveChangesAsync();
+            
         }
     }
     }

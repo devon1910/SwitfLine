@@ -29,7 +29,7 @@ namespace Domain.Interfaces
         public Task<AuthRes> CreateAnonymousUser();
 
         public Task<List<SwiftLineUser>> GetExpiredAccounts();
-        public Task<bool> DeleteExpiredAccount(SwiftLineUser user);
+        public Task DeleteExpiredAccount(SwiftLineUser user);
     }
 
     public interface IAuthService
