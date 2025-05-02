@@ -177,61 +177,6 @@ namespace Infrastructure.Repositories
 
         }
 
-        private static string GenerateUsernameFromEmail(string email)
-        {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                throw new ArgumentException("Email cannot be null or empty", nameof(email));
-            }
-
-            // Split the email into local part and domain
-            string[] parts = email.Split('@');
-            if (parts.Length != 2)
-            {
-                throw new ArgumentException("Invalid email format", nameof(email));
-            }
-
-            string localPart = parts[0];
-
-            // Remove any non-alphanumeric characters
-            string cleanUsername = Regex.Replace(localPart, @"[^a-zA-Z0-9]", "");
-
-            // If the cleaned username is too short, add some characters from the domain
-            if (cleanUsername.Length < 4)
-            {
-                string domainPart = parts[1].Split('.')[0];
-                cleanUsername += domainPart.Substring(0, Math.Min(4, domainPart.Length));
-            }
-
-            // Ensure the username is between 4 and 20 characters
-            cleanUsername = cleanUsername.Length > 20
-                ? cleanUsername[..20]
-                : cleanUsername;
-
-            // If the username is still too short, add numbers
-            while (cleanUsername.Length < 4)
-            {
-                cleanUsername += new Random().Next(0, 9);
-            }
-
-            return cleanUsername.ToLower();
-        }
-
-        private async Task<string> GetUniqueUsername(string email)
-        {
-            string baseUsername = GenerateUsernameFromEmail(email);
-            string uniqueUsername = baseUsername;
-            int counter = 1;
-
-            while (await _userManager.FindByNameAsync(uniqueUsername) is not null)
-            {
-                uniqueUsername = $"{baseUsername}{counter}";
-                counter++;
-            }
-
-            return uniqueUsername;
-        }
-
 
         public async Task<AuthRes> Login(LoginModel model)
         {
@@ -341,7 +286,7 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> SendEmailVerifyLink(string RecipientEmail, string token, string username)
         {
-            string htmlTemplate = GetEmailTemplate();
+            string htmlTemplate = EmailVerificationTemplate();
             string link = _configuration["SwiftLineBaseUrl"] + token; //come back to this
             var email = await _fluentEmail
                 .To(RecipientEmail)
@@ -360,27 +305,7 @@ namespace Infrastructure.Repositories
             return true;
         }
 
-        private async Task<bool> SendWelcomeMail(string RecipientEmail, string username)
-        {
-
-            string htmlTemplate = GetWelcomeEmailTemplate();
-            string link = _configuration["SwiftLineBaseUrlForReminder"]; //come back to this
-            var email = await _fluentEmail
-                .To(RecipientEmail)
-                .Subject($"Welcome to Swiftline ⏭")
-                .Body(htmlTemplate
-                .Replace("{{UserName}}", username)
-                .Replace("{{SwiftlineUrl}}", link), true)
-                .SendAsync();
-            _logger.LogInformation("Email Sent Successfully");
-            if (!email.Successful)
-            {
-                _logger.LogError("Failed to send email: {Errors}",
-                    string.Join(", ", email.ErrorMessages));
-                throw new Exception("Failed to send welcome Email");
-            }
-            return true;
-        }
+       
         public AuthRes VerifyToken(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -422,9 +347,267 @@ namespace Infrastructure.Repositories
                 //log exception
                 return new AuthRes(false, "Sorry, Something went wrong. Please sign up or contact the support team if this error persists.", "", "", "", "", false, "");
             }
+        }  
+
+        public async Task<AuthRes> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
+        {
+            //if (claimsPrincipal == null)
+            //{
+            //    throw new ExternalLoginProviderException("Google", "ClaimsPrincipal is null");
+            //}
+
+            var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
+            var fullName = claimsPrincipal.FindFirstValue(ClaimTypes.Name);
+
+            if (email == null)
+            {
+                throw new Exception();//ExternalLoginProviderException("Google", "Email is null");
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                SwiftLineUser newUser = new()
+                {
+                    Email = email,
+                    SecurityStamp = Guid.NewGuid().ToString(),
+                    UserName = await GetUniqueUsername(email),
+                    EmailConfirmed = true,
+                    FullName = fullName,
+                };
+
+                var result = await _userManager.CreateAsync(newUser);
+
+                if (!result.Succeeded)
+                {
+                    //throw new ExternalLoginProviderException("Google",
+                    //    $"Unable to create user: {string.Join(", ",
+                    //        result.Errors.Select(x => x.Description))}");
+                    throw new Exception();
+                }
+                user = newUser;
+            }
+
+            var info = new UserLoginInfo(
+                "Google",
+                claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
+                "Google");
+            // creating the necessary claims
+            List<Claim> authClaims = [
+                    new (ClaimTypes.Name, user.UserName),
+                        new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                        new (ClaimTypes.NameIdentifier, user.Id),
+
+                        // unique id for token
+                        ];
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+
+            // adding roles to the claims. So that we can get the user role from the token.
+            foreach (var userRole in userRoles)
+            {
+                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
+
+            var loginResult = await _userManager.AddLoginAsync(user, info);
+
+            var token = _tokenService.GenerateAccessToken(authClaims);
+            //save refreshToken with exp date in the database
+            var tokenInfo = _context.TokenInfos.
+                        FirstOrDefault(a => a.Username == user.UserName);
+
+            string refreshToken = _tokenService.GenerateRefreshToken();
+
+            // If tokenInfo is null for the user, create a new one
+            if (tokenInfo == null)
+            {
+                var ti = new TokenInfo
+                {
+                    Username = user.UserName,
+                    RefreshToken = refreshToken,
+                    ExpiredAt = DateTime.UtcNow.AddHours(1).AddDays(7)
+                };
+                _context.TokenInfos.Add(ti);
+            }
+            // Else, update the refresh token and expiration
+            else
+            {
+                tokenInfo.RefreshToken = refreshToken;
+                tokenInfo.ExpiredAt = DateTime.UtcNow.AddDays(7);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id, user.Email, user.IsInQueue, user.UserName);
+
+
         }
 
-        private string GetEmailTemplate()
+        public async Task<TurnstileResponse> VerifyTurnstile(TurnstileModel request)
+        {
+            using var client = new HttpClient();
+            string cloudfare_verify_url = _configuration["Cloudfare:VerifyTurnsTileTokenUrl"];
+            string cloudfare_secret_key = _configuration["Cloudfare:VerifyTurnsTileTokenSecret"];
+            var values = new Dictionary<string, string>
+            {
+                { "secret", cloudfare_secret_key },
+                { "response", request.TurnstileToken }
+            };
+
+            var content = new FormUrlEncodedContent(values);
+            var response = await client.PostAsync(cloudfare_verify_url, content);
+            var json = await response.Content.ReadAsStringAsync();
+
+            return JsonSerializer.Deserialize<TurnstileResponse>(json);
+        }
+
+        public async Task<AuthRes> CreateAnonymousUser()
+        {
+
+            // Check if any users exist to prevent duplicate seeding
+            // Generate a unique username for the anonymous user
+            var name = $"Anonymous_{DateTime.UtcNow.AddHours(1):yyyy_MM_dd_HH_mm_ss}";
+            var user = new SwiftLineUser
+            {
+                Name = "Anonymous",
+                UserName = name,
+                Email = $"{name}@gmail.com",
+                EmailConfirmed = true,
+                SecurityStamp = Guid.NewGuid().ToString()
+            };
+
+            // Attempt to create the anonymous user
+            var createUserResult = await _userManager.CreateAsync(user, "Anonymous@123");
+            if (!createUserResult.Succeeded)
+            {
+                var errors = string.Join(", ", createUserResult.Errors.Select(e => e.Description));
+                _logger.LogError($"Failed to create anonymous user. Errors: {errors}");
+                return new AuthRes(false, "Failed to create anonymous user!", "", "", "", "", false, "Anonymous", "SignUp");
+            }
+
+            // Ensure the Anonymous role exists
+            if (!await _roleManager.RoleExistsAsync(Roles.Anonymous))
+            {
+                var roleResult = await _roleManager.CreateAsync(new IdentityRole(Roles.Anonymous));
+                if (!roleResult.Succeeded)
+                {
+                    var roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                    _logger.LogError($"Failed to create Anonymous role. Errors: {roleErrors}");
+                    return new AuthRes(false, $"Failed to create Anonymous role. Errors: {roleErrors}", "", "", "", "", false, "");
+                }
+            }
+
+            // Assign the Anonymous role to the user
+            var addUserToRoleResult = await _userManager.AddToRoleAsync(user, Roles.Anonymous);
+            if (!addUserToRoleResult.Succeeded)
+            {
+                var errors = string.Join(", ", addUserToRoleResult.Errors.Select(e => e.Description));
+                _logger.LogError($"Failed to assign Anonymous role to user. Errors: {errors}");
+                return new AuthRes(false, $"Failed to assign Anonymous role to user. Errors: {errors}", "", "", "", "", false, "");
+            }
+
+            // Generate authentication claims and access token
+            var authClaims = new List<Claim>
+            {
+               new Claim(ClaimTypes.Name, user.UserName),
+               new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+               new Claim(ClaimTypes.NameIdentifier, user.Id)
+            };
+
+            var token = _tokenService.GenerateAccessToken(authClaims);
+            await _context.SaveChangesAsync();
+
+            return new AuthRes(true, "Welcome!", token, "", user.Id, user.Email, user.IsInQueue, "Anonymous", "SignUp");
+            
+
+
+            //var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
+            //var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
+
+            //var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
+
+            //user.RefreshToken = refreshTokenValue;
+            //user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
+
+            //await _userManager.UpdateAsync(user);
+
+            //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
+            //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
+        }
+
+        public Task<List<SwiftLineUser>> GetExpiredAccounts()
+        {
+            var expiredAccounts = _context.SwiftLineUsers
+                .Where(x => x.Name == "Anonymous" && x.DateCreated != default && x.DateCreated.AddDays(1) < DateTime.UtcNow.AddHours(1))
+                .ToListAsync();
+
+           return expiredAccounts;
+        }
+
+        public async Task DeleteExpiredAccount(SwiftLineUser user)
+        {   
+            await _userManager.DeleteAsync(user);
+            await _context.SaveChangesAsync();
+            
+        }
+
+        private static string GenerateUsernameFromEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                throw new ArgumentException("Email cannot be null or empty", nameof(email));
+            }
+
+            // Split the email into local part and domain
+            string[] parts = email.Split('@');
+            if (parts.Length != 2)
+            {
+                throw new ArgumentException("Invalid email format", nameof(email));
+            }
+
+            string localPart = parts[0];
+
+            // Remove any non-alphanumeric characters
+            string cleanUsername = Regex.Replace(localPart, @"[^a-zA-Z0-9]", "");
+
+            // If the cleaned username is too short, add some characters from the domain
+            if (cleanUsername.Length < 4)
+            {
+                string domainPart = parts[1].Split('.')[0];
+                cleanUsername += domainPart.Substring(0, Math.Min(4, domainPart.Length));
+            }
+
+            // Ensure the username is between 4 and 20 characters
+            cleanUsername = cleanUsername.Length > 20
+                ? cleanUsername[..20]
+                : cleanUsername;
+
+            // If the username is still too short, add numbers
+            while (cleanUsername.Length < 4)
+            {
+                cleanUsername += new Random().Next(0, 9);
+            }
+
+            return cleanUsername.ToLower();
+        }
+
+        private async Task<string> GetUniqueUsername(string email)
+        {
+            string baseUsername = GenerateUsernameFromEmail(email);
+            string uniqueUsername = baseUsername;
+            int counter = 1;
+
+            while (await _userManager.FindByNameAsync(uniqueUsername) is not null)
+            {
+                uniqueUsername = $"{baseUsername}{counter}";
+                counter++;
+            }
+
+            return uniqueUsername;
+        }
+
+        private string EmailVerificationTemplate()
         {
             return @"
                   <!DOCTYPE html>
@@ -546,7 +729,7 @@ namespace Infrastructure.Repositories
 
         }
 
-        private string GetWelcomeEmailTemplate()
+        private string WelcomeEmailTemplate()
         {
             return @"<!DOCTYPE html>
 <html>
@@ -777,215 +960,28 @@ namespace Infrastructure.Repositories
 </html>";
         }
 
-        public async Task<AuthRes> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
-        {
-            //if (claimsPrincipal == null)
-            //{
-            //    throw new ExternalLoginProviderException("Google", "ClaimsPrincipal is null");
-            //}
-
-            var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
-            var fullName = claimsPrincipal.FindFirstValue(ClaimTypes.Name);
-
-            if (email == null)
-            {
-                throw new Exception();//ExternalLoginProviderException("Google", "Email is null");
-            }
-
-            var user = await _userManager.FindByEmailAsync(email);
-
-            if (user == null)
-            {
-                SwiftLineUser newUser = new()
-                {
-                    Email = email,
-                    SecurityStamp = Guid.NewGuid().ToString(),
-                    UserName = await GetUniqueUsername(email),
-                    EmailConfirmed = true,
-                    FullName = fullName,
-                };
-
-                var result = await _userManager.CreateAsync(newUser);
-
-                if (!result.Succeeded)
-                {
-                    //throw new ExternalLoginProviderException("Google",
-                    //    $"Unable to create user: {string.Join(", ",
-                    //        result.Errors.Select(x => x.Description))}");
-                    throw new Exception();
-                }
-                user = newUser;
-            }
-
-            var info = new UserLoginInfo(
-                "Google",
-                claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
-                "Google");
-            // creating the necessary claims
-            List<Claim> authClaims = [
-                    new (ClaimTypes.Name, user.UserName),
-                        new (JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                        new (ClaimTypes.NameIdentifier, user.Id),
-
-                        // unique id for token
-                        ];
-
-            var userRoles = await _userManager.GetRolesAsync(user);
-
-            // adding roles to the claims. So that we can get the user role from the token.
-            foreach (var userRole in userRoles)
-            {
-                authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-            }
-
-            var loginResult = await _userManager.AddLoginAsync(user, info);
-
-            var token = _tokenService.GenerateAccessToken(authClaims);
-            //save refreshToken with exp date in the database
-            var tokenInfo = _context.TokenInfos.
-                        FirstOrDefault(a => a.Username == user.UserName);
-
-            string refreshToken = _tokenService.GenerateRefreshToken();
-
-            // If tokenInfo is null for the user, create a new one
-            if (tokenInfo == null)
-            {
-                var ti = new TokenInfo
-                {
-                    Username = user.UserName,
-                    RefreshToken = refreshToken,
-                    ExpiredAt = DateTime.UtcNow.AddHours(1).AddDays(7)
-                };
-                _context.TokenInfos.Add(ti);
-            }
-            // Else, update the refresh token and expiration
-            else
-            {
-                tokenInfo.RefreshToken = refreshToken;
-                tokenInfo.ExpiredAt = DateTime.UtcNow.AddDays(7);
-            }
-
-            await _context.SaveChangesAsync();
-
-            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id, user.Email, user.IsInQueue, user.UserName);
-
-
-        }
-
-        public async Task<TurnstileResponse> VerifyTurnstile(TurnstileModel request)
-        {
-            using var client = new HttpClient();
-            string cloudfare_verify_url = _configuration["Cloudfare:VerifyTurnsTileTokenUrl"];
-            string cloudfare_secret_key = _configuration["Cloudfare:VerifyTurnsTileTokenSecret"];
-            var values = new Dictionary<string, string>
-            {
-                { "secret", cloudfare_secret_key },
-                { "response", request.TurnstileToken }
-            };
-
-            var content = new FormUrlEncodedContent(values);
-            var response = await client.PostAsync(cloudfare_verify_url, content);
-            var json = await response.Content.ReadAsStringAsync();
-
-            return JsonSerializer.Deserialize<TurnstileResponse>(json);
-        }
-
-        public async Task<AuthRes> CreateAnonymousUser()
+        private async Task<bool> SendWelcomeMail(string RecipientEmail, string username)
         {
 
-            // Check if any users exist to prevent duplicate seeding
-            var name = "Anonymous_"+DateTime.UtcNow.AddHours(1).ToString().Replace("/","_").Replace(" ","_").Replace(":","_");
-            var user = new SwiftLineUser
+            string htmlTemplate = WelcomeEmailTemplate();
+            string link = _configuration["SwiftLineBaseUrlForReminder"]; //come back to this
+            var email = await _fluentEmail
+                .To(RecipientEmail)
+                .Subject($"Welcome to Swiftline ⏭")
+                .Body(htmlTemplate
+                .Replace("{{UserName}}", username)
+                .Replace("{{SwiftlineUrl}}", link), true)
+                .SendAsync();
+            _logger.LogInformation("Email Sent Successfully");
+            if (!email.Successful)
             {
-                Name = "Anonymous",
-                UserName = name,
-                Email = name + "@gmail.com",
-                EmailConfirmed = true,
-                SecurityStamp = Guid.NewGuid().ToString()
-            };
-
-
-            // Attempt to create admin user
-            var createUserResult = await _userManager
-                  .CreateAsync(user: user, password: "Anonymous@123");
-
-            // Validate user creation
-            if (!createUserResult.Succeeded)
-            {
-                var errors = createUserResult.Errors.Select(e => e.Description);
-                _logger.LogError(
-                    $"Failed to create anonymous user. Errors: {string.Join(", ", errors)}"
-                );
-                return new AuthRes(false,
-                      "Failed to create anonymous user!",
-                      "", "", "", "", false, "Anonymous", "SignUp");
+                _logger.LogError("Failed to send email: {Errors}",
+                    string.Join(", ", email.ErrorMessages));
+                throw new Exception("Failed to send welcome Email");
             }
-
-            if (!(await _roleManager.RoleExistsAsync(Roles.Anonymous)))
-            {
-                var roleResult = await _roleManager.CreateAsync(new IdentityRole(Roles.Anonymous));
-                if (!roleResult.Succeeded)
-                {
-                    var roleErrors = roleResult.Errors.Select(e => e.Description);
-                    _logger.LogError($"Failed to create user role. Errors: {string.Join(", ", roleErrors)}");
-                    return new AuthRes(false, $"Failed to create user role. Errors: {string.Join(", ", roleErrors)}", "", "", "", "", false, "");
-                }
-            }
-
-            // Add the user to the role
-            var addUserToRoleResult = await _userManager.AddToRoleAsync(user, Roles.Anonymous);
-            if (!addUserToRoleResult.Succeeded)
-            {
-                var errors = addUserToRoleResult.Errors.Select(e => e.Description);
-                _logger.LogError($"Failed to add role to the user. Errors: {string.Join(", ", errors)}");
-                return new AuthRes(false, $"Failed to add role to the user. Errors: {string.Join(", ", errors)}", "", "", "", "", false, "");
-            }
-
-            List<Claim> authClaims = new()
-                        {
-                            new Claim(ClaimTypes.Name, user.UserName),
-                            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                            new Claim(ClaimTypes.NameIdentifier, user.Id),
-                        };
-
-
-            var token = _tokenService.GenerateAccessToken(authClaims);
-            await _context.SaveChangesAsync();
-
-            return new AuthRes(true,
-                      "Welcome!",
-                      token, "", user.Id, user.Email, user.IsInQueue, "Anonymous", "SignUp");
-
-
-
-            //var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
-            //var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
-
-            //var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
-
-            //user.RefreshToken = refreshTokenValue;
-            //user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
-
-            //await _userManager.UpdateAsync(user);
-
-            //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
-            //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
-        }
-
-        public Task<List<SwiftLineUser>> GetExpiredAccounts()
-        {
-            var expiredAccounts = _context.SwiftLineUsers
-                .Where(x => x.Name == "Anonymous" && x.DateCreated != default && x.DateCreated.AddDays(1) < DateTime.UtcNow.AddHours(1))
-                .ToListAsync();
-
-           return expiredAccounts;
-        }
-
-        public async Task DeleteExpiredAccount(SwiftLineUser user)
-        {   
-            await _userManager.DeleteAsync(user);
-            await _context.SaveChangesAsync();
-            
+            return true;
         }
     }
-    }
+
+
+}

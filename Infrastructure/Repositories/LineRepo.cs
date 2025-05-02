@@ -19,21 +19,7 @@ namespace Infrastructure.Repositories
 {
     public class LineRepo(SwiftLineDatabaseContext dbContext, IConfiguration _configuration, IFluentEmail _fluentEmail) : ILineRepo
     {
-       
-        private static string GetOrdinal(int number)
-        {
-            int lastTwo = number % 100;
-            if (lastTwo >= 11 && lastTwo <= 13) return "th";
-
-            return (number % 10) switch
-            {
-                1 => number + "st",
-                2 => number + "nd",
-                3 => number + "rd",
-                _ => number + "th",
-            };
-        }
-
+     
         public async Task<List<Line>> GetLines()
         {
             return await dbContext.Lines
@@ -185,6 +171,7 @@ namespace Infrastructure.Repositories
 
                 return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn - @event.AverageTime,
                     GetOrdinal(position), @event.Title, @event.IsActive, @event.StaffCount);  
+     
         }
 
         public bool GetUserQueueStatus(string UserId)
@@ -196,33 +183,37 @@ namespace Infrastructure.Repositories
 
         public async Task NotifyFifthMember(Line line)
         {
-            long eventId = line.LineMember.EventId;
-            Event @event = dbContext.Events.Find(line.LineMember.EventId);
-            var user = await dbContext.Lines
-                .Where(x => x.IsActive && !x.IsAttendedTo)
-                .Include(x => x.LineMember.SwiftLineUser)
-                .AsSplitQuery()
-                .Where(x => x.LineMember.EventId == eventId)
-                .OrderBy(x => x.CreatedAt)
-                .Skip(1)
-                .FirstOrDefaultAsync();
-            
-           
-            if (user is not null) 
+            try
             {
-                int EstimatedTime = (@event.AverageTimeToServeSeconds) / 60; //nptifies the 2nd person for now
-                try
-                {
-                    await SendReminderMail(user.LineMember.SwiftLineUser.Email, EstimatedTime, user.LineMember.SwiftLineUser.UserName);
-                }
-                catch (Exception ex)
-                {
+                long eventId = line.LineMember.EventId;
+                Event @event = await dbContext.Events.FindAsync(eventId);
 
-                    throw;
+                if (@event == null) return;
+
+                var user = await dbContext.Lines
+                    .Where(x => x.IsActive && !x.IsAttendedTo && x.LineMember.EventId == eventId)
+                    .Include(x => x.LineMember.SwiftLineUser)
+                    .AsSplitQuery()
+                    .OrderBy(x => x.CreatedAt)
+                    .Skip(1) // Notify the second person in line
+                    .FirstOrDefaultAsync();
+
+                if (user?.LineMember?.SwiftLineUser != null)
+                {
+                    int estimatedTime = @event.AverageTimeToServeSeconds / 60;
+
+                    await SendReminderMail(
+                        user.LineMember.SwiftLineUser.Email,
+                        estimatedTime,
+                        user.LineMember.SwiftLineUser.UserName
+                    );
                 }
-                
             }
-
+            catch (Exception ex)
+            {
+                // Log the exception (if logging is implemented)
+                throw;
+            }
         }
         private async Task<bool> SendReminderMail(string RecipientEmail, int EstimatedTime, string username)
         {
@@ -417,6 +408,20 @@ namespace Infrastructure.Repositories
                         </html>";
 
                                 
+        }
+
+        private static string GetOrdinal(int number)
+        {
+            int lastTwo = number % 100;
+            if (lastTwo >= 11 && lastTwo <= 13) return "th";
+
+            return (number % 10) switch
+            {
+                1 => number + "st",
+                2 => number + "nd",
+                3 => number + "rd",
+                _ => number + "th",
+            };
         }
     }
 }
