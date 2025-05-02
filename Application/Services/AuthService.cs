@@ -63,7 +63,7 @@ namespace Application.Services
 
             if (revokeRes)
             {
-                return Result<bool>.Created(revokeRes);
+                return Result<bool>.Created(revokeRes,"Log out was Successful");
             }
             else
             {

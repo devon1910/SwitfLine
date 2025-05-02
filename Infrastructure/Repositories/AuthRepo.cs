@@ -920,6 +920,26 @@ namespace Infrastructure.Repositories
                       "", "", "", "", false, "Anonymous", "SignUp");
             }
 
+            if (!(await _roleManager.RoleExistsAsync(Roles.Anonymous)))
+            {
+                var roleResult = await _roleManager.CreateAsync(new IdentityRole(Roles.Anonymous));
+                if (!roleResult.Succeeded)
+                {
+                    var roleErrors = roleResult.Errors.Select(e => e.Description);
+                    _logger.LogError($"Failed to create user role. Errors: {string.Join(", ", roleErrors)}");
+                    return new AuthRes(false, $"Failed to create user role. Errors: {string.Join(", ", roleErrors)}", "", "", "", "", false, "");
+                }
+            }
+
+            // Add the user to the role
+            var addUserToRoleResult = await _userManager.AddToRoleAsync(user, Roles.Anonymous);
+            if (!addUserToRoleResult.Succeeded)
+            {
+                var errors = addUserToRoleResult.Errors.Select(e => e.Description);
+                _logger.LogError($"Failed to add role to the user. Errors: {string.Join(", ", errors)}");
+                return new AuthRes(false, $"Failed to add role to the user. Errors: {string.Join(", ", errors)}", "", "", "", "", false, "");
+            }
+
             List<Claim> authClaims = new()
                         {
                             new Claim(ClaimTypes.Name, user.UserName),

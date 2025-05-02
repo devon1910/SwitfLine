@@ -1,4 +1,5 @@
 ﻿using Application.Services;
+using Domain.Constants;
 using Domain.DTOs.Requests;
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
@@ -9,9 +10,10 @@ using SwiftLine.API.Extensions;
 
 namespace SwiftLine.API.Controllers
 {
+    [Authorize(Roles = $"{Roles.Admin},{Roles.User}")]
     public class EventController(IEventService eventService) : BaseController
     {
-        [HttpPost]
+        [HttpPost()]
         public async Task<ActionResult<Result<bool>>> CreateEvent(CreateEventModel request)
         {
             
