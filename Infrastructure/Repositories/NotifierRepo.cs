@@ -38,51 +38,31 @@ namespace Infrastructure.Repositories
 
         public async Task BroadcastLineUpdate(Line line)
         {
-            // 1. Fetch all relevant lines + line members in one query
             var othersInLines = await dbContext.Lines
-                .Where(x => !x.IsAttendedTo && x.IsActive && x.LineMember.EventId == line.LineMember.EventId)
-                .Include(x => x.LineMember)
-                .AsSplitQuery()
-                .OrderBy(x => x.CreatedAt)
-                .AsNoTracking()
-                .ToListAsync();
+                 .Where(x => !x.IsAttendedTo && x.IsActive && x.LineMember.EventId == line.LineMember.EventId)
+                 .Include(x => x.LineMember)
+                 .AsSplitQuery()
+                 .OrderBy(x => x.CreatedAt)
+                 .AsNoTracking()
+                 .ToListAsync();
 
-            // 2. Get current user info and notify
             var userId = line.LineMember.UserId;
             var lineInfo = await lineRepo.GetUserLineInfo(userId);
-            var notifyTasks = new List<Task>
-                {
-                    notifierHub.NotifyUserPositionChange(userId, lineInfo)
-                };
-    
-            // 3. Batch fetch line info for all others (assuming you can optimize this inside the repo)
+            await notifierHub.NotifyUserPositionChange(userId, lineInfo);
+
+            var @event = await dbContext.Events.FindAsync(line.LineMember.EventId);
+
             foreach (var l in othersInLines)
             {
                 var otherUserId = l.LineMember.UserId;
-                notifyTasks.Add(Task.Run(async () =>
-                {
-                    var info = await lineRepo.GetUserLineInfo(otherUserId);
-                    await notifierHub.NotifyUserPositionChange(otherUserId, info);
-                }));
+                var otherLineInfo = await lineRepo.GetUserLineInfo(otherUserId);
+                await notifierHub.NotifyUserPositionChange(otherUserId, otherLineInfo);
             }
 
-            // 4. Await all notifications concurrently
-            await Task.WhenAll(notifyTasks);
-
-            // 5. Efficient event state update
-            if (!othersInLines.Any())
+            if (!othersInLines.Any() && @event != null && !@event.IsActive)
             {
-                // Use the already-known EventId to fetch only IsActive if needed
-                var isEventActive = await dbContext.Events
-                    .Where(e => e.Id == line.LineMember.EventId)
-                    .Select(e => e.IsActive)
-                    .FirstOrDefaultAsync();
-
-                if (!isEventActive)
-                {
-                    await dbContext.Database.ExecuteSqlInterpolatedAsync(
-                        $"UPDATE public.\"Events\" SET \"IsActive\" = TRUE WHERE \"Id\" = {line.LineMember.EventId}");
-                }
+                await dbContext.Database.ExecuteSqlInterpolatedAsync(
+              $"UPDATE public.\"Events\" set \"IsActive\"=\'true\' where \"Id\"={@event.Id}");
             }
 
         }
