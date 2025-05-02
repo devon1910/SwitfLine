@@ -7,6 +7,7 @@ using FluentEmail.Core;
 using Infrastructure.Data;
 using Infrastructure.RetryLogic;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -969,6 +970,21 @@ namespace Infrastructure.Repositories
 
             //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
             //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
+        }
+
+        public Task<List<SwiftLineUser>> GetExpiredAccounts()
+        {
+            var expiredAccounts = _context.SwiftLineUsers
+                .Where(x => x.Name == "Anonymous" && x.DateCreated != default && x.DateCreated.AddDays(1) < DateTime.UtcNow.AddHours(1))
+                .ToListAsync();
+
+           return expiredAccounts;
+        }
+
+        public async Task<bool> DeleteExpiredAccount(SwiftLineUser user)
+        {   
+            await _userManager.DeleteAsync(user);
+            await _context.SaveChangesAsync();
         }
     }
     }

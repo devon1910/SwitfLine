@@ -15,5 +15,7 @@ namespace Domain.Models
         public bool IsInQueue { get; set; } = false;
 
         public long LastEventJoined { get; set; } = 0;
+
+        public DateTime DateCreated { get; set; } = DateTime.UtcNow.AddHours(1);
     }
 }

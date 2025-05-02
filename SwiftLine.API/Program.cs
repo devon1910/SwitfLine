@@ -84,6 +84,7 @@ try
 
     });
     builder.Services.AddHostedService<LineManager>();
+    builder.Services.AddHostedService<AccountsCleanup>();
 
 
     builder.Services.AddAuthentication(options =>
