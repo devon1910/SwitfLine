@@ -35,7 +35,8 @@ namespace Infrastructure.Repositories
                 EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default,
                 EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default,
                 StaffCount = req.StaffCount,
-                Capacity = req.Capacity
+                Capacity = req.Capacity,
+                AllowAnonymousJoining = req.AllowAnonymousJoining,
 
             };
             await dbContext.Events.AddAsync(newEvent);
@@ -60,6 +61,7 @@ namespace Infrastructure.Repositories
             @event.Description = req.Description;
             @event.StaffCount = req.StaffCount;
             @event.Capacity = req.Capacity;
+            @event.AllowAnonymousJoining = req.AllowAnonymousJoining;
             await dbContext.SaveChangesAsync();
             return true;
 

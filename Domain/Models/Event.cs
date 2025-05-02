@@ -39,7 +39,7 @@ namespace Domain.Models
         public bool HasStarted { get; set; }
 
         public bool IsDeleted { get; set; } = false;
-        [DefaultValue(true)]
+        [DefaultValue(false)]
         public bool AllowAnonymousJoining { get; set; }
     }
 }
