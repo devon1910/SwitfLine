@@ -53,7 +53,7 @@ namespace Application.Services
             }
             else
             {
-                return Result<AuthRes>.Failed("Failed to Signup", refreshTokenRes);
+                return Result<AuthRes>.Failed("Failed to Refresh Token", refreshTokenRes);
             }
         }
 
@@ -67,7 +67,7 @@ namespace Application.Services
             }
             else
             {
-                return Result<bool>.Failed("Failed to Signup", revokeRes);
+                return Result<bool>.Failed("Failed to Log out", revokeRes);
             }
         }
 
