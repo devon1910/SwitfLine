@@ -15,6 +15,7 @@ using Newtonsoft.Json.Linq;
 using Serilog.Core;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Numerics;
@@ -467,7 +468,16 @@ namespace Infrastructure.Repositories
 
             // Check if any users exist to prevent duplicate seeding
             // Generate a unique username for the anonymous user
-            var name = $"Anonymous_{DateTime.UtcNow.AddHours(1):yyyy_MM_dd_HH_mm_ss}";
+            int randNum = new Random().Next(0, 10000);
+            var name = "Anonymous_" + randNum;
+            int counter = 1;
+
+            while (await _userManager.FindByNameAsync(name) is not null)
+            {          
+                randNum+=counter;
+                name = "Anonymous_" + randNum;
+                counter++;
+            }
             var user = new SwiftLineUser
             {
                 Name = "Anonymous",
