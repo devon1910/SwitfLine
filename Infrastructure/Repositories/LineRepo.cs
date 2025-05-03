@@ -132,46 +132,52 @@ namespace Infrastructure.Repositories
         public async Task<LineInfoRes> GetUserLineInfo(string UserId)
         {
 
-                var line = await  dbContext.Lines
-                
-                .Where(x => !x.IsAttendedTo && x.IsActive)
+            var line = await dbContext.Lines
+                .Where(x => !x.IsAttendedTo && x.IsActive && x.LineMember.UserId == UserId)
                 .Include(x => x.LineMember)
                 .AsSplitQuery()
-                .Where(x => x.LineMember.UserId == UserId)
                 .FirstOrDefaultAsync();
 
-                if(line is null) return new LineInfoRes(0, -1, 0, "", "");
+                if (line is null)
+                return new LineInfoRes(0, -1, 0, "", "");
 
-                int position = 0;
-                var othersInLines = await dbContext.Lines
-                       .Where(x => x.IsActive && !x.IsAttendedTo)
-                       .Include(x => x.LineMember)
-                       .AsSplitQuery()
-                       .Where(x => x.LineMember.EventId == line.LineMember.EventId)
-                       .OrderBy(x => x.CreatedAt)
-                       .AsNoTracking()
-                       .ToListAsync();
+            // Get the full queue
+            var othersInLines = await dbContext.Lines
+                .Where(x => x.IsActive && !x.IsAttendedTo && x.LineMember.EventId == line.LineMember.EventId)
+                .Include(x => x.LineMember)
+                .AsSplitQuery()
+                .OrderBy(x => x.CreatedAt)
+                .AsNoTracking()
+                .ToListAsync();
 
-               
+            // Get event info
+            var @event = await dbContext.Events
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == line.LineMember.EventId);
 
-                Event @event = dbContext.Events.AsNoTracking().FirstOrDefault(x=>x.Id==line.LineMember.EventId);
+            // Find position (correctly by matching ID)
+            int index = othersInLines.FindIndex(x => x.Id == line.Id);
+            int position = index + 1;
 
-                //int timeTillYourTurn = ((@event.AverageTimeToServeSeconds * position) - @event.AverageTimeToServeSeconds) / 60;
-                double totalMinutes = (othersInLines.Count * @event.AverageTime) / (double)@event.StaffCount;
+            // Estimate wait time
+            double totalMinutes = (position * @event.AverageTime) / (double)@event.StaffCount;
+            int timeTillYourTurn = (int)Math.Ceiling(totalMinutes);
+            timeTillYourTurn = Math.Max(timeTillYourTurn, @event.AverageTime);
 
-                // Round up to nearest minute
-                int timeTillYourTurn = (int)Math.Ceiling(totalMinutes);
+            position = (int)Math.Ceiling((decimal)timeTillYourTurn / @event.AverageTime);
 
-                // Ensure minimum wait time is at least the average service time
-                timeTillYourTurn = Math.Max(timeTillYourTurn, @event.AverageTime);
+            // Return final result
+            return new LineInfoRes(
+                line.LineMemberId,
+                position,
+                timeTillYourTurn - @event.AverageTime,
+                GetOrdinal(position),
+                @event.Title,
+                @event.IsActive,
+                @event.StaffCount
+            );
 
-                //HEREEEEE
 
-                position = (int) Math.Ceiling((decimal)timeTillYourTurn/ @event.AverageTime);
-
-                return new LineInfoRes(line.LineMemberId, position, timeTillYourTurn - @event.AverageTime,
-                    GetOrdinal(position), @event.Title, @event.IsActive, @event.StaffCount);  
-     
         }
 
         public bool GetUserQueueStatus(string UserId)

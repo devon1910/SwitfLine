@@ -528,7 +528,7 @@ namespace Infrastructure.Repositories
             var token = _tokenService.GenerateAccessToken(authClaims);
             await _context.SaveChangesAsync();
 
-            return new AuthRes(true, "Welcome!", token, "", user.Id, user.Email, user.IsInQueue, "Anonymous", "SignUp");
+            return new AuthRes(true, "Welcome!", token, "", user.Id, user.Email, user.IsInQueue, user.UserName, "SignUp");
             
 
 
