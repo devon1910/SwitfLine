@@ -12,6 +12,7 @@ namespace Domain.Interfaces
     {
         public Task<long> JoinQueueGroup(int eventId, string userId, string ConnectionId);
         public Task OnDisconnectedAsync(string ConnectionId);
+        public Task OnConnectedAsync(string ConnectionId, string userId);
         public Task NotifyUserPositionChange(string userId, LineInfoRes lineInfoRes);
         public Task ExitQueue(string userId,long lineMemberId, string adminId= "");
         public Task ToggleQueueActivity(bool status, string userId, long eventId);  

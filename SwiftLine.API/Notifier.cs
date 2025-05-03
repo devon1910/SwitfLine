@@ -1,6 +1,7 @@
 ﻿using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Infrastructure.Repositories;
+using k8s.KubeConfigModels;
 using Microsoft.AspNetCore.SignalR;
 using Serilog;
 using System.Text.RegularExpressions;
@@ -121,6 +122,14 @@ namespace SwiftLine.API
                 Log.Error(ex, "Error toggling queue activity for user {UserId}, EventId: {EventId}", userId, eventId);
                 throw;
             }
+        }
+
+        public async Task OnConnectedAsync(string ConnectionId, string userId)
+        {
+
+            _userConnections[userId] = ConnectionId;
+            Log.Debug("Set up new connection mapping for user {UserId}", userId);
+
         }
     }
 }

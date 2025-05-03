@@ -38,6 +38,23 @@ namespace SwiftLine.API
             }
         }
 
+        public override async Task OnConnectedAsync()
+        {
+            //var userId = Context.UserIdentifier;
+
+            var httpContext = Context.GetHttpContext();
+            var userId = httpContext.Request.Query["userId"].ToString();
+            if (!string.IsNullOrEmpty(userId))
+            {
+                await notifier.OnConnectedAsync(Context.ConnectionId, userId);
+                Log.Debug("User {UserId} connected with ConnectionId {ConnectionId}", userId, Context.ConnectionId);
+                //return base.OnConnectedAsync();
+            
+            }
+
+            
+        }
+
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             Log.Information("Client disconnected. ConnectionId: {ConnectionId}", Context.ConnectionId);
