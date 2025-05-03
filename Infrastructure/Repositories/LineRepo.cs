@@ -66,7 +66,7 @@ namespace Infrastructure.Repositories
                 line.TimeWaited = (int)(line.DateCompletedBeingAttendedTo - (line.DateStartedBeingAttendedTo != default ? line.DateStartedBeingAttendedTo : DateTime.UtcNow.AddHours(1))).TotalMinutes;
 
                 await dbContext.Database.ExecuteSqlInterpolatedAsync(
-   $"UPDATE public.\"Events\" set \"UsersInQueue\"=\"UsersInQueue\" - 1 where \"Id\"={line.LineMember.EventId}");
+     $"UPDATE public.\"Events\" set \"UsersInQueue\"=\"UsersInQueue\" - 1 where \"Id\"={line.LineMember.EventId} AND \"UsersInQueue\" > 0");
                 await dbContext.Database.ExecuteSqlInterpolatedAsync(
    $"UPDATE public.\"AspNetUsers\" set \"IsInQueue\"='false' where \"Id\"={line.LineMember.UserId}");
                 await dbContext.Database.ExecuteSqlInterpolatedAsync(
