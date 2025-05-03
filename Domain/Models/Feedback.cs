@@ -13,6 +13,6 @@ namespace Domain.Models
         public int Rating { get; set; }
         public string Comment { get; set; }
         public List<string> Tags { get; set; }
-        public DateTime DateCreated { get; set; }
+        public DateTime DateCreated { get; set; } = DateTime.UtcNow.AddHours(1);
     }
 }
