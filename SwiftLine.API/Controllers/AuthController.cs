@@ -105,11 +105,6 @@ namespace SwiftLine.API.Controllers
             var res = await service.VerifyTurnstile(request);
             return res.ToActionResult();
         }
-        [HttpPost, AllowAnonymous]
-        public async Task<ActionResult<Result<AuthRes>>> CreateAnonymousUser()
-        {
-            var res = await service.CreateAnonymousUser();
-            return res.ToActionResult();
-        }
+        
     }
 }

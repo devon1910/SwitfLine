@@ -110,18 +110,5 @@ namespace Application.Services
             }
         }
 
-        public async Task<Result<AuthRes>> CreateAnonymousUser()
-        {
-             var newUser= await authRepo.CreateAnonymousUser();
-
-            if (newUser.status)
-            {
-                return Result<AuthRes>.Ok(newUser);
-            }
-            else 
-            {
-                return Result<AuthRes>.Failed(newUser.message, newUser);
-            }
-        }
     }
 }

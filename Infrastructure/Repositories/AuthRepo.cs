@@ -43,15 +43,14 @@ namespace Infrastructure.Repositories
             {
                 try
                 {
+                    string message = "";
                     var existingUser = await _userManager.FindByEmailAsync(model.Email);
                     if (existingUser != null)
                     {
-                        return new AuthRes(
-                            false,
-                            existingUser.EmailConfirmed
+                        message = existingUser.EmailConfirmed
                                 ? "User already exists"
-                                : "User already exists but email is not verified. Please check your email for the verification link and follow the instructions.",
-                            "", "", "", "", false, "");
+                                : "User already exists but email is not verified. Please check your email for the verification link and follow the instructions.";
+                        return AuthResFailed.CreateFailed(message);
                     }
 
                     // Create User role if it doesn't exist
@@ -62,7 +61,8 @@ namespace Infrastructure.Repositories
                         {
                             var roleErrors = roleResult.Errors.Select(e => e.Description);
                             _logger.LogError($"Failed to create user role. Errors: {string.Join(", ", roleErrors)}");
-                            return new AuthRes(false, $"Failed to create user role. Errors: {string.Join(", ", roleErrors)}", "", "", "", "", false, "");
+                            message = $"Failed to create user role. Errors: {string.Join(", ", roleErrors)}";
+                            return AuthResFailed.CreateFailed(message);
                         }
                     }
 
@@ -81,7 +81,8 @@ namespace Infrastructure.Repositories
                     {
                         var errors = createUserResult.Errors.Select(e => e.Description);
                         _logger.LogError($"Failed to create user. Errors: {string.Join(", ", errors)}");
-                        return new AuthRes(false, $"Failed to create user. Errors: {string.Join(", ", errors)}", "", "", "", "", false, "");
+                        message = $"Failed to create user. Errors: {string.Join(", ", errors)}";
+                        return AuthResFailed.CreateFailed(message);
                     }
 
                     // Add the user to the role
@@ -90,7 +91,8 @@ namespace Infrastructure.Repositories
                     {
                         var errors = addUserToRoleResult.Errors.Select(e => e.Description);
                         _logger.LogError($"Failed to add role to the user. Errors: {string.Join(", ", errors)}");
-                        return new AuthRes(false, $"Failed to add role to the user. Errors: {string.Join(", ", errors)}", "", "", "", "", false, "");
+                        message= $"Failed to add role to the user. Errors: {string.Join(", ", errors)}";
+                        return AuthResFailed.CreateFailed(message);
                     }
 
                     // Build authentication claims including a claim to signal email verification purpose
@@ -165,14 +167,14 @@ namespace Infrastructure.Repositories
                     //Almost done🎉! A welcome mail has been sent to your email address. Kindly follow the instructions. Didn't get it in your inbox? Please check your spam folder or contact the support team. Thanks!
                     return new AuthRes(true,
                         "Welcome!",
-                        token, refreshToken, user.Id, user.Email, user.IsInQueue, user.UserName, "SignUp");
+                        token, refreshToken, user.Id, user.Email, user.UserName, "SignUp");
                 }
                 catch (Exception ex)
                 {
                     // Roll back all changes if any error occurs
                     await transaction.RollbackAsync();
                     _logger.LogError($"Signup transaction failed: {ex.Message}");
-                    return new AuthRes(false, ex.Message, "", "", "", "", false, "");
+                    return AuthResFailed.CreateFailed(ex.Message);
                 }
             }
 
@@ -183,14 +185,18 @@ namespace Infrastructure.Repositories
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
             bool isValidPassword = await _userManager.CheckPasswordAsync(user, model.Password);
+            string message = "";
+
             if (user is null || !isValidPassword)
             {
-                return new AuthRes(false, "Invalid user name or password.", "", "", "", "", false, "");
+                message = "Invalid user name or password.";
+                AuthResFailed.CreateFailed(message);
             }
 
             if (!user.EmailConfirmed)
             {
-                return new AuthRes(false, "Email address not verified, please check your email for the verification link and follow the instructions.", "", "", "", "", false, "");
+                message = "Email address not verified, please check your email for the verification link and follow the instructions.";
+                return AuthResFailed.CreateFailed(message);
             }
 
 
@@ -240,7 +246,7 @@ namespace Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
 
-            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id, user.Email, user.IsInQueue, user.UserName, "");
+            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id, user.Email, user.UserName, "");
 
         }
 
@@ -249,13 +255,15 @@ namespace Infrastructure.Repositories
 
             var principal = _tokenService.GetPrincipalFromExpiredToken(tokenModel.AccessToken);
             var username = principal.Identity.Name;
+            string message = "";
 
             var tokenInfo = _context.TokenInfos.SingleOrDefault(u => u.Username == username);
             if (tokenInfo == null
                 || tokenInfo.RefreshToken != tokenModel.RefreshToken
                 || tokenInfo.ExpiredAt <= DateTime.UtcNow)
             {
-                return new AuthRes(false, "Invalid refresh token. Please login again.", "", "", "", "", false, "");
+                message = "Invalid or Expired token.";   
+                return AuthResFailed.CreateFailed(message);
             }
 
             var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims);
@@ -266,7 +274,7 @@ namespace Infrastructure.Repositories
 
             var user = await _userManager.FindByNameAsync(username);
 
-            return new AuthRes(true, "Refresh token updated.", newAccessToken, newRefreshToken, user.Id, user.Email, user.IsInQueue, user.UserName, "");
+            return new AuthRes(true, "Refresh token updated.", newAccessToken, newRefreshToken, user.Id, user.Email, user.UserName, "");
 
         }
 
@@ -328,17 +336,18 @@ namespace Infrastructure.Repositories
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
                 string userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
                 var user = _context.SwiftLineUsers.Find(userId);
-
+                string message = "";
                 if (user is null)
                 {
-                    return new AuthRes(false, "user not found with the provided token.", "", "", "", "", false, "");
+                    message = "user not found with the provided token.";
+                    _logger.LogError(message);
+                    return AuthResFailed.CreateFailed(message);
                 }
                 user.EmailConfirmed = true;
                 _context.SaveChanges();
                 return new AuthRes(true, "Token Validated", "", "",
                     user.Id,
                     user.Email,
-                    user.IsInQueue,
                     user.UserName,
                 principal.FindFirst("purpose")?.Value);
 
@@ -346,7 +355,8 @@ namespace Infrastructure.Repositories
             catch (Exception ex)
             {
                 //log exception
-                return new AuthRes(false, "Sorry, Something went wrong. Please sign up or contact the support team if this error persists.", "", "", "", "", false, "");
+                _logger.LogError(ex, "Token validation failed: {Message}", ex.Message);
+                return AuthResFailed.CreateFailed(ex.Message);
             }
         }  
 
@@ -440,7 +450,7 @@ namespace Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
 
-            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id, user.Email, user.IsInQueue, user.UserName);
+            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id, user.Email, user.UserName);
 
 
         }
@@ -463,7 +473,7 @@ namespace Infrastructure.Repositories
             return JsonSerializer.Deserialize<TurnstileResponse>(json);
         }
 
-        public async Task<AuthRes> CreateAnonymousUser()
+        public async Task<AnonymousUserAuthRes> CreateAnonymousUser()
         {
 
             // Check if any users exist to prevent duplicate seeding
@@ -491,30 +501,14 @@ namespace Infrastructure.Repositories
             var createUserResult = await _userManager.CreateAsync(user, "Anonymous@123");
             if (!createUserResult.Succeeded)
             {
-                var errors = string.Join(", ", createUserResult.Errors.Select(e => e.Description));
-                _logger.LogError($"Failed to create anonymous user. Errors: {errors}");
-                return new AuthRes(false, "Failed to create anonymous user!", "", "", "", "", false, "Anonymous", "SignUp");
-            }
-
-            // Ensure the Anonymous role exists
-            if (!await _roleManager.RoleExistsAsync(Roles.Anonymous))
-            {
-                var roleResult = await _roleManager.CreateAsync(new IdentityRole(Roles.Anonymous));
-                if (!roleResult.Succeeded)
-                {
-                    var roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
-                    _logger.LogError($"Failed to create Anonymous role. Errors: {roleErrors}");
-                    return new AuthRes(false, $"Failed to create Anonymous role. Errors: {roleErrors}", "", "", "", "", false, "");
-                }
+                return anonymousErrorInfo(createUserResult, "user");
             }
 
             // Assign the Anonymous role to the user
             var addUserToRoleResult = await _userManager.AddToRoleAsync(user, Roles.Anonymous);
             if (!addUserToRoleResult.Succeeded)
             {
-                var errors = string.Join(", ", addUserToRoleResult.Errors.Select(e => e.Description));
-                _logger.LogError($"Failed to assign Anonymous role to user. Errors: {errors}");
-                return new AuthRes(false, $"Failed to assign Anonymous role to user. Errors: {errors}", "", "", "", "", false, "");
+                return anonymousErrorInfo(addUserToRoleResult, "role");
             }
 
             // Generate authentication claims and access token
@@ -528,22 +522,7 @@ namespace Infrastructure.Repositories
             var token = _tokenService.GenerateAccessToken(authClaims);
             await _context.SaveChangesAsync();
 
-            return new AuthRes(true, "Welcome!", token, "", user.Id, user.Email, user.IsInQueue, user.UserName, "SignUp");
-            
-
-
-            //var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user);
-            //var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
-
-            //var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
-
-            //user.RefreshToken = refreshTokenValue;
-            //user.RefreshTokenExpiresAtUtc = refreshTokenExpirationDateInUtc;
-
-            //await _userManager.UpdateAsync(user);
-
-            //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, expirationDateInUtc);
-            //_authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpirationDateInUtc);
+            return new AnonymousUserAuthRes(true, "Created Anonymous User Account",token, user);
         }
 
         public Task<List<SwiftLineUser>> GetExpiredAccounts()
@@ -616,7 +595,13 @@ namespace Infrastructure.Repositories
 
             return uniqueUsername;
         }
-
+        private AnonymousUserAuthRes anonymousErrorInfo(IdentityResult result, string type)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            string message = type == "user" ? "Failed to create anonymous user." : "Failed to assign Anonymous role to user.";
+            _logger.LogError($"Failed to {message}. Errors: {errors}");
+            return new AnonymousUserAuthRes(false, $"{message}. Errors: {errors}", "", null);
+        }
         private string EmailVerificationTemplate()
         {
             return @"

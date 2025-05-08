@@ -15,7 +15,7 @@ namespace Domain.Interfaces
 
         public Task<bool> EditEvent(EditEventReq req);
 
-        public Task<long> JoinEvent(string userId, long eventId);
+        public Task<AuthRes> JoinEvent(string userId, long eventId);
 
         //public Task<bool> ServeLineMember(string userId, long eventId);
 

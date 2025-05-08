@@ -15,7 +15,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace Infrastructure.Repositories
 {
 
-    public class EventRepo(SwiftLineDatabaseContext dbContext, ILineRepo lineRepo, INotifierRepo notifier) : IEventRepo 
+    public class EventRepo(SwiftLineDatabaseContext dbContext, ILineRepo lineRepo, INotifierRepo notifier, IAuthRepo authRepo) : IEventRepo 
     {
         public async Task<bool> CreateEvent(string userId, CreateEventModel req)
         {
@@ -167,18 +167,48 @@ namespace Infrastructure.Repositories
 
         }
 
-        public async Task<long> JoinEvent(string userId, long eventId)
+        public async Task<AuthRes> JoinEvent(string userId, long eventId)
         {
-            var user = await getUser(userId);
-            if (string.IsNullOrWhiteSpace(userId) || user is null ? false : user.IsInQueue) return 0;
+            var Event= await dbContext.Events.FindAsync(eventId);
 
-            //event is active rn
-            if (!isEventActiveRightNow(eventId)) return -1;
+            if (Event is null || Event.IsDeleted) 
+            {
+                return AuthResFailed.CreateFailed("Event not found");
+            }
+
+            if (!isEventActiveRightNow(Event)) 
+            {
+                return AuthResFailed.CreateFailed("Event hasn't started.");
+            }
+
+            var user = await getUser(userId);
+            AnonymousUserAuthRes creationResult = null;
+
+
+            if (user is null)
+            {
+                if (!Event.AllowAnonymousJoining)
+                {
+                    const string errorMessage = "The Event Organizer has disabled anonymous joining. " +
+                                               "Please login or sign up to join this queue";
+                    return AuthResFailed.CreateFailed(errorMessage);
+                }
+
+                creationResult = await authRepo.CreateAnonymousUser();
+                if (!creationResult.status)
+                {
+                    const string errorMessage = "Unable to create an anonymous account. " +
+                                               "Please try again later";
+                    return AuthResFailed.CreateFailed(errorMessage);
+                }
+
+                user = creationResult.user;
+            }
 
             LineMember newQueueMember = new LineMember
             {
                 EventId = eventId,
-                UserId = userId
+                UserId = string.IsNullOrEmpty(userId) ? creationResult.user.Id : userId,
             };
 
             await dbContext.LineMembers.AddAsync(newQueueMember);
@@ -197,7 +227,8 @@ namespace Infrastructure.Repositories
                 $"UPDATE public.\"Events\" set \"UsersInQueue\"=\"UsersInQueue\" + 1 where \"Id\"={eventId}");
 
             await dbContext.SaveChangesAsync();
-            return newQueueMember.Id;
+            return new AuthRes(true, "Joined queue Successfully", creationResult.AccessToken,
+                "",creationResult.user.Id,creationResult.user.Email,creationResult.user.UserName);
 
         }
 
@@ -265,7 +296,7 @@ namespace Infrastructure.Repositories
                 EventEndTime = x.EventEndTime,
                 UsersInQueue = x.UsersInQueue,
                 Organizer = x.SwiftLineUser.UserName,
-                HasStarted = isEventActiveRightNow(x.Id),
+                HasStarted = isEventActiveRightNow(x),
                 StaffCount = x.StaffCount,
                 IsActive = x.IsActive,
                 AllowAnonymousJoining = x.AllowAnonymousJoining,
@@ -280,11 +311,9 @@ namespace Infrastructure.Repositories
             return await dbContext.SwiftLineUsers.FindAsync(userId);
         }
 
-        private bool isEventActiveRightNow(long eventId)
+        private bool isEventActiveRightNow(Event @event)
         {
-
             var timeNow = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1));
-            Event @event = dbContext.Events.Find(eventId);
 
             if (@event.EventStartTime <= @event.EventEndTime)
             {
@@ -295,6 +324,10 @@ namespace Infrastructure.Repositories
                 return timeNow >= @event.EventStartTime || timeNow <= @event.EventEndTime;
             }
         }
-        
+
+  
+
+
+
     }
 }

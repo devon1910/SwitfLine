@@ -28,15 +28,23 @@ namespace SwiftLine.API
             }
         }
 
-        public async Task<long> JoinQueueGroup(int eventId, string userId, string ConnectionId)
+        public async Task<AuthRes> JoinQueueGroup(int eventId, string userId, string ConnectionId)
         {
             Log.Information("Processing queue join for user {UserId}, EventId: {EventId}", userId, eventId);
             try
-            {
-                await _hubContext.Groups.AddToGroupAsync(ConnectionId, $"queue-{eventId}");
-                _userConnections[userId] = ConnectionId;
+            {       
                 var result = await eventRepo.Value.JoinEvent(userId, eventId);
-                Log.Information("Successfully processed queue join for user {UserId}, EventId: {EventId}", userId, eventId);
+                if (result.status) 
+                {
+                    Log.Information("Successfully processed queue join for user {UserId}, EventId: {EventId}", userId, eventId);
+                    await _hubContext.Groups.AddToGroupAsync(ConnectionId, $"queue-{eventId}");
+                    userId = string.IsNullOrEmpty(userId) ? result.userId : userId;
+                    _userConnections[userId] = ConnectionId;
+                }
+                else
+                {
+                    Log.Warning("Failed to join queue for user {UserId}, EventId: {EventId}", userId, eventId);
+                }              
                 return result;
             }
             catch (Exception ex)

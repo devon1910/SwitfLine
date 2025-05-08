@@ -21,7 +21,7 @@ namespace SwiftLine.API
     public class SwiftLineHub(INotifier notifier) : Hub
     {
         [EnableRateLimiting("SignupPolicy")]
-        public async Task<long> JoinQueueGroup(int eventId, string userId)
+        public async Task<AuthRes> JoinQueueGroup(int eventId, string userId)
         {
             Log.Information("User {UserId} joining queue group for event {EventId}", userId, eventId);
             try
