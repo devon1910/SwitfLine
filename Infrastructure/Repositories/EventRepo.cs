@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Infrastructure.Repositories
@@ -205,6 +206,8 @@ namespace Infrastructure.Repositories
                 user = creationResult.user;
             }
 
+            string token = creationResult?.AccessToken ?? string.Empty;
+
             LineMember newQueueMember = new LineMember
             {
                 EventId = eventId,
@@ -227,8 +230,8 @@ namespace Infrastructure.Repositories
                 $"UPDATE public.\"Events\" set \"UsersInQueue\"=\"UsersInQueue\" + 1 where \"Id\"={eventId}");
 
             await dbContext.SaveChangesAsync();
-            return new AuthRes(true, "Joined queue Successfully", creationResult.AccessToken,
-                "",creationResult.user.Id,creationResult.user.Email,creationResult.user.UserName);
+            return new AuthRes(true, "Joined queue Successfully", token,
+                "", user.Id, user.Email, user.UserName);
 
         }
 

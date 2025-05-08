@@ -139,7 +139,7 @@ namespace Infrastructure.Repositories
                 .FirstOrDefaultAsync();
 
                 if (line is null)
-                return new LineInfoRes(0, -1, 0, "", "");
+                return new LineInfoRes(0, -1, 0, "", "", 0);
 
             // Get the full queue
             var othersInLines = await dbContext.Lines
@@ -173,6 +173,7 @@ namespace Infrastructure.Repositories
                 timeTillYourTurn - @event.AverageTime,
                 GetOrdinal(position),
                 @event.Title,
+                @event.AverageTime,
                 @event.IsActive,
                 @event.StaffCount
             );
