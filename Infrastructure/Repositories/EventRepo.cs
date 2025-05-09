@@ -183,6 +183,7 @@ namespace Infrastructure.Repositories
                 // Get or create user
                 SwiftLineUser user = await getUser(userId);
                 string token = string.Empty;
+                bool isNewUser = false;
 
                 if (user is null)
                 {
@@ -202,6 +203,7 @@ namespace Infrastructure.Repositories
                     user = creationResult.user;
                     token = creationResult.AccessToken;
                     userId = user.Id;
+                    isNewUser = true;
                 }
                
 
@@ -243,7 +245,9 @@ namespace Infrastructure.Repositories
                     "",
                     user.Id,
                     user.Email,
-                    user.UserName
+                    user.UserName,
+                    "",
+                    isNewUser
                 );
             }
             catch (Exception ex)
@@ -269,7 +273,7 @@ namespace Infrastructure.Repositories
             return await dbContext.Events.Where(x => x.CreatedBy == userId && !x.IsDeleted).ToListAsync();
         }
 
-        public async Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "")
+        public async Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "", int position = -1)
         {
             Line line = dbContext.Lines
                 .Where(x => x.LineMemberId == lineMemberId)
@@ -277,7 +281,7 @@ namespace Infrastructure.Repositories
                 .FirstOrDefault();
 
             await lineRepo.MarkUserAsServed(line, adminId!= "" ? "left" : "served by Admin" );
-            await notifier.BroadcastLineUpdate(line);
+            await notifier.BroadcastLineUpdate(line,position);
             await lineRepo.NotifyFifthMember(line);
             return true;
         }

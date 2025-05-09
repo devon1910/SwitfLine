@@ -35,7 +35,7 @@ namespace Infrastructure.BackgroundServices
                         if (line is not null && await linesRepo.IsItUserTurnToBeServed(line,e.AverageTimeToServeSeconds))
                         {
                             await linesRepo.MarkUserAsServed(line,"served");
-                            await notifier.BroadcastLineUpdate(line);
+                            await notifier.BroadcastLineUpdate(line,-1);
                             await linesRepo.NotifyFifthMember(line);
                         }
                     }

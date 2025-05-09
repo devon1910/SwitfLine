@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Domain.DTOs.Responses
 {
-    public record AuthRes(bool status, string message, string AccessToken, string RefreshToken, string userId, string email, string userName, string? purpose = "Login");
+    public record AuthRes(bool status, string message, string AccessToken, string RefreshToken, string userId, string email, string userName, string? purpose = "Login", bool isNewUser=false);
 
     public record AnonymousUserAuthRes(bool status, string message, string AccessToken, SwiftLineUser user);
 

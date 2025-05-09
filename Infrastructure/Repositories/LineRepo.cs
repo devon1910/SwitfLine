@@ -221,12 +221,16 @@ namespace Infrastructure.Repositories
                 // Calculate estimated time once
                 int estimatedTime = result.Event.AverageTimeToServeSeconds / 60;
 
-                // Send email notification
-                await SendReminderMail(
-                    result.FifthUser.Email,
-                    estimatedTime,
-                    result.FifthUser.Username
-                );
+                if (!result.FifthUser.Username.StartsWith("Anonymous")) 
+                {
+                    // Send email notification
+                    await SendReminderMail(
+                        result.FifthUser.Email,
+                        estimatedTime,
+                        result.FifthUser.Username
+                    );
+                }
+               
             }
             catch (Exception ex)
             {

@@ -77,27 +77,27 @@ namespace SwiftLine.API
             await Clients.Group($"queue-{eventId}").SendAsync("ReceiveQueueUpdate", queueUpdate);
         }
 
-        public async Task NotifyUserPositionChange(string userId, LineInfoRes lineInfoRes)
-        {
-            Log.Information("Notifying user {UserId} of position change", userId);
-            try
-            {
-                await notifier.NotifyUserPositionChange(userId, lineInfoRes);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error notifying user {UserId} of position change", userId);
-                throw;
-            }
-        }
+        //public async Task NotifyUserPositionChange(string userId, LineInfoRes lineInfoRes)
+        //{
+        //    Log.Information("Notifying user {UserId} of position change", userId);
+        //    try
+        //    {
+        //        await notifier.NotifyUserPositionChange(userId, lineInfoRes);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Log.Error(ex, "Error notifying user {UserId} of position change", userId);
+        //        throw;
+        //    }
+        //}
 
-        public async Task ExitQueue(string userId, long lineMemberId, string adminId = "")
+        public async Task ExitQueue(string userId, long lineMemberId, string adminId = "", int position=-1)
         {
             Log.Information("User {UserId} exiting queue. LineMemberId: {LineMemberId}, AdminId: {AdminId}", 
                 userId, lineMemberId, adminId);
             try
             {
-                await notifier.ExitQueue(userId, lineMemberId, adminId);
+                await notifier.ExitQueue(userId, lineMemberId, adminId,position);
             }
             catch (Exception ex)
             {

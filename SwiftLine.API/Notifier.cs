@@ -13,12 +13,12 @@ namespace SwiftLine.API
     {
         private static Dictionary<string, string> _userConnections = new Dictionary<string, string>();
 
-        public async Task ExitQueue(string userId, long lineMemberId, string adminId = "")
+        public async Task ExitQueue(string userId, long lineMemberId, string adminId = "",int position=-1)
         {
             Log.Information("Processing queue exit for user {UserId}, LineMemberId: {LineMemberId}, AdminId: {AdminId}", userId, lineMemberId, adminId);
             try
             {
-                await eventRepo.Value.ExitQueue(userId, lineMemberId, adminId);
+                await eventRepo.Value.ExitQueue(userId, lineMemberId, adminId, position);
                 Log.Information("Successfully processed queue exit for user {UserId}", userId);
             }
             catch (Exception ex)
@@ -54,14 +54,14 @@ namespace SwiftLine.API
             }
         }
 
-        public async Task NotifyUserPositionChange(string userId, LineInfoRes lineInfoRes)
+        public async Task NotifyUserPositionChange(string userId, LineInfoRes lineInfoRes, string leaveQueueMessage = "")
         {
             Log.Debug("Attempting to notify user {UserId} of position change", userId);
             try
             {
                 if (_userConnections.TryGetValue(userId, out string connectionId))
                 {
-                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceivePositionUpdate", lineInfoRes);
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceivePositionUpdate", lineInfoRes, leaveQueueMessage);
                     Log.Debug("Successfully notified user {UserId} of position change", userId);
                 }
                 else
