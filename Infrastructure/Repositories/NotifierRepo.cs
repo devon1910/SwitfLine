@@ -38,32 +38,75 @@ namespace Infrastructure.Repositories
 
         public async Task BroadcastLineUpdate(Line line)
         {
-            var othersInLines = await dbContext.Lines
-                 .Where(x => !x.IsAttendedTo && x.IsActive && x.LineMember.EventId == line.LineMember.EventId)
-                 .Include(x => x.LineMember)
-                 .AsSplitQuery()
-                 .OrderBy(x => x.CreatedAt)
-                 .AsNoTracking()
-                 .ToListAsync();
+            long eventId = line.LineMember.EventId;
+            string currentUserId = line.LineMember.UserId;
 
-            var userId = line.LineMember.UserId;
-            var lineInfo = await lineRepo.GetUserLineInfo(userId);
-            await notifierHub.NotifyUserPositionChange(userId, lineInfo);
+            // Fetch all users in line for this event in a single query
+            var usersInLine = await dbContext.Lines
+                .Where(x => !x.IsAttendedTo && x.IsActive && x.LineMember.EventId == eventId)
+                .Select(x => new
+                {
+                    UserId = x.LineMember.UserId,
+                    LineId = x.Id
+                })
+                .OrderBy(x => x.LineId)
+                .AsNoTracking()
+                .ToListAsync();
 
-            var @event = await dbContext.Events.FindAsync(line.LineMember.EventId);
+            // Get all line info in a single batch operation instead of individually
+            var allLineInfoTasks = usersInLine
+                .Select(user => lineRepo.GetUserLineInfo(user.UserId))
+                .ToList();
 
-            foreach (var l in othersInLines)
+            // Wait for all line info to be retrieved
+            await Task.WhenAll(allLineInfoTasks);
+
+            // Create a dictionary for quick lookup by user ID
+            var lineInfoByUserId = new Dictionary<string, LineInfoRes>();
+            for (int i = 0; i < usersInLine.Count; i++)
             {
-                var otherUserId = l.LineMember.UserId;
-                var otherLineInfo = await lineRepo.GetUserLineInfo(otherUserId);
-                await notifierHub.NotifyUserPositionChange(otherUserId, otherLineInfo);
+                lineInfoByUserId[usersInLine[i].UserId] = allLineInfoTasks[i].Result;
             }
 
-            if (!othersInLines.Any() && @event != null && !@event.IsActive)
-            {
-                await dbContext.Database.ExecuteSqlInterpolatedAsync(
-              $"UPDATE public.\"Events\" set \"IsActive\"=\'true\' where \"Id\"={@event.Id}");
-            }
+            // Notify the current user first
+            await notifierHub.NotifyUserPositionChange(currentUserId, lineInfoByUserId[currentUserId]);
+
+            // Notify all other users in the queue
+            var notificationTasks = usersInLine
+                .Where(u => u.UserId != currentUserId)
+                .Select(u => notifierHub.NotifyUserPositionChange(u.UserId, lineInfoByUserId[u.UserId]))
+                .ToList();
+
+           
+            // Wait for all notifications and the potential event activation to complete
+            await Task.WhenAll(notificationTasks);
+
+            //var othersInLines = await dbContext.Lines
+            //     .Where(x => !x.IsAttendedTo && x.IsActive && x.LineMember.EventId == line.LineMember.EventId)
+            //     .Include(x => x.LineMember)
+            //     .AsSplitQuery()
+            //     .OrderBy(x => x.CreatedAt)
+            //     .AsNoTracking()
+            //     .ToListAsync();
+
+            //var userId = line.LineMember.UserId;
+            //var lineInfo = await lineRepo.GetUserLineInfo(userId);
+            //await notifierHub.NotifyUserPositionChange(userId, lineInfo);
+
+            //var @event = await dbContext.Events.FindAsync(line.LineMember.EventId);
+
+            //foreach (var l in othersInLines)
+            //{
+            //    var otherUserId = l.LineMember.UserId;
+            //    var otherLineInfo = await lineRepo.GetUserLineInfo(otherUserId);
+            //    await notifierHub.NotifyUserPositionChange(otherUserId, otherLineInfo);
+            //}
+
+            //if (!othersInLines.Any() && @event != null && !@event.IsActive)
+            //{
+            //    await dbContext.Database.ExecuteSqlInterpolatedAsync(
+            //  $"UPDATE public.\"Events\" set \"IsActive\"=\'true\' where \"Id\"={@event.Id}");
+            //}
 
         }
 

@@ -12,9 +12,8 @@ namespace Domain.Interfaces
 {
     public interface ILineRepo
     {
-        public Task<List<Line>> GetLines();
-        public Task<bool> IsUserAttendedTo(Line line);  
-        public Task<bool> MarkUserAsAttendedTo(Line line,string status);
+        public Task<bool> IsItUserTurnToBeServed(Line line);  
+        public Task<bool> MarkUserAsServed(Line line,string status);
         //public Task<LineInfoRes> GetLineInfo(long LineMemberId);
         public Task<LineInfoRes> GetUserLineInfo(string UserId);
 

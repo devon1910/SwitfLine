@@ -32,7 +32,7 @@ namespace Infrastructure.Repositories
             
         }
 
-        public async Task<bool> IsUserAttendedTo(Line line)
+        public async Task<bool> IsItUserTurnToBeServed(Line line)
         {
             if (line.DateStartedBeingAttendedTo == default) //first on the queue
             {
@@ -42,11 +42,12 @@ namespace Infrastructure.Repositories
 
             var diff = (DateTime.UtcNow.AddHours(1) - line.DateStartedBeingAttendedTo).TotalSeconds;
 
-            if (diff >= line.LineMember.Event.AverageTimeToServeSeconds) return true;
-            return false;
+            return diff >= line.LineMember.Event.AverageTimeToServeSeconds;
+
+
         }
 
-        public async Task<bool> MarkUserAsAttendedTo(Line line, string status)
+        public async Task<bool> MarkUserAsServed(Line line, string status)
         {
             //line.IsAttendedTo = true;
             //line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
@@ -119,12 +120,10 @@ namespace Infrastructure.Repositories
         public async Task<Line?> GetFirstLineMember(long eventId)
         {
             return await  dbContext.Lines
-                .Where(x => x.IsActive && !x.IsAttendedTo)
+                .Where(x => x.IsActive && !x.IsAttendedTo && x.LineMember.EventId==eventId)
                 .Include(x => x.LineMember)
-                .ThenInclude(x => x.Event)
                 .AsSplitQuery()
-                .Where(x => x.LineMember.EventId == eventId)
-                .OrderBy(x => x.CreatedAt)
+                .OrderBy(x => x.Id)
                 .FirstOrDefaultAsync();      
         }
 
@@ -193,28 +192,41 @@ namespace Infrastructure.Repositories
             try
             {
                 long eventId = line.LineMember.EventId;
-                Event @event = await dbContext.Events.FindAsync(eventId);
 
-                if (@event == null) return;
-
-                var user = await dbContext.Lines
-                    .Where(x => x.IsActive && !x.IsAttendedTo && x.LineMember.EventId == eventId)
-                    .Include(x => x.LineMember.SwiftLineUser)
-                    .AsSplitQuery()
-                    .OrderBy(x => x.CreatedAt)
-                    .Skip(1) // Notify the second person in line
+                // Combine queries to reduce database round trips
+                var result = await dbContext.Events
+                    .Where(e => e.Id == eventId)
+                    .Select(e => new
+                    {
+                        Event = e,
+                        FifthUser = dbContext.Lines
+                            .Where(l => l.IsActive &&
+                                   !l.IsAttendedTo &&
+                                   l.LineMember.EventId == eventId)
+                            .OrderBy(l => l.Id)
+                            .Skip(1) 
+                            .Select(l => new
+                            {
+                                Email = l.LineMember.SwiftLineUser.Email,
+                                Username = l.LineMember.SwiftLineUser.UserName
+                            })
+                            .FirstOrDefault()
+                    })
                     .FirstOrDefaultAsync();
 
-                if (user?.LineMember?.SwiftLineUser != null)
-                {
-                    int estimatedTime = @event.AverageTimeToServeSeconds / 60;
+                // Early exit if event doesn't exist or no eligible user found
+                if (result?.Event == null || result.FifthUser == null)
+                    return;
 
-                    await SendReminderMail(
-                        user.LineMember.SwiftLineUser.Email,
-                        estimatedTime,
-                        user.LineMember.SwiftLineUser.UserName
-                    );
-                }
+                // Calculate estimated time once
+                int estimatedTime = result.Event.AverageTimeToServeSeconds / 60;
+
+                // Send email notification
+                await SendReminderMail(
+                    result.FifthUser.Email,
+                    estimatedTime,
+                    result.FifthUser.Username
+                );
             }
             catch (Exception ex)
             {

@@ -23,7 +23,6 @@ namespace Domain.Interfaces
 
         public Task<List<Event>> GetActiveEvents();
 
-        public Task<List<Event>> GetAllEvents();
 
         public Task<EventQueueRes> GetEventQueue(int page, int size, long eventId, bool isForPastMembers=false);
 
@@ -49,8 +48,6 @@ namespace Domain.Interfaces
         public Task<Result<Event>> GetEvent(long eventId);
 
         public Task<Result<EventQueueRes>> GetEventQueue(int page, int size, long eventId, bool IsForPastMembers = false);
-
-        public Task<Result<List<Event>>> GetAllEvents();
         public Task<Result<List<Event>>> GetUserEvents(string userId);
         public Result<bool> DeleteEvent(long Id);
         public Task<Result<SearchEventsRes>> SearchEvents(int page, int size, string query, string userId);

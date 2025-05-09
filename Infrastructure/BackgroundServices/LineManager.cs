@@ -32,9 +32,9 @@ namespace Infrastructure.BackgroundServices
                     {
                         Line? line = await linesRepo.GetFirstLineMember(e.Id);
 
-                        if (line is not null && await linesRepo.IsUserAttendedTo(line))
+                        if (line is not null && await linesRepo.IsItUserTurnToBeServed(line))
                         {
-                            await linesRepo.MarkUserAsAttendedTo(line,"served");
+                            await linesRepo.MarkUserAsServed(line,"served");
                             await notifier.BroadcastLineUpdate(line);
                             await linesRepo.NotifyFifthMember(line);
                         }

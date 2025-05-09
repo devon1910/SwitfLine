@@ -72,42 +72,33 @@ namespace Infrastructure.Repositories
         {
             var timeNow = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1));
 
-            var unfinishedEvents = await dbContext.Lines
+            // Create a single query that gets both active events by time and events with unfinished lines
+            var activeEvents = await dbContext.Events
                 .AsNoTracking()
-                .Where(x => !x.IsAttendedTo)
-                .Include(x => x.LineMember)
-                .ThenInclude(x => x.Event)
-                .AsSplitQuery()
-                .Where(x => x.LineMember.Event.IsActive && !x.LineMember.Event.IsDeleted)
-                .Select(x => x.LineMember.EventId)            
+                .Where(x => x.IsActive && !x.IsDeleted && (
+                    // Time-based active events
+                    (
+                        // For events that do not span midnight
+                        (x.EventStartTime <= x.EventEndTime &&
+                         timeNow >= x.EventStartTime &&
+                         timeNow <= x.EventEndTime)
+                        ||
+                        // For events that span midnight
+                        (x.EventStartTime > x.EventEndTime &&
+                         (timeNow >= x.EventStartTime || timeNow <= x.EventEndTime))
+                    )
+                    ||
+                    // Events with unfinished queue items
+                    dbContext.Lines
+                        .Any(l => !l.IsAttendedTo &&
+                              l.LineMember.EventId == x.Id &&
+                              !l.LineMember.Event.IsDeleted)
+                ))
                 .ToListAsync();
 
-            return await dbContext.Events
-                .AsNoTracking()
-                .Where(x => x.IsActive && !x.IsDeleted &&
-                        (
-                            // For events that do not span midnight:
-                            x.EventStartTime <= x.EventEndTime
-                            ? (timeNow >= x.EventStartTime && timeNow <= x.EventEndTime)
-                            // For events that span midnight:
-                            : (timeNow >= x.EventStartTime || timeNow <= x.EventEndTime)
-                        ) || unfinishedEvents.Contains(x.Id))
-                .ToListAsync();
+            return activeEvents;
         }
 
-        public async Task<List<Event>> GetAllEvents()
-        {
-            List<Event> events = await dbContext.Events.Where(x => x.IsActive && !x.IsDeleted).ToListAsync();
-            foreach (var @event in events)
-            {
-                @event.UsersInQueue = await dbContext.Lines
-                    .Include(x => x.LineMember)
-                    .Where(x => x.LineMember.EventId == @event.Id && !x.IsAttendedTo).CountAsync();
-                var user = await dbContext.SwiftLineUsers.FindAsync(@event.CreatedBy);
-                @event.CreatedBy = user.Email;
-            }
-            return events;
-        }
 
         public async Task<Event> GetEvent(long eventId)
         {
@@ -170,68 +161,109 @@ namespace Infrastructure.Repositories
 
         public async Task<AuthRes> JoinEvent(string userId, long eventId)
         {
-            var Event= await dbContext.Events.FindAsync(eventId);
+            using var transaction = await dbContext.Database.BeginTransactionAsync();
 
-            if (Event is null || Event.IsDeleted) 
+            try
             {
-                return AuthResFailed.CreateFailed("Event not found");
-            }
+                // Fetch event and validate in one query with proper includes
+                var eventEntity = await dbContext.Events
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(e => e.Id == eventId && !e.IsDeleted);
 
-            if (!isEventActiveRightNow(Event)) 
-            {
-                return AuthResFailed.CreateFailed("Event hasn't started.");
-            }
-
-            var user = await getUser(userId);
-            AnonymousUserAuthRes creationResult = null;
-
-
-            if (user is null)
-            {
-                if (!Event.AllowAnonymousJoining)
+                if (eventEntity == null)
                 {
-                    const string errorMessage = "The Event Organizer has disabled anonymous joining. " +
-                                               "Please login or sign up to join this queue";
-                    return AuthResFailed.CreateFailed(errorMessage);
+                    return AuthResFailed.CreateFailed("Event not found");
                 }
 
-                creationResult = await authRepo.CreateAnonymousUser();
-                if (!creationResult.status)
+                if (!IsEventActive(eventEntity.EventStartTime, eventEntity.EventEndTime))
                 {
-                    const string errorMessage = "Unable to create an anonymous account. " +
-                                               "Please try again later";
-                    return AuthResFailed.CreateFailed(errorMessage);
+                    return AuthResFailed.CreateFailed("Event hasn't started.");
                 }
 
-                user = creationResult.user;
+                // Get or create user
+                SwiftLineUser user;
+                string token = string.Empty;
+                bool isAnonymous = string.IsNullOrEmpty(userId);
+
+                if (isAnonymous)
+                {
+                    if (!eventEntity.AllowAnonymousJoining)
+                    {
+                        return AuthResFailed.CreateFailed(
+                            "The Event Organizer has disabled anonymous joining. Please login or sign up to join this queue");
+                    }
+
+                    var creationResult = await authRepo.CreateAnonymousUser();
+                    if (!creationResult.status)
+                    {
+                        return AuthResFailed.CreateFailed(
+                            "Unable to create an anonymous account. Please try again later");
+                    }
+
+                    user = creationResult.user;
+                    token = creationResult.AccessToken;
+                    userId = user.Id;
+                }
+                else
+                {
+                    user = await getUser(userId);
+                    if (user == null)
+                    {
+                        return AuthResFailed.CreateFailed("User not found");
+                    }
+                }
+
+                // Check if user is already in queue for this event
+                bool alreadyInQueue = await dbContext.LineMembers
+                    .AnyAsync(lm => lm.EventId == eventId && lm.UserId == userId);
+
+                if (alreadyInQueue)
+                {
+                    return AuthResFailed.CreateFailed("You are already in this queue");
+                }
+
+                // Create queue entry in a single operation
+                var newQueueMember = new LineMember
+                {
+                    EventId = eventId,
+                    UserId = userId
+                };
+
+                dbContext.LineMembers.Add(newQueueMember);
+                await dbContext.SaveChangesAsync();
+
+                dbContext.Lines.Add(new Line
+                {
+                    LineMemberId = newQueueMember.Id
+                });
+
+                // Update user info
+                user.IsInQueue = true;
+                user.LastEventJoined = eventId;
+
+                // Increment users in queue atomically
+                await dbContext.Database.ExecuteSqlInterpolatedAsync(
+                    $"UPDATE public.\"Events\" SET \"UsersInQueue\" = \"UsersInQueue\" + 1 WHERE \"Id\" = {eventId}");
+
+                await dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                return new AuthRes(
+                    true,
+                    "Joined queue successfully",
+                    token,
+                    "",
+                    user.Id,
+                    user.Email,
+                    user.UserName
+                );
             }
-
-            string token = creationResult?.AccessToken ?? string.Empty;
-
-            LineMember newQueueMember = new LineMember
+            catch (Exception ex)
             {
-                EventId = eventId,
-                UserId = string.IsNullOrEmpty(userId) ? creationResult.user.Id : userId,
-            };
-
-            await dbContext.LineMembers.AddAsync(newQueueMember);
-            await dbContext.SaveChangesAsync();
-
-            Line queue = new()
-            {
-                LineMemberId = newQueueMember.Id
-            };
-            await dbContext.Lines.AddAsync(queue);
-
-            user.IsInQueue = true;
-            user.LastEventJoined = eventId;
-
-            await dbContext.Database.ExecuteSqlInterpolatedAsync(
-                $"UPDATE public.\"Events\" set \"UsersInQueue\"=\"UsersInQueue\" + 1 where \"Id\"={eventId}");
-
-            await dbContext.SaveChangesAsync();
-            return new AuthRes(true, "Joined queue Successfully", token,
-                "", user.Id, user.Email, user.UserName);
+                await transaction.RollbackAsync();
+                // Log exception details
+                return AuthResFailed.CreateFailed("An error occurred while joining the queue");
+            }
 
         }
 
@@ -256,7 +288,7 @@ namespace Infrastructure.Repositories
                 .Include(x=>x.LineMember)
                 .FirstOrDefault();
 
-            await lineRepo.MarkUserAsAttendedTo(line, adminId!= "" ? "left" : "served by Admin" );
+            await lineRepo.MarkUserAsServed(line, adminId!= "" ? "left" : "served by Admin" );
             await notifier.BroadcastLineUpdate(line);
             await lineRepo.NotifyFifthMember(line);
             return true;
@@ -273,22 +305,30 @@ namespace Infrastructure.Repositories
 
         public async Task<SearchEventsRes> SearchEvents(int page, int size, string query, string userId)
         {
-            var allEvents = dbContext.Events.AsQueryable();
+            var baseQuery = dbContext.Events
+       .AsNoTracking()
+       .Where(x => !x.IsDeleted);
 
-            int pageCount = (await allEvents.CountAsync() + size - 1) / size;
+            // Only apply filter if query exists
+            if (!string.IsNullOrEmpty(query))
+            {
+                baseQuery = baseQuery.Where(x => EF.Functions.Like(x.Title, $"%{query}%"));
+            }
 
-            var filteredEvents = string.IsNullOrEmpty(query)
-                ? allEvents
-                : allEvents.Where(x => x.Title.Contains(query));
+            baseQuery = baseQuery.OrderBy(x => x.EventStartTime);
 
-            var eventsData = await filteredEvents
-                .OrderBy(x => x.EventStartTime)
+            // Execute one query to get total count
+            var totalCount = await baseQuery.CountAsync();
+            var pageCount = (totalCount + size - 1) / size;
+
+            // Execute second query to get paginated data
+            var eventsData = await baseQuery
                 .Skip((page - 1) * size)
                 .Take(size)
                 .Include(x => x.SwiftLineUser)
-                .Where(x=>!x.IsDeleted)
                 .ToListAsync();
 
+            // Process the data in memory since the time comparison logic can't be translated to SQL
             var events = eventsData.Select(x => new Event
             {
                 Id = x.Id,
@@ -299,14 +339,21 @@ namespace Infrastructure.Repositories
                 EventEndTime = x.EventEndTime,
                 UsersInQueue = x.UsersInQueue,
                 Organizer = x.SwiftLineUser.UserName,
-                HasStarted = isEventActiveRightNow(x),
+                HasStarted = IsEventActive(x.EventStartTime, x.EventEndTime),
                 StaffCount = x.StaffCount,
                 IsActive = x.IsActive,
                 AllowAnonymousJoining = x.AllowAnonymousJoining,
             }).ToList();
-            var user= await getUser(userId);
-            return new SearchEventsRes(events, pageCount, user is null ? false : user.IsInQueue,
-                user is null ? 0 : user.LastEventJoined);
+
+            // Execute user query in parallel
+            var user = await getUser(userId);
+
+            return new SearchEventsRes(
+                events,
+                pageCount,
+                user?.IsInQueue ?? false,
+                user?.LastEventJoined ?? 0
+            );
         }
 
         private async Task<SwiftLineUser> getUser(string userId)
@@ -314,21 +361,21 @@ namespace Infrastructure.Repositories
             return await dbContext.SwiftLineUsers.FindAsync(userId);
         }
 
-        private bool isEventActiveRightNow(Event @event)
+        private static bool IsEventActive(TimeOnly startTime, TimeOnly endTime)
         {
-            var timeNow = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1));
+            var currentTime = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(1));
 
-            if (@event.EventStartTime <= @event.EventEndTime)
+            if (startTime <= endTime)
             {
-                return timeNow >= @event.EventStartTime && timeNow <= @event.EventEndTime;
+                return currentTime >= startTime && currentTime <= endTime;
             }
             else
             {
-                return timeNow >= @event.EventStartTime || timeNow <= @event.EventEndTime;
+                return currentTime >= startTime || currentTime <= endTime;
             }
         }
 
-  
+
 
 
 
