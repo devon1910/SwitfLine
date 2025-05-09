@@ -213,13 +213,9 @@ namespace Infrastructure.Repositories
                     }
                 }
 
-                // Check if user is already in queue for this event
-                bool alreadyInQueue = await dbContext.LineMembers
-                    .AnyAsync(lm => lm.EventId == eventId && lm.UserId == userId);
-
-                if (alreadyInQueue)
+                if (user.IsInQueue)
                 {
-                    return AuthResFailed.CreateFailed("You are already in this queue");
+                    return AuthResFailed.CreateFailed("You are already in a queue");
                 }
 
                 // Create queue entry in a single operation

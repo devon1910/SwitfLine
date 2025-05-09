@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace Infrastructure.Repositories
 {
@@ -53,23 +54,21 @@ namespace Infrastructure.Repositories
                 .AsNoTracking()
                 .ToListAsync();
 
-            // Get all line info in a single batch operation instead of individually
             var allLineInfoTasks = usersInLine
-                .Select(user => lineRepo.GetUserLineInfo(user.UserId))
-                .ToList();
+            .Select(user => lineRepo.GetUserLineInfo(user.UserId))
+            .ToList();
 
-            // Wait for all line info to be retrieved
-            await Task.WhenAll(allLineInfoTasks);
+            var results = await Task.WhenAll(allLineInfoTasks);
 
-            // Create a dictionary for quick lookup by user ID
             var lineInfoByUserId = new Dictionary<string, LineInfoRes>();
             for (int i = 0; i < usersInLine.Count; i++)
             {
-                lineInfoByUserId[usersInLine[i].UserId] = allLineInfoTasks[i].Result;
+                lineInfoByUserId[usersInLine[i].UserId] = results[i];
             }
 
             // Notify the current user first
-            await notifierHub.NotifyUserPositionChange(currentUserId, lineInfoByUserId[currentUserId]);
+            var currentUserLineInfo = await lineRepo.GetUserLineInfo(currentUserId);
+            await notifierHub.NotifyUserPositionChange(currentUserId, currentUserLineInfo);
 
             // Notify all other users in the queue
             var notificationTasks = usersInLine

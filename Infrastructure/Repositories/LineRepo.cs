@@ -32,7 +32,7 @@ namespace Infrastructure.Repositories
             
         }
 
-        public async Task<bool> IsItUserTurnToBeServed(Line line)
+        public async Task<bool> IsItUserTurnToBeServed(Line line, int EventAverageWaitSeconds)
         {
             if (line.DateStartedBeingAttendedTo == default) //first on the queue
             {
@@ -42,7 +42,7 @@ namespace Infrastructure.Repositories
 
             var diff = (DateTime.UtcNow.AddHours(1) - line.DateStartedBeingAttendedTo).TotalSeconds;
 
-            return diff >= line.LineMember.Event.AverageTimeToServeSeconds;
+            return diff >= EventAverageWaitSeconds;
 
 
         }
@@ -120,7 +120,7 @@ namespace Infrastructure.Repositories
         public async Task<Line?> GetFirstLineMember(long eventId)
         {
             return await  dbContext.Lines
-                .Where(x => x.IsActive && !x.IsAttendedTo && x.LineMember.EventId==eventId)
+                .Where(x => x.IsActive && !x.IsAttendedTo && x.LineMember.EventId == eventId)
                 .Include(x => x.LineMember)
                 .AsSplitQuery()
                 .OrderBy(x => x.Id)
