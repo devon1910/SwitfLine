@@ -54,31 +54,18 @@ namespace Infrastructure.Repositories
                 .AsNoTracking()
                 .ToListAsync();
 
-            var allLineInfoTasks = usersInLine
-            .Select(user => lineRepo.GetUserLineInfo(user.UserId))
-            .ToList();
-
-            var results = await Task.WhenAll(allLineInfoTasks);
-
-            var lineInfoByUserId = new Dictionary<string, LineInfoRes>();
-            for (int i = 0; i < usersInLine.Count; i++)
-            {
-                lineInfoByUserId[usersInLine[i].UserId] = results[i];
-            }
-
             // Notify the current user first
             var currentUserLineInfo = await lineRepo.GetUserLineInfo(currentUserId);
             await notifierHub.NotifyUserPositionChange(currentUserId, currentUserLineInfo);
 
-            // Notify all other users in the queue
-            var notificationTasks = usersInLine
-                .Where(u => u.UserId != currentUserId)
-                .Select(u => notifierHub.NotifyUserPositionChange(u.UserId, lineInfoByUserId[u.UserId]))
-                .ToList();
 
-           
-            // Wait for all notifications and the potential event activation to complete
-            await Task.WhenAll(notificationTasks);
+            for(int i = 0; i < usersInLine.Count; i++)
+            {
+                var user = usersInLine[i];          
+                var lineInfo = await lineRepo.GetUserLineInfo(user.UserId);
+                await notifierHub.NotifyUserPositionChange(user.UserId, lineInfo);
+            }
+
 
             //var othersInLines = await dbContext.Lines
             //     .Where(x => !x.IsAttendedTo && x.IsActive && x.LineMember.EventId == line.LineMember.EventId)

@@ -181,11 +181,10 @@ namespace Infrastructure.Repositories
                 }
 
                 // Get or create user
-                SwiftLineUser user;
+                SwiftLineUser user = await getUser(userId);
                 string token = string.Empty;
-                bool isAnonymous = string.IsNullOrEmpty(userId);
 
-                if (isAnonymous)
+                if (user is null)
                 {
                     if (!eventEntity.AllowAnonymousJoining)
                     {
@@ -204,14 +203,7 @@ namespace Infrastructure.Repositories
                     token = creationResult.AccessToken;
                     userId = user.Id;
                 }
-                else
-                {
-                    user = await getUser(userId);
-                    if (user == null)
-                    {
-                        return AuthResFailed.CreateFailed("User not found");
-                    }
-                }
+               
 
                 if (user.IsInQueue)
                 {
