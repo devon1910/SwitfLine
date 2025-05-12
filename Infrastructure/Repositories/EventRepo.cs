@@ -20,9 +20,7 @@ namespace Infrastructure.Repositories
     {
         public async Task<bool> CreateEvent(string userId, CreateEventModel req)
         {
-            Event existingEvent= dbContext.Events.FirstOrDefault(x => x.Title == req.Title);
-
-            if (existingEvent != null)
+            if (await EventExists(req.Title)) 
             {
                 return false;
             }
@@ -40,8 +38,10 @@ namespace Infrastructure.Repositories
                 AllowAnonymousJoining = req.AllowAnonymousJoining,
 
             };
-            await dbContext.Events.AddAsync(newEvent);
-            await dbContext.SaveChangesAsync();
+
+            await AddEvent(newEvent);
+            await SaveChangesAsync();
+
             return true;
         }
 
@@ -367,9 +367,21 @@ namespace Infrastructure.Repositories
             }
         }
 
+        public async Task<bool> EventExists(string title)
+        {
+            Event existingEvent = await dbContext.Events.FirstOrDefaultAsync(x => x.Title == title);
 
+            return existingEvent is null ? false : true;
+        }
 
+        public async Task AddEvent(Event newEvent)
+        {
+            await dbContext.Events.AddAsync(newEvent);
+        }
 
-
+        public async Task<int> SaveChangesAsync()
+        {
+           return await dbContext.SaveChangesAsync();
+        }
     }
 }

@@ -30,6 +30,10 @@ namespace Domain.Interfaces
 
         public void DeleteEvent(long Id);
 
+        public Task<bool> EventExists(string title);
+        public Task AddEvent(Event evt);
+        public Task<int> SaveChangesAsync();
+
         public Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "",int position=-1);
 
         public Task<bool> ToggleQueueActivity(bool status, string userId, long eventId);

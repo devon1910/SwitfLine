@@ -10,7 +10,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ServiceUnitTests.Feedback
+namespace ServiceUnitTests
 {
     public class FeedbackServiceTests
     {
@@ -18,7 +18,7 @@ namespace ServiceUnitTests.Feedback
         private readonly IFeedbackRepo _feedbackRepoMock;
         public FeedbackServiceTests()
         {
-             _feedbackRepoMock = Substitute.For<IFeedbackRepo>();
+            _feedbackRepoMock = Substitute.For<IFeedbackRepo>();
             _feedbackService = new FeedbackService(_feedbackRepoMock);
         }
 
@@ -33,16 +33,16 @@ namespace ServiceUnitTests.Feedback
                 Comment = "Great service!",
                 Tags = new List<string> { "service", "feedback" }
             };
-            
+
             _feedbackRepoMock.SubmitFeedback(feedbackModel).Returns(true);
             // Act
             var result = _feedbackService.SubmitFeedback(feedbackModel);
             // Assert
             Assert.True(result.Status);
-            
+
             Assert.Equal("Operation completed successfully", result.Message);
         }
 
     }
-    
+
 }

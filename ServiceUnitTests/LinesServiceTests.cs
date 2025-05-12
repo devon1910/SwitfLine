@@ -13,14 +13,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ServiceUnitTests.Lines
+namespace ServiceUnitTests
 {
     public class LinesServiceTests
     {
         private readonly ILineService _lineService;
         private readonly ILineRepo _linesRepoMock;
 
-        public LinesServiceTests() 
+        public LinesServiceTests()
         {
             _linesRepoMock = Substitute.For<ILineRepo>();
             _lineService = new LineService(_linesRepoMock);
