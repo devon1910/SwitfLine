@@ -63,7 +63,7 @@ namespace Infrastructure.Repositories
                 var user = usersInLine[i];          
                 var lineInfo = await lineRepo.GetUserLineInfo(user.UserId);
                 string leaveQueueMessage = position > -1 && position <= lineInfo.Position
-                ? $"Member at the {GetOrdinal(position)} position has been served earlier than envisaged." :"";
+                ? $"Line Member at the {GetOrdinal(position)} position has been served earlier than envisaged." :"";
                 await notifierHub.NotifyUserPositionChange(user.UserId, lineInfo, leaveQueueMessage);
             }
 

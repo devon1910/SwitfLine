@@ -282,7 +282,7 @@ namespace Infrastructure.Repositories
 
             await lineRepo.MarkUserAsServed(line, adminId!= "" ? "left" : "served by Admin" );
             await notifier.BroadcastLineUpdate(line,position);
-            await lineRepo.NotifyFifthMember(line);
+            await lineRepo.Notify2ndLineMember(line);
             return true;
         }
 

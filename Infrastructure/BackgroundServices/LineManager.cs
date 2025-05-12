@@ -36,7 +36,7 @@ namespace Infrastructure.BackgroundServices
                         {
                             await linesRepo.MarkUserAsServed(line,"served");
                             await notifier.BroadcastLineUpdate(line,-1);
-                            await linesRepo.NotifyFifthMember(line);
+                            await linesRepo.Notify2ndLineMember(line);
                         }
                     }
                     await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);

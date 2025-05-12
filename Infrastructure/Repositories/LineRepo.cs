@@ -145,7 +145,7 @@ namespace Infrastructure.Repositories
                 .Where(x => x.IsActive && !x.IsAttendedTo && x.LineMember.EventId == line.LineMember.EventId)
                 .Include(x => x.LineMember)
                 .AsSplitQuery()
-                .OrderBy(x => x.CreatedAt)
+                .OrderBy(x => x.Id)
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -160,10 +160,10 @@ namespace Infrastructure.Repositories
 
             // Estimate wait time
             double totalMinutes = (position * @event.AverageTime) / (double)@event.StaffCount;
-            int timeTillYourTurn = (int)Math.Ceiling(totalMinutes);
+            int timeTillYourTurn = (int) Math.Ceiling(totalMinutes);
             timeTillYourTurn = Math.Max(timeTillYourTurn, @event.AverageTime);
 
-            position = (int)Math.Ceiling((decimal)timeTillYourTurn / @event.AverageTime);
+            position = (int) Math.Ceiling((decimal) timeTillYourTurn / @event.AverageTime);
 
             // Return final result
             return new LineInfoRes(
@@ -180,14 +180,8 @@ namespace Infrastructure.Repositories
 
         }
 
-        public bool GetUserQueueStatus(string UserId)
-        {
-            var user=  dbContext.SwiftLineUsers.Find( UserId);
-            return user is not null ? user.IsInQueue : false;
-            
-        }
 
-        public async Task NotifyFifthMember(Line line)
+        public async Task Notify2ndLineMember(Line line)
         {
             try
             {
@@ -244,7 +238,7 @@ namespace Infrastructure.Repositories
             string link = _configuration["SwiftLineBaseUrlForReminder"]; 
             var email = await _fluentEmail
                 .To(RecipientEmail)
-                .Subject($"Your Turn is Coming Up Soon - Swiftline ⏭")
+                .Subject($"Your Turn is Coming Up Soon - SwiftLine ⏭")
                 .Body(htmlTemplate
                 .Replace("[UserName]", username)
                 .Replace("[swiftlinelink]", link)

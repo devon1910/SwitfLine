@@ -14,28 +14,13 @@ namespace Domain.Interfaces
     {
         public Task<bool> IsItUserTurnToBeServed(Line line, int EventAverageWaitSeconds);  
         public Task<bool> MarkUserAsServed(Line line,string status);
-        //public Task<LineInfoRes> GetLineInfo(long LineMemberId);
         public Task<LineInfoRes> GetUserLineInfo(string UserId);
-
-        public bool GetUserQueueStatus(string UserId);
-
         public Task<Line?> GetFirstLineMember(long eventId);
-       
-
-        public Task NotifyFifthMember(Line line);
-
-
+        public Task Notify2ndLineMember(Line line);
     }
     public interface ILineService
     {
-        public Task<Result<List<Line>>> GetLines();
-
-        //public Task<Result<LineInfoRes>> GetLineInfo(long LineMemberId);
-
         public Task<Result<LineInfoRes>> GetUserLineInfo(string UserId);
-
-        public Result<bool> GetUserQueueStatus(string UserId);
-
 
     }
 }
