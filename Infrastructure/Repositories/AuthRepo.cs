@@ -497,6 +497,16 @@ namespace Infrastructure.Repositories
                 SecurityStamp = Guid.NewGuid().ToString()
             };
 
+
+            if (!(await _roleManager.RoleExistsAsync(Roles.Anonymous)))
+            {
+                var roleResult = await _roleManager.CreateAsync(new IdentityRole(Roles.Anonymous));
+                if (!roleResult.Succeeded)
+                {
+                    return anonymousErrorInfo(roleResult,"Anonymous");
+                }
+            }
+
             // Attempt to create the anonymous user
             var createUserResult = await _userManager.CreateAsync(user, "Anonymous@123");
             if (!createUserResult.Succeeded)
