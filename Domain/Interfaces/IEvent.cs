@@ -11,7 +11,6 @@ namespace Domain.Interfaces
 {
     public interface IEventRepo
     {
-        public Task<bool> CreateEvent(string userId,CreateEventModel req);
 
         public Task<bool> EditEvent(EditEventReq req);
 
@@ -49,11 +48,15 @@ namespace Domain.Interfaces
 
         public Task<Result<bool>> EditEvent(EditEventReq req);
 
+        public Task<bool> EventExists(string title);
         public Task<Result<Event>> GetEvent(long eventId);
 
         public Task<Result<EventQueueRes>> GetEventQueue(int page, int size, long eventId, bool IsForPastMembers = false);
         public Task<Result<List<Event>>> GetUserEvents(string userId);
         public Result<bool> DeleteEvent(long Id);
         public Task<Result<SearchEventsRes>> SearchEvents(int page, int size, string query, string userId);
+
+        public Task AddEvent(Event evt);
+        public Task<int> SaveChangesAsync();
     }
 }

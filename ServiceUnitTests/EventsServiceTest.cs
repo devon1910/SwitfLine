@@ -237,8 +237,10 @@ namespace ServiceUnitTests
             await _eventsRepoMock.Received(1).AddEvent(Arg.Is<Event>(e =>
                 e.Title == request.Title &&
                 e.Description == request.Description &&
-                e.AverageTime == request.AverageTime * 60 &&
+                e.AverageTimeToServeSeconds == request.AverageTime * 60 &&
+                e.AverageTime == request.AverageTime &&
                 e.StaffCount == request.StaffCount &&
+                e.Capacity == request.Capacity &&
                 e.EventStartTime == TimeOnly.Parse(request.EventStartTime) &&
                 e.EventEndTime == TimeOnly.Parse(request.EventEndTime) &&
                 e.AllowAnonymousJoining == request.AllowAnonymousJoining

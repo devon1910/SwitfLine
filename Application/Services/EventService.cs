@@ -15,13 +15,31 @@ namespace Application.Services
     {
         public async Task<Result<bool>> CreateEvent(string userId, CreateEventModel req)
         {
-            var createdEvent = await eventRepo.CreateEvent(userId, req);
 
-            if (createdEvent)
+            if (await EventExists(req.Title))
             {
-                return Result<bool>.Ok(true);
+                return Result<bool>.Failed("Event title exists already. Please use a different event title and try again.");
             }
-            return Result<bool>.Failed("Event title exists already. Please use a different event title and try again.");
+
+            var newEvent = new Event
+            {
+                Title = req.Title,
+                Description = req.Description,
+                AverageTime = req.AverageTime,
+                AverageTimeToServeSeconds = req.AverageTime * 60,
+                CreatedBy = userId,
+                EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default,
+                EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default,
+                StaffCount = req.StaffCount,
+                Capacity = req.Capacity,
+                AllowAnonymousJoining = req.AllowAnonymousJoining,
+
+            };
+
+            await eventRepo.AddEvent(newEvent);
+            await eventRepo.SaveChangesAsync();
+            return Result<bool>.Ok(true,"New Event Created");
+
         }
 
 
@@ -71,6 +89,21 @@ namespace Application.Services
             var result = await eventRepo.SearchEvents(page, size, searchQuery, userId);
 
             return Result<SearchEventsRes>.Ok(result);
+        }
+
+        public async Task<bool> EventExists(string title)
+        {
+            return await eventRepo.EventExists(title);
+        }
+
+        public async Task AddEvent(Event evt)
+        {
+            await eventRepo.AddEvent(evt);
+        }
+
+        public async Task<int> SaveChangesAsync()
+        {
+            return await eventRepo.SaveChangesAsync();
         }
     }
 }
