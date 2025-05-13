@@ -7,9 +7,18 @@ namespace SwiftLine.API.Extensions
     {
         public static void ApplyMigrations(this IApplicationBuilder app)
         {
-            using var scope = app.ApplicationServices.CreateScope();
-            SwiftLineDatabaseContext ApplicationDBContext = scope.ServiceProvider.GetRequiredService<SwiftLineDatabaseContext>();
-            ApplicationDBContext.Database.Migrate();
+            try
+            {
+                using var scope = app.ApplicationServices.CreateScope();
+                SwiftLineDatabaseContext ApplicationDBContext = scope.ServiceProvider.GetRequiredService<SwiftLineDatabaseContext>();
+                ApplicationDBContext.Database.Migrate();
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+           
         }
     }
 }

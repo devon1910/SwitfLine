@@ -190,7 +190,7 @@ namespace Infrastructure.Repositories
             if (user is null || !isValidPassword)
             {
                 message = "Invalid user name or password.";
-                AuthResFailed.CreateFailed(message);
+                return AuthResFailed.CreateFailed(message);
             }
 
             if (!user.EmailConfirmed)
