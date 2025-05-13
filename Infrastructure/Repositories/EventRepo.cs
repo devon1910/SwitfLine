@@ -228,7 +228,7 @@ namespace Infrastructure.Repositories
             {
                 await transaction.RollbackAsync();
                 // Log exception details
-                return AuthResFailed.CreateFailed("An error occurred while joining the queue");
+                return AuthResFailed.CreateFailed("An error occurred while joining the queue: exception: ", ex.Message);
             }
 
         }
