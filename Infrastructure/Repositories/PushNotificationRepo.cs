@@ -14,9 +14,16 @@ namespace Infrastructure.Repositories
     {
         public async Task<bool> Save(string UserId, string subscription)
         {
+            var existingSubscription = await databaseContext.PushNotifications
+                .FirstOrDefaultAsync(x => x.UserId == UserId);
+
+            if (existingSubscription != null) 
+            {
+                return true;
+            }
             await databaseContext.PushNotifications.AddAsync(new PushNotification {
-                subscrition = subscription,
-                UserId = UserId
+            subscrition = subscription,
+            UserId = UserId
             });
             await databaseContext.SaveChangesAsync();
             return true;

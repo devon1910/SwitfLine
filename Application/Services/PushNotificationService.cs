@@ -1,4 +1,5 @@
-﻿using Domain.DTOs.Responses;
+﻿using Domain.DTOs.Requests;
+using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -25,7 +26,7 @@ namespace Application.Services
 
         }
 
-        public async Task SendPushNotification(PushSubscription subscription, string payload)
+        public async Task SendPushNotification(SubscriptionModel subscription, string payload)
         {
             var webPushClient = new WebPushClient();
 
@@ -33,8 +34,12 @@ namespace Application.Services
                 "mailto:Swiftline00@gmail.com", 
                 config["Vapid_PublicKey"], 
                 config["Vapid_PrivateKey"]);
+            PushSubscription pushSubscription = new PushSubscription(
+                subscription.endpoint,
+                subscription.keys.p256dh,
+                subscription.keys.auth);
 
-            await webPushClient.SendNotificationAsync(subscription, payload, vapidDetails);
+            await webPushClient.SendNotificationAsync(pushSubscription, payload, vapidDetails);
         }
 
       

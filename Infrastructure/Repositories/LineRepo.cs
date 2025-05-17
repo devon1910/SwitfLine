@@ -8,6 +8,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Npgsql.Replication.TestDecoding;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -164,6 +165,7 @@ namespace Infrastructure.Repositories
             timeTillYourTurn = Math.Max(timeTillYourTurn, @event.AverageTime);
 
             position = (int) Math.Ceiling((decimal) timeTillYourTurn / @event.AverageTime);
+        
 
             // Return final result
             return new LineInfoRes(

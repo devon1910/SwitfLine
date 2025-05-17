@@ -1,4 +1,5 @@
-﻿using Domain.DTOs.Responses;
+﻿using Domain.DTOs.Requests;
+using Domain.DTOs.Responses;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ namespace Domain.Interfaces
     public interface IPushNotificationService
     {
         public Task<Result<bool>> Save(string UserId, string subscription);
-        public Task SendPushNotification(PushSubscription subscription, string payload);
+        public Task SendPushNotification(SubscriptionModel subscription, string payload);
     }
 
     
