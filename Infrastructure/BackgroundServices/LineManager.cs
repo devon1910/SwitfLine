@@ -22,7 +22,7 @@ namespace Infrastructure.BackgroundServices
                 using var scope = serviceProvider.CreateScope();
                 var linesRepo = scope.ServiceProvider.GetRequiredService<ILineRepo>();
                 var eventsRepo = scope.ServiceProvider.GetRequiredService<IEventRepo>();
-                var notifier = scope.ServiceProvider.GetRequiredService<INotifierRepo>();
+                var signalRNotifier = scope.ServiceProvider.GetRequiredService<ISignalRNotifierRepo>();
 
                 while (!stoppingToken.IsCancellationRequested)
                 {
@@ -35,8 +35,9 @@ namespace Infrastructure.BackgroundServices
                         if (line is not null && await linesRepo.IsItUserTurnToBeServed(line,e.AverageTimeToServeSeconds))
                         {
                             await linesRepo.MarkUserAsServed(line,"served");
-                            await notifier.BroadcastLineUpdate(line,-1);
+                            await signalRNotifier.BroadcastLineUpdate(line,-1);
                             await linesRepo.Notify2ndLineMember(line);
+
                         }
                     }
                     await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);

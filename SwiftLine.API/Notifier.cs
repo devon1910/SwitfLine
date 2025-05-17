@@ -9,7 +9,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace SwiftLine.API
 {
-    public class Notifier(IHubContext<SwiftLineHub> _hubContext, Lazy<IEventRepo> eventRepo) : INotifier
+    public class Notifier(IHubContext<SwiftLineHub> _hubContext, Lazy<IEventRepo> eventRepo) : ISignalRNotifier
     {
         private static Dictionary<string, string> _userConnections = new Dictionary<string, string>();
 

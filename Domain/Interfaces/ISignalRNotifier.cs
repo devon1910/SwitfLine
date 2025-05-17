@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Domain.Interfaces
 {
-    public interface INotifier //calls repo methods within it
+    public interface ISignalRNotifier //calls repo methods within it
     {
         public Task<AuthRes> JoinQueueGroup(int eventId, string userId, string ConnectionId);
         public Task OnDisconnectedAsync(string ConnectionId);
@@ -20,7 +20,7 @@ namespace Domain.Interfaces
 
 
     }
-    public interface INotifierRepo // Repo methods needed for INotifier
+    public interface ISignalRNotifierRepo // Repo methods needed for INotifier
     {
         public Task BroadcastLineUpdate(Line line,int position);
 

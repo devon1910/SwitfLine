@@ -18,7 +18,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 namespace SwiftLine.API
 {
     //[Authorize]
-    public class SwiftLineHub(INotifier notifier) : Hub
+    public class SwiftLineHub(ISignalRNotifier notifier) : Hub
     {
         [EnableRateLimiting("SignupPolicy")]
         public async Task<AuthRes> JoinQueueGroup(int eventId, string userId)

@@ -16,7 +16,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace Infrastructure.Repositories
 {
 
-    public class EventRepo(SwiftLineDatabaseContext dbContext, ILineRepo lineRepo, INotifierRepo notifier, IAuthRepo authRepo) : IEventRepo 
+    public class EventRepo(SwiftLineDatabaseContext dbContext, ILineRepo lineRepo, ISignalRNotifierRepo notifier, IAuthRepo authRepo) : IEventRepo 
     {
       
         public async Task<bool> EditEvent(EditEventReq req)

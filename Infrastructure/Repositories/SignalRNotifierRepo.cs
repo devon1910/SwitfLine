@@ -1,4 +1,5 @@
-﻿using Domain.DTOs.Responses;
+﻿using Azure.Core.GeoJson;
+using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
 using Infrastructure.Data;
@@ -10,12 +11,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using WebPush;
 using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
 
 namespace Infrastructure.Repositories
 {
-    public class NotifierRepo(SwiftLineDatabaseContext dbContext, ILineRepo lineRepo, INotifier notifierHub) : INotifierRepo
+    public class SignalRNotifierRepo(SwiftLineDatabaseContext dbContext, 
+        ILineRepo lineRepo, 
+        ISignalRNotifier signalRNotifierHub,
+        IPushNotificationService pushNotificationService) : ISignalRNotifierRepo
     {
         public async Task BroadcastLineActivity(long eventId, bool status)
         {
@@ -31,7 +37,7 @@ namespace Infrastructure.Repositories
             foreach (var line in othersInLines)
             {
                 string userId = line.LineMember.UserId;
-                await notifierHub.NotifyUserQueueStatusUpdate(userId, status);
+                await signalRNotifierHub.NotifyUserQueueStatusUpdate(userId, status);
             }
 
            
@@ -54,17 +60,42 @@ namespace Infrastructure.Repositories
                 .AsNoTracking()
                 .ToListAsync();
 
+            //get all subscibed users
+            var subscribedUsers = await dbContext.PushNotifications
+                .Where(x=>usersInLine.Select(x=>x.UserId)
+                .Contains(x.UserId))
+                .ToDictionaryAsync(x => x.UserId, x => x.subscrition);
+
+
             // Notify the current user first
             var currentUserLineInfo = await lineRepo.GetUserLineInfo(currentUserId);
-            await notifierHub.NotifyUserPositionChange(currentUserId, currentUserLineInfo);
+            await signalRNotifierHub.NotifyUserPositionChange(currentUserId, currentUserLineInfo);
 
             for(int i = 0; i < usersInLine.Count; i++)
             {
                 var user = usersInLine[i];          
                 var lineInfo = await lineRepo.GetUserLineInfo(user.UserId);
-                string leaveQueueMessage = position > -1 && position <= lineInfo.Position
-                ? $"Line Member at the {GetOrdinal(position)} position has been served earlier than envisaged." :"";
-                await notifierHub.NotifyUserPositionChange(user.UserId, lineInfo, leaveQueueMessage);
+                string leaveQueueMessage = "";
+
+                if (position > -1 && position <= lineInfo.Position)
+                {
+                    leaveQueueMessage = $"Line Member at the {GetOrdinal(position)} position has been served earlier than envisaged.";
+                }
+                await signalRNotifierHub.NotifyUserPositionChange(user.UserId, lineInfo, leaveQueueMessage);
+
+                //SendPush Notification
+                subscribedUsers.TryGetValue(user.UserId, out var userSubscription);
+                if (userSubscription is not null)
+                {
+                    var message = JsonSerializer.Serialize(new
+                    {
+                        title = "Queue Update!",
+                        body = $"You're now position {lineInfo.PositionRank} in the queue!"
+                    });
+                    var pushSubscription = JsonSerializer.Deserialize<PushSubscription>(userSubscription);
+                    await pushNotificationService.SendPushNotification(pushSubscription, message);
+                }
+               
             }
 
 

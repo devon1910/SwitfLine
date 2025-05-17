@@ -74,10 +74,13 @@ try
     builder.Services.AddScoped<ITokenRepo, TokenRepo>();
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<IAuthRepo, AuthRepo>();
-    builder.Services.AddScoped<INotifier, Notifier>();
-    builder.Services.AddScoped<INotifierRepo, NotifierRepo>();
+    builder.Services.AddScoped<ISignalRNotifier, Notifier>();
+    builder.Services.AddScoped<ISignalRNotifierRepo, SignalRNotifierRepo>();
     builder.Services.AddScoped<IFeedbackRepo, FeebackRepo>();
     builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+    builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
+    builder.Services.AddScoped<IPushNotificationRepo, PushNotificationRepo>();
+
     builder.Services.Configure<IdentityOptions>(options =>
     {
         options.User.RequireUniqueEmail = true;
