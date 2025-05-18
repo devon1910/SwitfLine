@@ -17,7 +17,7 @@ namespace Infrastructure.Repositories
             var existingSubscription = await databaseContext.PushNotifications
                 .FirstOrDefaultAsync(x => x.UserId == UserId);
 
-            if (existingSubscription != null)
+            if (existingSubscription != null && existingSubscription.subscrition != subscription)
             {
                 existingSubscription.subscrition = subscription;
             }
