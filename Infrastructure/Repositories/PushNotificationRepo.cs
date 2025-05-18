@@ -17,14 +17,19 @@ namespace Infrastructure.Repositories
             var existingSubscription = await databaseContext.PushNotifications
                 .FirstOrDefaultAsync(x => x.UserId == UserId);
 
-            if (existingSubscription != null) 
+            if (existingSubscription != null)
             {
-                return true;
+                existingSubscription.subscrition = subscription;
             }
-            await databaseContext.PushNotifications.AddAsync(new PushNotification {
-            subscrition = subscription,
-            UserId = UserId
-            });
+            else 
+            {
+                await databaseContext.PushNotifications.AddAsync(new PushNotification
+                {
+                    subscrition = subscription,
+                    UserId = UserId
+                });
+            }
+          
             await databaseContext.SaveChangesAsync();
             return true;
             //var test = databaseContext.Feedbacks.ExecuteUpdate(

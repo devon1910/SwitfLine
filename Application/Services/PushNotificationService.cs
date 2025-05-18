@@ -28,18 +28,26 @@ namespace Application.Services
 
         public async Task SendPushNotification(SubscriptionModel subscription, string payload)
         {
-            var webPushClient = new WebPushClient();
+            try
+            {
+                var webPushClient = new WebPushClient();
 
-            var vapidDetails = new VapidDetails(
-                "mailto:Swiftline00@gmail.com", 
-                config["Vapid_PublicKey"], 
-                config["Vapid_PrivateKey"]);
-            PushSubscription pushSubscription = new PushSubscription(
-                subscription.endpoint,
-                subscription.keys.p256dh,
-                subscription.keys.auth);
+                var vapidDetails = new VapidDetails(
+                    "mailto:Swiftline00@gmail.com",
+                    config["Vapid_PublicKey"],
+                    config["Vapid_PrivateKey"]);
+                PushSubscription pushSubscription = new PushSubscription(
+                    subscription.endpoint,
+                    subscription.keys.p256dh,
+                    subscription.keys.auth);
 
-            await webPushClient.SendNotificationAsync(pushSubscription, payload, vapidDetails);
+                await webPushClient.SendNotificationAsync(pushSubscription, payload, vapidDetails);
+            }
+            catch (Exception ex)
+            { 
+                throw ex;
+            }
+           
         }
 
       
