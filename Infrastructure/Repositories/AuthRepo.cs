@@ -158,7 +158,7 @@ namespace Infrastructure.Repositories
                     // If sending the email fails, throw to trigger rollback.
                     if (!isMailSent)
                     {
-                        throw new Exception("User account created but Welcome Mail wasn't sent.");
+                        throw new Exception("user account created but Welcome Mail wasn't sent.");
                     }
 
                     // Commit transaction if everything succeeded
@@ -942,11 +942,11 @@ namespace Infrastructure.Repositories
                 </div>
             </div>
             
-            <p>Our support team is available 24/7 to help you get the most out of Swiftline. If you have any questions or need assistance setting up your queues, don't hesitate to reach out.</p>
+            <p>Our support team is available 24/7 to help you get the most out of SwiftLine. If you have any questions or need assistance setting up your queues, don't hesitate to reach out.</p>
             
             <p>Say goodbye to long lines and hello to happy customers!</p>
             
-            <p>Best regards,<br>The Swiftline Team</p>
+            <p>Best regards,<br>The SwiftLine Team</p>
         </div>
         
         <div class=""footer"">

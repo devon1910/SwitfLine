@@ -249,7 +249,7 @@ namespace Infrastructure.Repositories
             if (!email.Successful)
             {
                 string.Join(", ", email.ErrorMessages);
-                throw new Exception("Failed to send welcome Email");
+                throw new Exception("Failed to send Reminder Email");
             }
             return true;
         }

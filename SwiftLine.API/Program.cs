@@ -197,7 +197,7 @@ try
         {
             Host = builder.Configuration["Smtp:Host"],
             Port = int.Parse(builder.Configuration["Smtp:Port"]),
-            EnableSsl = true,
+            EnableSsl = false,
             Credentials = new System.Net.NetworkCredential(
                 builder.Configuration["Smtp:Username"],
             builder.Configuration["Smtp:Password"])
