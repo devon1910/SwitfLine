@@ -96,7 +96,7 @@ namespace SwiftLine.API.Controllers
             var result = await service.LoginWithGoogleAsync(authenticateResult.Principal);
 
             // Instead of using cookies, append tokens to the redirect URL:
-            return Redirect($"{returnUrl}?accessToken={result.Data.AccessToken}&refreshToken={result.Data.RefreshToken}&username={result.Data.userName}&userId={result.Data.userId}");
+            return Redirect($"{returnUrl}?accessToken={result.Data.AccessToken}&refreshToken={result.Data.RefreshToken}&username={result.Data.username}&userId={result.Data.userId}");
 
         }
         [HttpPost, AllowAnonymous]

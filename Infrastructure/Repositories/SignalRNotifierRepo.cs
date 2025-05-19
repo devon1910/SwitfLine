@@ -68,13 +68,14 @@ namespace Infrastructure.Repositories
                 //get all subscibed users
                 Dictionary<string, string> subscribedUsers = await dbContext.PushNotifications
                     .Where(x => userIds.Contains(x.UserId) || x.UserId == currentUserId)
-                    .ToDictionaryAsync(x => x.UserId, x => x.subscrition);
+                    .ToDictionaryAsync(x => x.UserId, x => x.Subscrition);
 
 
                 // Notify the current user first
                 var currentUserLineInfo = await lineRepo.GetUserLineInfo(currentUserId);
                 await signalRNotifierHub.NotifyUserPositionChange(currentUserId, currentUserLineInfo);
                 subscribedUsers.TryGetValue(currentUserId, out var userSubscription1);
+
                 if (userSubscription1 is not null)
                 {
                     var message = JsonSerializer.Serialize(new

@@ -17,24 +17,25 @@ namespace Infrastructure.Repositories
             var existingSubscription = await databaseContext.PushNotifications
                 .FirstOrDefaultAsync(x => x.UserId == UserId);
 
-            if (existingSubscription != null && existingSubscription.subscrition != subscription)
+            if (existingSubscription != null)
             {
-                existingSubscription.subscrition = subscription;
+                if (existingSubscription.Subscrition != subscription) 
+                {
+                    existingSubscription.Subscrition = subscription;
+                    await databaseContext.SaveChangesAsync();
+                } 
             }
             else 
             {
                 await databaseContext.PushNotifications.AddAsync(new PushNotification
                 {
-                    subscrition = subscription,
+                    Subscrition = subscription,
                     UserId = UserId
                 });
+                await databaseContext.SaveChangesAsync();
             }
-          
-            await databaseContext.SaveChangesAsync();
+         
             return true;
-            //var test = databaseContext.Feedbacks.ExecuteUpdate(
-            //    f => f.SetProperty(x => x.Comment, "test")
-            //);
         }
     }
 }
