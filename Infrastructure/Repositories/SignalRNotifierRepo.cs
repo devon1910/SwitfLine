@@ -81,7 +81,7 @@ namespace Infrastructure.Repositories
                     var message = JsonSerializer.Serialize(new
                     {
                         title = "Queue Update!",
-                        body = $"You're now position {currentUserLineInfo.PositionRank} in the queue!"
+                        body = $"Thank you for waiting with SwiftLine ⏩"
                     });
                     var pushSubscription = JsonSerializer.Deserialize<SubscriptionModel>(userSubscription1);
                     await pushNotificationService.SendPushNotification(pushSubscription, message);
