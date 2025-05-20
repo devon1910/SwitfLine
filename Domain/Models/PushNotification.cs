@@ -15,6 +15,8 @@ namespace Domain.Models
         public long Id { get; set; }
         public string UserId { get; set; }
         public string Subscrition { get; set; }
+
+        public DateTime DateLastUpdated { get; set; }
         //public MyProperty { get; set; }
     }
 }

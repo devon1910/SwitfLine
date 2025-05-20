@@ -22,6 +22,7 @@ namespace Infrastructure.Repositories
                 if (existingSubscription.Subscrition != subscription) 
                 {
                     existingSubscription.Subscrition = subscription;
+                    existingSubscription.DateLastUpdated = DateTime.UtcNow.AddHours(1);
                     await databaseContext.SaveChangesAsync();
                 } 
             }
@@ -30,7 +31,8 @@ namespace Infrastructure.Repositories
                 await databaseContext.PushNotifications.AddAsync(new PushNotification
                 {
                     Subscrition = subscription,
-                    UserId = UserId
+                    UserId = UserId,
+                    DateLastUpdated = DateTime.UtcNow.AddHours(1)
                 });
                 await databaseContext.SaveChangesAsync();
             }

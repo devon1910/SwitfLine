@@ -179,11 +179,12 @@ namespace Infrastructure.Repositories
                     return AuthResFailed.CreateFailed("You are already in a queue.");
                 }
 
+                int PositionInQueue = (int) Math.Ceiling((double)(eventEntity.UsersInQueue + 1) / eventEntity.StaffCount);
                 dbContext.Lines.Add(new Line
                 {
                     EventId= eventId,
                     UserId = userId,
-                    PositionInQueue = eventEntity.UsersInQueue + 1,
+                    PositionInQueueWhenJoined = PositionInQueue,
                     AvgServiceTimeWhenJoined = eventEntity.AverageTime,
                     NumActiveServersWhenJoined = eventEntity.StaffCount,
                     TotalPeopleInQueueWhenJoined = eventEntity.UsersInQueue,

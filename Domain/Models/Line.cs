@@ -15,7 +15,7 @@ namespace Domain.Models
        
         public string UserId { get; set; }
         public long EventId { get; set; }
-        public int PositionInQueue { get; set; }
+        public int PositionInQueueWhenJoined { get; set; }
         public int AvgServiceTimeWhenJoined { get; set; }
         public int NumActiveServersWhenJoined { get; set; }
         public int TotalPeopleInQueueWhenJoined { get; set; }

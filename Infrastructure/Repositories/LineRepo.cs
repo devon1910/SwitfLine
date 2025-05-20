@@ -21,17 +21,6 @@ namespace Infrastructure.Repositories
     public class LineRepo(SwiftLineDatabaseContext dbContext, IConfiguration _configuration, IFluentEmail _fluentEmail) : ILineRepo
     {
      
-        public async Task<List<Line>> GetLines()
-        {
-            return await dbContext.Lines
-                .Where(x=>x.IsActive && !x.IsAttendedTo)
-                .Include(x => x.Event)
-                .AsSplitQuery()
-                .OrderBy(x => x.CreatedAt)
-                .ToListAsync();
-            
-        }
-
         public async Task<bool> IsItUserTurnToBeServed(Line line, int EventAverageWaitSeconds)
         {
             if (line.DateStartedBeingAttendedTo == default) //first on the queue
@@ -49,22 +38,14 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> MarkUserAsServed(Line line, string status)
         {
-            //line.IsAttendedTo = true;
-            //line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
-            //line.Status = status;
-            //SwiftLineUser? user = await dbContext.SwiftLineUsers.FindAsync(line.LineMember.UserId);
-            //user.IsInQueue = false;
-            //await dbContext.SaveChangesAsync();
-            //return true;
-
-            // Explicitly load the LineMember with its SwiftLineUser
-
+           
             try
             {
                 line.IsAttendedTo = true;
                 line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
                 line.Status = status;
-                line.TimeWaited = (line.DateCompletedBeingAttendedTo - (line.DateStartedBeingAttendedTo != default ? line.DateStartedBeingAttendedTo : DateTime.UtcNow.AddHours(1))).TotalMinutes;
+                DateTime completedDate = line.DateStartedBeingAttendedTo != default ? line.DateStartedBeingAttendedTo : DateTime.UtcNow.AddHours(1);
+                line.TimeWaited = Math.Round((line.DateCompletedBeingAttendedTo - completedDate).TotalMinutes,2);
 
                 await dbContext.Database.ExecuteSqlInterpolatedAsync(
      $"UPDATE public.\"Events\" set \"UsersInQueue\"=\"UsersInQueue\" - 1 where \"Id\"={line.EventId} AND \"UsersInQueue\" > 0");
