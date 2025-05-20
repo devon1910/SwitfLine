@@ -65,8 +65,8 @@ namespace Infrastructure.Repositories
                     // Events with unfinished queue items
                     dbContext.Lines
                         .Any(l => !l.IsAttendedTo &&
-                              l.LineMember.EventId == x.Id &&
-                              !l.LineMember.Event.IsDeleted)
+                              l.EventId == x.Id &&
+                              !l.Event.IsDeleted)
                 ))
                 .ToListAsync();
 
@@ -82,8 +82,7 @@ namespace Infrastructure.Repositories
         public async Task<EventQueueRes> GetEventQueue(int page, int size, long eventId, bool isForPastMembers = false)
         {
             var allLines = dbContext.Lines
-                .Where(x => x.LineMember.EventId == eventId)
-                .Include(x => x.LineMember)
+                .Where(x => x.EventId == eventId)
                 .AsNoTracking();
 
             var allIndividualsInQueue = allLines.Where(x => (isForPastMembers ? x.IsAttendedTo : !x.IsAttendedTo)).Count();
@@ -97,26 +96,20 @@ namespace Infrastructure.Repositories
                {
                    Id = x.Id,
                    CreatedAt = x.CreatedAt.AddHours(-1),
-                   LineMemberId = x.LineMemberId,
                    DateCompletedBeingAttendedTo = x.DateCompletedBeingAttendedTo.AddHours(-1),
                    DateStartedBeingAttendedTo = x.DateStartedBeingAttendedTo.AddHours(-1),
                    IsAttendedTo = x.IsAttendedTo,
                    Status = x.Status,
                    TimeWaited = x.TimeWaited,
-                   LineMember = new LineMember
+                   SwiftLineUser = new SwiftLineUser
                    {
-                       Id = x.LineMemberId,
-                       UserId = x.LineMember.UserId,
-                       SwiftLineUser = new SwiftLineUser
-                       {
-                           UserName = x.LineMember.SwiftLineUser.UserName
-                       }
-                   }
+                       UserName = x.SwiftLineUser.UserName,
+                   },
                }).ToListAsync();
 
             var isEventActive =  dbContext.Events.Find(eventId).IsActive;
 
-            var TotalServed = allLines.Where(x => x.LineMember.EventId == eventId && x.Status.Contains("served")).Count();
+            var TotalServed = allLines.Where(x => x.EventId == eventId && x.Status.Contains("served")).Count();
 
             int averageTime = 0;
 
@@ -183,22 +176,20 @@ namespace Infrastructure.Repositories
 
                 if (user.IsInQueue)
                 {
-                    return AuthResFailed.CreateFailed("You are already in a queue");
+                    return AuthResFailed.CreateFailed("You are already in a queue.");
                 }
-
-                // Create queue entry in a single operation
-                var newQueueMember = new LineMember
-                {
-                    EventId = eventId,
-                    UserId = userId
-                };
-
-                dbContext.LineMembers.Add(newQueueMember);
-                await dbContext.SaveChangesAsync();
 
                 dbContext.Lines.Add(new Line
                 {
-                    LineMemberId = newQueueMember.Id
+                    EventId= eventId,
+                    UserId = userId,
+                    PositionInQueue = eventEntity.UsersInQueue + 1,
+                    AvgServiceTimeWhenJoined = eventEntity.AverageTime,
+                    NumActiveServersWhenJoined = eventEntity.StaffCount,
+                    TotalPeopleInQueueWhenJoined = eventEntity.UsersInQueue,
+                    TimeWaited = -1,
+                    TimeOfDay = DateTime.UtcNow.AddHours(1).ToString("hh tt"),
+                    DayOfWeek = DateTime.UtcNow.AddHours(1).ToString("dddd"),
                 });
 
                 // Update user info
@@ -249,10 +240,11 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "", int position = -1)
         {
-            Line line = dbContext.Lines
-                .Where(x => x.LineMemberId == lineMemberId)
-                .Include(x=>x.LineMember)
+            Line? line = dbContext.Lines
+                .Where(x => x.UserId == userId && !x.IsAttendedTo)
                 .FirstOrDefault();
+
+            if (line is null) return false;
 
             await lineRepo.MarkUserAsServed(line, adminId!= "" ? "left" : "served by Admin" );
             await notifier.BroadcastLineUpdate(line,position);

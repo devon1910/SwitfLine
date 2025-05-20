@@ -19,15 +19,9 @@ namespace Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<LineMember>()
-                .Property(e => e.BasePriority)
-                .HasConversion<string>();
-
         }
         public DbSet<SwiftLineUser> SwiftLineUsers { get; set; }
         public DbSet<Event> Events { get; set; }
-        public DbSet<LineMember> LineMembers { get; set; }
         public DbSet<Line> Lines { get; set; }
         public DbSet<TokenInfo> TokenInfos { get; set; }
         public DbSet<PushNotification> PushNotifications { get; set; }

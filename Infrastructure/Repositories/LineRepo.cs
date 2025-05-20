@@ -25,8 +25,7 @@ namespace Infrastructure.Repositories
         {
             return await dbContext.Lines
                 .Where(x=>x.IsActive && !x.IsAttendedTo)
-                .Include(x => x.LineMember)
-                .ThenInclude(x => x.Event)
+                .Include(x => x.Event)
                 .AsSplitQuery()
                 .OrderBy(x => x.CreatedAt)
                 .ToListAsync();
@@ -65,14 +64,14 @@ namespace Infrastructure.Repositories
                 line.IsAttendedTo = true;
                 line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
                 line.Status = status;
-                line.TimeWaited = (int)(line.DateCompletedBeingAttendedTo - (line.DateStartedBeingAttendedTo != default ? line.DateStartedBeingAttendedTo : DateTime.UtcNow.AddHours(1))).TotalMinutes;
+                line.TimeWaited = (line.DateCompletedBeingAttendedTo - (line.DateStartedBeingAttendedTo != default ? line.DateStartedBeingAttendedTo : DateTime.UtcNow.AddHours(1))).TotalMinutes;
 
                 await dbContext.Database.ExecuteSqlInterpolatedAsync(
-     $"UPDATE public.\"Events\" set \"UsersInQueue\"=\"UsersInQueue\" - 1 where \"Id\"={line.LineMember.EventId} AND \"UsersInQueue\" > 0");
+     $"UPDATE public.\"Events\" set \"UsersInQueue\"=\"UsersInQueue\" - 1 where \"Id\"={line.EventId} AND \"UsersInQueue\" > 0");
                 await dbContext.Database.ExecuteSqlInterpolatedAsync(
-   $"UPDATE public.\"AspNetUsers\" set \"IsInQueue\"='false' where \"Id\"={line.LineMember.UserId}");
+   $"UPDATE public.\"AspNetUsers\" set \"IsInQueue\"='false' where \"Id\"={line.UserId}");
                 await dbContext.Database.ExecuteSqlInterpolatedAsync(
-   $"UPDATE public.\"AspNetUsers\" set \"LastEventJoined\"=0 where \"Id\"={line.LineMember.UserId}");
+   $"UPDATE public.\"AspNetUsers\" set \"LastEventJoined\"=0 where \"Id\"={line.UserId}");
 
 
                 await dbContext.SaveChangesAsync();
@@ -83,47 +82,13 @@ namespace Infrastructure.Repositories
 
                 throw;
             }
-           
-
-            //using var transaction = await dbContext.Database.BeginTransactionAsync();
-            //try
-            //{
-            //    await dbContext.SaveChangesAsync();
-            //    await transaction.CommitAsync();
-            //    return true;
-            //}
-            //catch (DbUpdateConcurrencyException ex)
-            //{
-            //    await transaction.RollbackAsync();
-            //    // Implement concurrency handling
-            //    foreach (var entry in ex.Entries)
-            //    {
-            //        var databaseValues = await entry.GetDatabaseValuesAsync();
-            //        if (databaseValues != null)
-            //        {
-            //            entry.OriginalValues.SetValues(databaseValues);
-            //            entry.CurrentValues.SetValues(databaseValues);
-            //            line.LineMember.SwiftLineUser.IsInQueue = false; // Re-apply
-            //        }
-            //    }
-            //    await dbContext.SaveChangesAsync();
-            //    await transaction.CommitAsync();
-            //    return true;
-            //}
-            //catch
-            //{
-            //    await transaction.RollbackAsync();
-            //    throw;
-            //}
-
+          
         }
 
         public async Task<Line?> GetFirstLineMember(long eventId)
         {
             return await  dbContext.Lines
-                .Where(x => x.IsActive && !x.IsAttendedTo && x.LineMember.EventId == eventId)
-                .Include(x => x.LineMember)
-                .AsSplitQuery()
+                .Where(x => x.IsActive && !x.IsAttendedTo && x.EventId == eventId)
                 .OrderBy(x => x.Id)
                 .FirstOrDefaultAsync();      
         }
@@ -133,19 +98,15 @@ namespace Infrastructure.Repositories
         {
 
             var line = await dbContext.Lines
-                .Where(x => !x.IsAttendedTo && x.IsActive && x.LineMember.UserId == UserId)
-                .Include(x => x.LineMember)
-                .AsSplitQuery()
+                .Where(x => !x.IsAttendedTo && x.IsActive && x.UserId == UserId)
                 .FirstOrDefaultAsync();
 
                 if (line is null)
-                return new LineInfoRes(0, -1, 0, "", "", 0);
+                return new LineInfoRes( -1, 0, "", "", 0);
 
             // Get the full queue
             var othersInLines = await dbContext.Lines
-                .Where(x => x.IsActive && !x.IsAttendedTo && x.LineMember.EventId == line.LineMember.EventId)
-                .Include(x => x.LineMember)
-                .AsSplitQuery()
+                .Where(x => x.IsActive && !x.IsAttendedTo && x.EventId == line.EventId)
                 .OrderBy(x => x.Id)
                 .AsNoTracking()
                 .ToListAsync();
@@ -153,7 +114,7 @@ namespace Infrastructure.Repositories
             // Get event info
             var @event = await dbContext.Events
                 .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == line.LineMember.EventId);
+                .FirstOrDefaultAsync(x => x.Id == line.EventId);
 
             // Find position (correctly by matching ID)
             int index = othersInLines.FindIndex(x => x.Id == line.Id);
@@ -169,7 +130,6 @@ namespace Infrastructure.Repositories
 
             // Return final result
             return new LineInfoRes(
-                line.LineMemberId,
                 position,
                 timeTillYourTurn - @event.AverageTime,
                 GetOrdinal(position),
@@ -187,7 +147,7 @@ namespace Infrastructure.Repositories
         {
             try
             {
-                long eventId = line.LineMember.EventId;
+                long eventId = line.EventId;
 
                 // Combine queries to reduce database round trips
                 var result = await dbContext.Events
@@ -198,13 +158,16 @@ namespace Infrastructure.Repositories
                         FifthUser = dbContext.Lines
                             .Where(l => l.IsActive &&
                                    !l.IsAttendedTo &&
-                                   l.LineMember.EventId == eventId)
+                                   l.EventId == eventId)
+                            .Include(x=>x.SwiftLineUser)
+                            .AsNoTracking()
+                            .AsSplitQuery()
                             .OrderBy(l => l.Id)
                             .Skip(1) 
                             .Select(l => new
                             {
-                                Email = l.LineMember.SwiftLineUser.Email,
-                                Username = l.LineMember.SwiftLineUser.UserName
+                                Email = l.SwiftLineUser.Email,
+                                Username = l.SwiftLineUser.UserName
                             })
                             .FirstOrDefault()
                     })

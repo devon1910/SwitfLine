@@ -32,7 +32,6 @@ namespace ServiceUnitTests
             var userId = "user123";
 
             var expected = new LineInfoRes(
-                 10L,
                 2,
                  8,
                  "2nd",
@@ -48,7 +47,6 @@ namespace ServiceUnitTests
             var result = await _lineService.GetUserLineInfo(userId);
 
             // Assert
-            Assert.Equal(expected.LineMemberId, result.Data.LineMemberId);
             Assert.Equal(expected.Position, result.Data.Position);
             Assert.Equal(expected.TimeTillYourTurn, result.Data.TimeTillYourTurn);
             Assert.Equal(expected.PositionRank, result.Data.PositionRank);
@@ -63,7 +61,7 @@ namespace ServiceUnitTests
         {
             // Arrange
             var userId = "unknown-user";
-            var defaultRes = new LineInfoRes(0, -1, 0, "", "", 0, false, 0);
+            var defaultRes = new LineInfoRes( -1, 0, "", "", 0, false, 0);
 
             _linesRepoMock.GetUserLineInfo(userId).Returns(defaultRes);
 
@@ -71,7 +69,6 @@ namespace ServiceUnitTests
             var result = await _lineService.GetUserLineInfo(userId);
 
             // Assert
-            Assert.Equal(0, result.Data.LineMemberId);
             Assert.Equal(-1, result.Data.Position);
             Assert.Equal(0, result.Data.TimeTillYourTurn);
             Assert.Equal("", result.Data.PositionRank);
@@ -96,7 +93,6 @@ namespace ServiceUnitTests
             var userId = $"user-{position}";
 
             var expected = new LineInfoRes(
-               999,
                  position,
                 5,
                 expectedOrdinal,

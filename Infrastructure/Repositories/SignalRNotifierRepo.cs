@@ -28,16 +28,15 @@ namespace Infrastructure.Repositories
         {
             var othersInLines = await dbContext.Lines
                 .Where(x => !x.IsAttendedTo && x.IsActive)
-                .Include(x => x.LineMember)
                 .AsSplitQuery()
-                .Where(x => x.LineMember.EventId == eventId)
+                .Where(x => x.EventId == eventId)
                 .OrderBy(x => x.CreatedAt)
                 .AsNoTracking()
                 .ToListAsync();       
 
             foreach (var line in othersInLines)
             {
-                string userId = line.LineMember.UserId;
+                string userId = line.UserId;
                 await signalRNotifierHub.NotifyUserQueueStatusUpdate(userId, status);
             }
 
@@ -48,15 +47,15 @@ namespace Infrastructure.Repositories
         {
             try
             {
-                long eventId = line.LineMember.EventId;
-                string currentUserId = line.LineMember.UserId;
+                long eventId = line.EventId;
+                string currentUserId = line.UserId;
 
                 // Fetch all users in line for this event in a single query
                 var usersInLine = await dbContext.Lines
-                    .Where(x => !x.IsAttendedTo && x.IsActive && x.LineMember.EventId == eventId)
+                    .Where(x => !x.IsAttendedTo && x.IsActive && x.EventId == eventId)
                     .Select(x => new
                     {
-                        UserId = x.LineMember.UserId,
+                        UserId = x.UserId,
                         LineId = x.Id
                     })
                     .OrderBy(x => x.LineId)
