@@ -189,15 +189,16 @@ try
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials(); // Required for SignalR with credentials
-
         });
     });
+
     builder.Services.AddFluentEmail(builder.Configuration["Smtp:FromEmail"]) 
         .AddSmtpSender(new SmtpClient
         {
             Host = builder.Configuration["Smtp:Host"],
             Port = int.Parse(builder.Configuration["Smtp:Port"]),
-            EnableSsl = false,
+            UseDefaultCredentials = false,
+            EnableSsl = true,
             Credentials = new System.Net.NetworkCredential(
                 builder.Configuration["Smtp:Username"],
             builder.Configuration["Smtp:Password"])

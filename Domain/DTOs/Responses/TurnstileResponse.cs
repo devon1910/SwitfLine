@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Models
+namespace Domain.DTOs.Responses
 {
     public record TurnstileResponse(bool success, string challenge_ts, string hostname, List<string> error_codes);
 }

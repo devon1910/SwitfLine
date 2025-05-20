@@ -174,7 +174,7 @@ namespace Infrastructure.Repositories
                     // Roll back all changes if any error occurs
                     await transaction.RollbackAsync();
                     _logger.LogError($"Signup transaction failed: {ex.Message}");
-                    return AuthResFailed.CreateFailed(ex.Message);
+                    return AuthResFailed.CreateFailed("Something went wrong. If this error persists please contact the support team.");
                 }
             }
 
