@@ -15,7 +15,7 @@ namespace Domain.Interfaces
         public Task<bool> IsItUserTurnToBeServed(Line line, int EventAverageWaitSeconds);  
         public Task<bool> MarkUserAsServed(Line line,string status);
         public Task<LineInfoRes> GetUserLineInfo(string UserId);
-        public Task<Line?> GetFirstLineMember(long eventId);
+        public Task<List<Line?>> GetFirstLineMembers(long eventId,int numberOfStaffServing);
         public Task Notify2ndLineMember(Line line);
     }
     public interface ILineService

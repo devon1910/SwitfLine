@@ -66,12 +66,13 @@ namespace Infrastructure.Repositories
           
         }
 
-        public async Task<Line?> GetFirstLineMember(long eventId)
+        public async Task<List<Line?>> GetFirstLineMembers(long eventId, int numberOfStaffServing)
         {
             return await  dbContext.Lines
                 .Where(x => x.IsActive && !x.IsAttendedTo && x.EventId == eventId)
                 .OrderBy(x => x.Id)
-                .FirstOrDefaultAsync();      
+                .Skip(0).Take(numberOfStaffServing)
+                .ToListAsync();      
         }
 
 

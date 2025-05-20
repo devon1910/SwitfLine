@@ -30,15 +30,19 @@ namespace Infrastructure.BackgroundServices
 
                     foreach (var e in cachedEvents)
                     {
-                        Line? line = await linesRepo.GetFirstLineMember(e.Id);
+                        List<Line?> firstLinesMembers = await linesRepo.GetFirstLineMembers(e.Id,e.StaffCount);
 
-                        if (line is not null && await linesRepo.IsItUserTurnToBeServed(line,e.AverageTimeToServeSeconds))
+                        foreach (var line in firstLinesMembers) 
                         {
-                            await linesRepo.MarkUserAsServed(line,"served");
-                            await signalRNotifier.BroadcastLineUpdate(line,-1);
-                            await linesRepo.Notify2ndLineMember(line);
+                            if (line is not null && await linesRepo.IsItUserTurnToBeServed(line, e.AverageTimeToServeSeconds))
+                            {
+                                await linesRepo.MarkUserAsServed(line, "served");
+                                await signalRNotifier.BroadcastLineUpdate(line, -1);
+                                await linesRepo.Notify2ndLineMember(line);
 
+                            }
                         }
+                        
                     }
                     await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
                 }
