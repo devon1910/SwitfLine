@@ -102,11 +102,11 @@ namespace Infrastructure.Repositories
                     subscribedUsers.TryGetValue(user.UserId, out var userSubscription);
                     if (userSubscription is not null)
                     {
-                        string messageBody = lineInfo.PositionRank == "1st" ? "You've reached the front of the queue!" : $"You're now position {lineInfo.PositionRank} in the queue!";
+                        string messageBody = lineInfo.Position == 1 ? "You've reached the front of the queue!🎉" : $"You're now {lineInfo.PositionRank} position in the queue!";
                         var message = JsonSerializer.Serialize(new
                         {
                             title = "Queue Update!",
-                            body = $"You're now position {lineInfo.PositionRank} in the queue!"
+                            body = messageBody
                         });
                         var pushSubscription = JsonSerializer.Deserialize<SubscriptionModel>(userSubscription);
                         await pushNotificationService.SendPushNotification(pushSubscription, message);
