@@ -1,4 +1,5 @@
 using Application.Services;
+using Domain.DTOs.Requests;
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
@@ -18,7 +19,9 @@ using Microsoft.AspNetCore.OpenApi;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.ML;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.ML;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Events;
@@ -37,6 +40,11 @@ try
         .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
         .AddEnvironmentVariables()
         .Build();
+
+    //var mlContext = new MLContext();
+    //using var stream = File.OpenRead("Models/waitTimeModel.zip");
+    //ITransformer trainedModel = mlContext.Model.Load(stream, out var schema);
+
 
     Log.Logger = new LoggerConfiguration()
         .ReadFrom.Configuration(configuration)
@@ -88,6 +96,12 @@ try
     });
     builder.Services.AddHostedService<LineManager>();
     builder.Services.AddHostedService<AccountsCleanup>();
+
+    //builder.Services.AddSingleton(mlContext);
+    //builder.Services.AddSingleton(trainedModel);
+
+    //builder.Services.AddPredictionEnginePool<QueueEntry, WaitTimePrediction>()
+    //    .FromFile("waitTimeModel", "Models/waitTimeModel.zip");
 
 
     builder.Services.AddAuthentication(options =>

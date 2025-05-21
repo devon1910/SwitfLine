@@ -1,5 +1,6 @@
 ﻿using Application.Services;
 using Azure.Core;
+using Domain;
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
@@ -79,48 +80,73 @@ namespace Infrastructure.Repositories
         public async Task<LineInfoRes> GetUserLineInfo(string UserId)
         {
 
-            var line = await dbContext.Lines
+            try
+            {
+                var line = await dbContext.Lines
                 .Where(x => !x.IsAttendedTo && x.IsActive && x.UserId == UserId)
                 .FirstOrDefaultAsync();
 
                 if (line is null)
-                return new LineInfoRes( -1, 0, "", "", 0);
+                    return new LineInfoRes(-1, 0, "", "", 0);
 
-            // Get the full queue
-            var othersInLines = await dbContext.Lines
-                .Where(x => x.IsActive && !x.IsAttendedTo && x.EventId == line.EventId)
-                .OrderBy(x => x.Id)
-                .AsNoTracking()
-                .ToListAsync();
+                // Get the full queue
+                var othersInLines = await dbContext.Lines
+                    .Where(x => x.IsActive && !x.IsAttendedTo && x.EventId == line.EventId)
+                    .OrderBy(x => x.Id)
+                    .AsNoTracking()
+                    .ToListAsync();
 
-            // Get event info
-            var @event = await dbContext.Events
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == line.EventId);
+                // Get event info
+                var @event = await dbContext.Events
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Id == line.EventId);
 
-            // Find position (correctly by matching ID)
-            int index = othersInLines.FindIndex(x => x.Id == line.Id);
-            int position = index + 1;
+                // Find position (correctly by matching ID)
+                int index = othersInLines.FindIndex(x => x.Id == line.Id);
+                int position = index + 1;
 
-            // Estimate wait time
-            double totalMinutes = (position * @event.AverageTime) / (double)@event.StaffCount;
-            int timeTillYourTurn = (int) Math.Ceiling(totalMinutes);
-            timeTillYourTurn = Math.Max(timeTillYourTurn, @event.AverageTime);
+                // Estimate wait time
+                double totalMinutes = (position * @event.AverageTime) / (double)@event.StaffCount;
+                int timeTillYourTurn = (int)Math.Ceiling(totalMinutes);
+                timeTillYourTurn = Math.Max(timeTillYourTurn, @event.AverageTime);
 
-            position = (int) Math.Ceiling((decimal) timeTillYourTurn / @event.AverageTime);
-        
+                position = (int)Math.Ceiling((decimal)timeTillYourTurn / @event.AverageTime);
 
-            // Return final result
-            return new LineInfoRes(
-                position,
-                timeTillYourTurn - @event.AverageTime,
-                GetOrdinal(position),
-                @event.Title,
-                @event.AverageTime,
-                @event.IsActive,
-                @event.StaffCount
-            );
+                //using ML for estimating wait time
+                WaitTimeEstimator.ModelInput sampleData = new WaitTimeEstimator.ModelInput()
+                {
+                    EventId = @event.Id,
+                    AvgServiceTimeWhenJoined = line.AvgServiceTimeWhenJoined,
+                    DayOfWeek = line.DayOfWeek,
+                    NumActiveServersWhenJoined = line.NumActiveServersWhenJoined,
+                    PositionInQueueWhenJoined = line.PositionInQueueWhenJoined,
+                    TimeOfDay = line.TimeOfDay,
+                    TotalPeopleInQueueWhenJoined = line.TotalPeopleInQueueWhenJoined,
+                };
 
+                var predictionResult = WaitTimeEstimator.Predict(sampleData);
+
+                int timeTillYourTurnAI = (int)Math.Ceiling(predictionResult.Score);
+
+                // Return final result
+                return new LineInfoRes(
+                    position,
+                    timeTillYourTurn - @event.AverageTime,
+                    GetOrdinal(position),
+                    @event.Title,
+                    @event.AverageTime,
+                    @event.IsActive,
+                    @event.StaffCount,
+                    timeTillYourTurnAI
+                );
+
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+            
 
         }
 
