@@ -190,7 +190,7 @@ namespace Infrastructure.Repositories
                     NumActiveServersWhenJoined = eventEntity.StaffCount,
                     TimeWaited = 0,
                     TimeOfDay = getTimeOfTheDay(DateTime.UtcNow.AddHours(1).Hour),
-                    DayOfWeek = (int) DateTime.UtcNow.DayOfWeek,
+                    DayOfWeek = (DayOfWeekEnum) DateTime.UtcNow.DayOfWeek,
                     EffectiveQueuePosition =  Math.Max(0, (PositionInQueue - eventEntity.StaffCount)), 
                 });
 
@@ -226,7 +226,7 @@ namespace Infrastructure.Repositories
 
         }
 
-        private int getTimeOfTheDay(int hour) 
+        private TimeOfDayEnum getTimeOfTheDay(int hour) 
         {
             TimeOfDayEnum timeOfDayEnum;
 
@@ -239,7 +239,7 @@ namespace Infrastructure.Repositories
             else
                 timeOfDayEnum = TimeOfDayEnum.Night;
 
-            return (int) timeOfDayEnum;
+            return  timeOfDayEnum;
         }
         public void DeleteEvent(long Id)
         {

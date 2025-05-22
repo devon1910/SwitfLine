@@ -18,8 +18,8 @@ namespace Domain.Models
         public int AvgServiceTimeWhenJoined { get; set; }
         public int NumActiveServersWhenJoined { get; set; }
         public double TimeWaited { get; set; }
-        public int TimeOfDay { get; set; }
-        public int DayOfWeek { get; set; } 
+        public TimeOfDayEnum TimeOfDay { get; set; }
+        public DayOfWeekEnum DayOfWeek { get; set; } 
         public DateTime DateStartedBeingAttendedTo { get; set; }
         public DateTime DateCompletedBeingAttendedTo { get; set; }
 
