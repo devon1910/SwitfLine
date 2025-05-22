@@ -186,14 +186,12 @@ namespace Infrastructure.Repositories
                 {
                     EventId = eventId,
                     UserId = userId,
-                    PositionInQueueWhenJoined = PositionInQueue,
                     AvgServiceTimeWhenJoined = eventEntity.AverageTime,
                     NumActiveServersWhenJoined = eventEntity.StaffCount,
                     TimeWaited = 0,
-                    TimeOfDay = DateTime.UtcNow.AddHours(1).ToString("hh tt"),
-                    DayOfWeek = DateTime.UtcNow.AddHours(1).ToString("dddd"),
+                    TimeOfDay = getTimeOfTheDay(DateTime.UtcNow.AddHours(1).Hour),
+                    DayOfWeek = (int) DateTime.UtcNow.DayOfWeek,
                     EffectiveQueuePosition =  Math.Max(0, (PositionInQueue - eventEntity.StaffCount)), 
-                    TotalPeopleInQueueWhenJoined = totalLineMembersInQueue,
                 });
 
                 // Update user info
@@ -228,7 +226,21 @@ namespace Infrastructure.Repositories
 
         }
 
-       
+        private int getTimeOfTheDay(int hour) 
+        {
+            TimeOfDayEnum timeOfDayEnum;
+
+            if (hour >= 6 && hour < 12)
+                timeOfDayEnum = TimeOfDayEnum.Morning;
+            else if (hour >= 12 && hour < 18)
+                timeOfDayEnum = TimeOfDayEnum.Afternoon;
+            else if (hour >= 18 && hour < 22)
+                timeOfDayEnum = TimeOfDayEnum.Evening;
+            else
+                timeOfDayEnum = TimeOfDayEnum.Night;
+
+            return (int) timeOfDayEnum;
+        }
         public void DeleteEvent(long Id)
         {
             Event eventToDelete = dbContext.Events.Find(Id);

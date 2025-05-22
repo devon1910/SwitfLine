@@ -15,13 +15,11 @@ namespace Domain.Models
        
         public string UserId { get; set; }
         public long EventId { get; set; }
-        public int PositionInQueueWhenJoined { get; set; }
         public int AvgServiceTimeWhenJoined { get; set; }
         public int NumActiveServersWhenJoined { get; set; }
-        public int TotalPeopleInQueueWhenJoined { get; set; }
         public double TimeWaited { get; set; }
-        public string TimeOfDay { get; set; } = string.Empty;
-        public string DayOfWeek { get; set; } = string.Empty;
+        public int TimeOfDay { get; set; }
+        public int DayOfWeek { get; set; } 
         public DateTime DateStartedBeingAttendedTo { get; set; }
         public DateTime DateCompletedBeingAttendedTo { get; set; }
 
@@ -35,5 +33,25 @@ namespace Domain.Models
 
         [ForeignKey("UserId")]
         public SwiftLineUser SwiftLineUser { get; set; }
+
+       
+    }
+    public enum DayOfWeekEnum
+    {
+        Sunday,
+        Monday,
+        Tuesday,
+        Wednesday,
+        Thursday,
+        Friday,
+        Saturday
+    }
+
+    public enum TimeOfDayEnum
+    {
+        Morning,
+        Afternoon,
+        Evening,
+        Night
     }
 }
