@@ -179,18 +179,21 @@ namespace Infrastructure.Repositories
                     return AuthResFailed.CreateFailed("You are already in a queue.");
                 }
 
-                int PositionInQueue = (int) Math.Ceiling((double)(eventEntity.UsersInQueue + 1) / eventEntity.StaffCount);
+                int totalLineMembersInQueue = eventEntity.UsersInQueue + 1;
+                int PositionInQueue = (int) Math.Ceiling((double)(totalLineMembersInQueue) / eventEntity.StaffCount);
+
                 dbContext.Lines.Add(new Line
                 {
-                    EventId= eventId,
+                    EventId = eventId,
                     UserId = userId,
                     PositionInQueueWhenJoined = PositionInQueue,
                     AvgServiceTimeWhenJoined = eventEntity.AverageTime,
                     NumActiveServersWhenJoined = eventEntity.StaffCount,
-                    TotalPeopleInQueueWhenJoined = eventEntity.UsersInQueue,
-                    TimeWaited = -1,
+                    TimeWaited = 0,
                     TimeOfDay = DateTime.UtcNow.AddHours(1).ToString("hh tt"),
                     DayOfWeek = DateTime.UtcNow.AddHours(1).ToString("dddd"),
+                    EffectiveQueuePosition =  Math.Max(0, (PositionInQueue - eventEntity.StaffCount)), 
+                    TotalPeopleInQueueWhenJoined = totalLineMembersInQueue,
                 });
 
                 // Update user info

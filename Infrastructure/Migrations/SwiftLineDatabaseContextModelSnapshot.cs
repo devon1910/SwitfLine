@@ -139,6 +139,9 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("EffectiveQueuePosition")
+                        .HasColumnType("integer");
+
                     b.Property<long>("EventId")
                         .HasColumnType("bigint");
 

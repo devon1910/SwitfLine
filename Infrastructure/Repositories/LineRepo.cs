@@ -6,6 +6,7 @@ using Domain.Interfaces;
 using Domain.Models;
 using FluentEmail.Core;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -47,6 +48,7 @@ namespace Infrastructure.Repositories
                 line.Status = status;
                 DateTime completedDate = line.DateStartedBeingAttendedTo != default ? line.DateStartedBeingAttendedTo : DateTime.UtcNow.AddHours(1);
                 line.TimeWaited = Math.Round((line.DateCompletedBeingAttendedTo - completedDate).TotalMinutes,2);
+ 
 
                 await dbContext.Database.ExecuteSqlInterpolatedAsync(
      $"UPDATE public.\"Events\" set \"UsersInQueue\"=\"UsersInQueue\" - 1 where \"Id\"={line.EventId} AND \"UsersInQueue\" > 0");
@@ -103,30 +105,30 @@ namespace Infrastructure.Repositories
 
                 // Find position (correctly by matching ID)
                 int index = othersInLines.FindIndex(x => x.Id == line.Id);
-                int position = index + 1;
+                int actualPosition = index + 1;
 
                 // Estimate wait time
-                double totalMinutes = (position * @event.AverageTime) / (double)@event.StaffCount;
+                double totalMinutes = (actualPosition * @event.AverageTime) / (double)@event.StaffCount;
                 int timeTillYourTurn = (int)Math.Ceiling(totalMinutes);
                 timeTillYourTurn = Math.Max(timeTillYourTurn, @event.AverageTime);
 
-                position = (int)Math.Ceiling((decimal)timeTillYourTurn / @event.AverageTime);
+                int position = (int)Math.Ceiling((decimal)timeTillYourTurn / @event.AverageTime);
 
+ 
+                int eqp = Math.Max(actualPosition - @event.StaffCount, 0);
+                int batches = eqp / @event.StaffCount; // tell the model how to handle parallelism
                 //using ML for estimating wait time
                 WaitTimeEstimator.ModelInput sampleData = new WaitTimeEstimator.ModelInput()
                 {
-                    EventId = @event.Id,
-                    AvgServiceTimeWhenJoined = line.AvgServiceTimeWhenJoined,
-                    DayOfWeek = line.DayOfWeek,
-                    NumActiveServersWhenJoined = line.NumActiveServersWhenJoined,
-                    PositionInQueueWhenJoined = line.PositionInQueueWhenJoined,
-                    TimeOfDay = line.TimeOfDay,
-                    TotalPeopleInQueueWhenJoined = line.TotalPeopleInQueueWhenJoined,
+                    AvgServiceTimeWhenJoined = @event.AverageTime,
+                    NumActiveServersWhenJoined = @event.StaffCount,
+                    EffectiveQueuePosition = eqp, //Number of people ahead of me
+                    Batches = batches
                 };
 
                 var predictionResult = WaitTimeEstimator.Predict(sampleData);
 
-                int timeTillYourTurnAI = (int)Math.Ceiling(predictionResult.Score);
+                int timeTillYourTurnAI = @event.StaffCount > 1 ? (int)Math.Ceiling(predictionResult.Score) : (int)Math.Floor(predictionResult.Score);
 
                 // Return final result
                 return new LineInfoRes(

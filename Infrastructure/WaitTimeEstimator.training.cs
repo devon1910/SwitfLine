@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
-using Microsoft.ML.Transforms;
+using Microsoft.ML.Trainers.LightGbm;
 
 namespace Infrastructure
 {
     public partial class WaitTimeEstimator
     {
-        public const string RetrainFilePath =  @"C:\Users\ekpok\Downloads\Training-Data-2 - Training-Data-2.csv";
+        public const string RetrainFilePath =  @"C:\Users\ekpok\Downloads\WaitTimeTrainingData_v1 - WaitTimeEstimator_TrainingData.csv";
         public const char RetrainSeparatorChar = ',';
         public const bool RetrainHasHeader =  true;
         public const bool RetrainAllowQuoting =  false;
@@ -90,10 +90,9 @@ namespace Infrastructure
         public static IEstimator<ITransformer> BuildPipeline(MLContext mlContext)
         {
             // Data process configuration with pipeline data transformations
-            var pipeline = mlContext.Transforms.Categorical.OneHotEncoding(new []{new InputOutputColumnPair(@"DayOfWeek", @"DayOfWeek"),new InputOutputColumnPair(@"TimeOfDay", @"TimeOfDay")}, outputKind: OneHotEncodingEstimator.OutputKind.Indicator)      
-                                    .Append(mlContext.Transforms.ReplaceMissingValues(new []{new InputOutputColumnPair(@"EventId", @"EventId"),new InputOutputColumnPair(@"AvgServiceTimeWhenJoined", @"AvgServiceTimeWhenJoined"),new InputOutputColumnPair(@"NumActiveServersWhenJoined", @"NumActiveServersWhenJoined"),new InputOutputColumnPair(@"PositionInQueueWhenJoined", @"PositionInQueueWhenJoined"),new InputOutputColumnPair(@"TotalPeopleInQueueWhenJoined", @"TotalPeopleInQueueWhenJoined")}))      
-                                    .Append(mlContext.Transforms.Concatenate(@"Features", new []{@"DayOfWeek",@"TimeOfDay",@"EventId",@"AvgServiceTimeWhenJoined",@"NumActiveServersWhenJoined",@"PositionInQueueWhenJoined",@"TotalPeopleInQueueWhenJoined"}))      
-                                    .Append(mlContext.Regression.Trainers.LbfgsPoissonRegression(new LbfgsPoissonRegressionTrainer.Options(){L1Regularization=0.16197275F,L2Regularization=0.04207396F,LabelColumnName=@"TimeWaited",FeatureColumnName=@"Features"}));
+            var pipeline = mlContext.Transforms.ReplaceMissingValues(new []{new InputOutputColumnPair(@"AvgServiceTimeWhenJoined", @"AvgServiceTimeWhenJoined"),new InputOutputColumnPair(@"NumActiveServersWhenJoined", @"NumActiveServersWhenJoined"),new InputOutputColumnPair(@"EffectiveQueuePosition", @"EffectiveQueuePosition"),new InputOutputColumnPair(@"Batches", @"Batches")})      
+                                    .Append(mlContext.Transforms.Concatenate(@"Features", new []{@"AvgServiceTimeWhenJoined",@"NumActiveServersWhenJoined",@"EffectiveQueuePosition",@"Batches"}))      
+                                    .Append(mlContext.Regression.Trainers.LightGbm(new LightGbmRegressionTrainer.Options(){NumberOfLeaves=2109,NumberOfIterations=14032,MinimumExampleCountPerLeaf=20,LearningRate=0.10121412620377002,LabelColumnName=@"TimeWaited",FeatureColumnName=@"Features",Booster=new GradientBooster.Options(){SubsampleFraction=2.7926883517648967E-06,FeatureFraction=0.6672440096163111,L1Regularization=4.0612320207173524E-05,L2Regularization=0.14020854568943053},MaximumBinCountPerFeature=236}));
 
             return pipeline;
         }

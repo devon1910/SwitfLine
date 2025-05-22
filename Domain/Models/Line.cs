@@ -25,6 +25,8 @@ namespace Domain.Models
         public DateTime DateStartedBeingAttendedTo { get; set; }
         public DateTime DateCompletedBeingAttendedTo { get; set; }
 
+        public int EffectiveQueuePosition { get; set; }
+
         [AllowedValues(["pending", "served", "exitedByUser", "exitedByAdmin"], ErrorMessage = "The value passed is not allowed")]
         public string Status { get; set; } = "pending";
 

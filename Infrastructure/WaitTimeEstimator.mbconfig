@@ -8,96 +8,16 @@
     "KeepPunctuations": false,
     "AllowQuoting": false,
     "Type": "TabularFile",
-    "FilePath": "C:\\Users\\ekpok\\Downloads\\Training-Data-2 - Training-Data-2.csv",
+    "FilePath": "C:\\Users\\ekpok\\Downloads\\WaitTimeTrainingData_v1 - WaitTimeEstimator_TrainingData.csv",
     "Delimiter": ",",
     "DecimalMarker": ".",
     "HasHeader": true,
     "ColumnProperties": [
       {
-        "ColumnName": "Id",
-        "ColumnPurpose": "Ignore",
-        "ColumnDataFormat": "Single",
-        "IsCategorical": false,
-        "Type": "Column",
-        "Version": 5
-      },
-      {
-        "ColumnName": "EventId",
-        "ColumnPurpose": "Feature",
-        "ColumnDataFormat": "Single",
-        "IsCategorical": true,
-        "Type": "Column",
-        "Version": 5
-      },
-      {
-        "ColumnName": "IsAttendedTo",
-        "ColumnPurpose": "Ignore",
-        "ColumnDataFormat": "String",
-        "IsCategorical": true,
-        "Type": "Column",
-        "Version": 5
-      },
-      {
-        "ColumnName": "DateStartedBeingAttendedTo",
-        "ColumnPurpose": "Ignore",
-        "ColumnDataFormat": "String",
-        "IsCategorical": false,
-        "Type": "Column",
-        "Version": 5
-      },
-      {
-        "ColumnName": "DateCompletedBeingAttendedTo",
-        "ColumnPurpose": "Ignore",
-        "ColumnDataFormat": "String",
-        "IsCategorical": false,
-        "Type": "Column",
-        "Version": 5
-      },
-      {
-        "ColumnName": "CreatedAt",
-        "ColumnPurpose": "Ignore",
-        "ColumnDataFormat": "String",
-        "IsCategorical": false,
-        "Type": "Column",
-        "Version": 5
-      },
-      {
-        "ColumnName": "IsActive",
-        "ColumnPurpose": "Ignore",
-        "ColumnDataFormat": "String",
-        "IsCategorical": true,
-        "Type": "Column",
-        "Version": 5
-      },
-      {
-        "ColumnName": "Status",
-        "ColumnPurpose": "Ignore",
-        "ColumnDataFormat": "String",
-        "IsCategorical": true,
-        "Type": "Column",
-        "Version": 5
-      },
-      {
-        "ColumnName": "TimeWaited",
-        "ColumnPurpose": "Label",
-        "ColumnDataFormat": "Single",
-        "IsCategorical": false,
-        "Type": "Column",
-        "Version": 5
-      },
-      {
         "ColumnName": "AvgServiceTimeWhenJoined",
         "ColumnPurpose": "Feature",
         "ColumnDataFormat": "Single",
         "IsCategorical": false,
-        "Type": "Column",
-        "Version": 5
-      },
-      {
-        "ColumnName": "DayOfWeek",
-        "ColumnPurpose": "Feature",
-        "ColumnDataFormat": "String",
-        "IsCategorical": true,
         "Type": "Column",
         "Version": 5
       },
@@ -110,7 +30,7 @@
         "Version": 5
       },
       {
-        "ColumnName": "PositionInQueueWhenJoined",
+        "ColumnName": "EffectiveQueuePosition",
         "ColumnPurpose": "Feature",
         "ColumnDataFormat": "Single",
         "IsCategorical": false,
@@ -118,15 +38,7 @@
         "Version": 5
       },
       {
-        "ColumnName": "TimeOfDay",
-        "ColumnPurpose": "Feature",
-        "ColumnDataFormat": "String",
-        "IsCategorical": true,
-        "Type": "Column",
-        "Version": 5
-      },
-      {
-        "ColumnName": "TotalPeopleInQueueWhenJoined",
+        "ColumnName": "Batches",
         "ColumnPurpose": "Feature",
         "ColumnDataFormat": "Single",
         "IsCategorical": false,
@@ -134,9 +46,9 @@
         "Version": 5
       },
       {
-        "ColumnName": "UserId",
-        "ColumnPurpose": "Ignore",
-        "ColumnDataFormat": "String",
+        "ColumnName": "TimeWaited",
+        "ColumnPurpose": "Label",
+        "ColumnDataFormat": "Single",
         "IsCategorical": false,
         "Type": "Column",
         "Version": 5
@@ -154,52 +66,44 @@
       {
         "Version": 1,
         "Type": "Trial",
-        "TrainerName": "LbfgsPoissonRegressionRegression",
-        "Score": 0.3552575773203529,
-        "RuntimeInSeconds": 0.131,
+        "TrainerName": "LightGbmRegression",
+        "Score": 0.993618520244581,
+        "RuntimeInSeconds": 187.135,
         "Parameter": {
-          "_SCHEMA_": "e0 * e1 * e2 * e6",
+          "_SCHEMA_": "e0 * e1 * e4",
           "e0": {
             "OutputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay"
+              "AvgServiceTimeWhenJoined",
+              "NumActiveServersWhenJoined",
+              "EffectiveQueuePosition",
+              "Batches"
             ],
             "InputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay"
+              "AvgServiceTimeWhenJoined",
+              "NumActiveServersWhenJoined",
+              "EffectiveQueuePosition",
+              "Batches"
             ]
           },
           "e1": {
-            "OutputColumnNames": [
-              "EventId",
-              "AvgServiceTimeWhenJoined",
-              "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
-            ],
             "InputColumnNames": [
-              "EventId",
               "AvgServiceTimeWhenJoined",
               "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
-            ]
-          },
-          "e2": {
-            "InputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay",
-              "EventId",
-              "AvgServiceTimeWhenJoined",
-              "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
+              "EffectiveQueuePosition",
+              "Batches"
             ],
             "OutputColumnName": "Features"
           },
-          "e6": {
-            "L1Regularization": 0.16197275,
-            "L2Regularization": 0.04207396,
+          "e4": {
+            "NumberOfLeaves": 2109,
+            "MinimumExampleCountPerLeaf": 20,
+            "LearningRate": 0.10121412620377002,
+            "NumberOfTrees": 14032,
+            "SubsampleFraction": 2.7926883517648967E-06,
+            "MaximumBinCountPerFeature": 236,
+            "FeatureFraction": 0.66724400961631114,
+            "L1Regularization": 4.0612320207173524E-05,
+            "L2Regularization": 0.14020854568943053,
             "LabelColumnName": "TimeWaited",
             "FeatureColumnName": "Features"
           }
@@ -208,52 +112,44 @@
       {
         "Version": 1,
         "Type": "Trial",
-        "TrainerName": "LbfgsPoissonRegressionRegression",
-        "Score": 0.3544325944196256,
-        "RuntimeInSeconds": 0.148,
+        "TrainerName": "LightGbmRegression",
+        "Score": 0.99329632384103861,
+        "RuntimeInSeconds": 8.589,
         "Parameter": {
-          "_SCHEMA_": "e0 * e1 * e2 * e6",
+          "_SCHEMA_": "e0 * e1 * e4",
           "e0": {
             "OutputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay"
+              "AvgServiceTimeWhenJoined",
+              "NumActiveServersWhenJoined",
+              "EffectiveQueuePosition",
+              "Batches"
             ],
             "InputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay"
+              "AvgServiceTimeWhenJoined",
+              "NumActiveServersWhenJoined",
+              "EffectiveQueuePosition",
+              "Batches"
             ]
           },
           "e1": {
-            "OutputColumnNames": [
-              "EventId",
-              "AvgServiceTimeWhenJoined",
-              "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
-            ],
             "InputColumnNames": [
-              "EventId",
               "AvgServiceTimeWhenJoined",
               "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
-            ]
-          },
-          "e2": {
-            "InputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay",
-              "EventId",
-              "AvgServiceTimeWhenJoined",
-              "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
+              "EffectiveQueuePosition",
+              "Batches"
             ],
             "OutputColumnName": "Features"
           },
-          "e6": {
-            "L1Regularization": 0.16084549,
-            "L2Regularization": 0.042415563,
+          "e4": {
+            "NumberOfLeaves": 4,
+            "MinimumExampleCountPerLeaf": 20,
+            "LearningRate": 0.45324241443745622,
+            "NumberOfTrees": 8623,
+            "SubsampleFraction": 8.3260566570440546E-06,
+            "MaximumBinCountPerFeature": 347,
+            "FeatureFraction": 0.84855357218809235,
+            "L1Regularization": 7.7366287569319345E-07,
+            "L2Regularization": 0.637114935007937,
             "LabelColumnName": "TimeWaited",
             "FeatureColumnName": "Features"
           }
@@ -262,52 +158,44 @@
       {
         "Version": 1,
         "Type": "Trial",
-        "TrainerName": "LbfgsPoissonRegressionRegression",
-        "Score": 0.3543220818948043,
-        "RuntimeInSeconds": 0.044,
+        "TrainerName": "LightGbmRegression",
+        "Score": 0.99237865206468334,
+        "RuntimeInSeconds": 6.417,
         "Parameter": {
-          "_SCHEMA_": "e0 * e1 * e2 * e6",
+          "_SCHEMA_": "e0 * e1 * e4",
           "e0": {
             "OutputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay"
+              "AvgServiceTimeWhenJoined",
+              "NumActiveServersWhenJoined",
+              "EffectiveQueuePosition",
+              "Batches"
             ],
             "InputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay"
+              "AvgServiceTimeWhenJoined",
+              "NumActiveServersWhenJoined",
+              "EffectiveQueuePosition",
+              "Batches"
             ]
           },
           "e1": {
-            "OutputColumnNames": [
-              "EventId",
-              "AvgServiceTimeWhenJoined",
-              "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
-            ],
             "InputColumnNames": [
-              "EventId",
               "AvgServiceTimeWhenJoined",
               "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
-            ]
-          },
-          "e2": {
-            "InputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay",
-              "EventId",
-              "AvgServiceTimeWhenJoined",
-              "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
+              "EffectiveQueuePosition",
+              "Batches"
             ],
             "OutputColumnName": "Features"
           },
-          "e6": {
-            "L1Regularization": 0.1394014,
-            "L2Regularization": 0.086572185,
+          "e4": {
+            "NumberOfLeaves": 4,
+            "MinimumExampleCountPerLeaf": 28,
+            "LearningRate": 0.089443599158657239,
+            "NumberOfTrees": 3723,
+            "SubsampleFraction": 0.029698356585392917,
+            "MaximumBinCountPerFeature": 345,
+            "FeatureFraction": 0.96932604258095023,
+            "L1Regularization": 2.1747138386377907E-07,
+            "L2Regularization": 0.028609312404218861,
             "LabelColumnName": "TimeWaited",
             "FeatureColumnName": "Features"
           }
@@ -316,52 +204,44 @@
       {
         "Version": 1,
         "Type": "Trial",
-        "TrainerName": "LbfgsPoissonRegressionRegression",
-        "Score": 0.35408488823021805,
-        "RuntimeInSeconds": 0.142,
+        "TrainerName": "LightGbmRegression",
+        "Score": 0.99007180284754992,
+        "RuntimeInSeconds": 15.272,
         "Parameter": {
-          "_SCHEMA_": "e0 * e1 * e2 * e6",
+          "_SCHEMA_": "e0 * e1 * e4",
           "e0": {
             "OutputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay"
+              "AvgServiceTimeWhenJoined",
+              "NumActiveServersWhenJoined",
+              "EffectiveQueuePosition",
+              "Batches"
             ],
             "InputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay"
+              "AvgServiceTimeWhenJoined",
+              "NumActiveServersWhenJoined",
+              "EffectiveQueuePosition",
+              "Batches"
             ]
           },
           "e1": {
-            "OutputColumnNames": [
-              "EventId",
-              "AvgServiceTimeWhenJoined",
-              "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
-            ],
             "InputColumnNames": [
-              "EventId",
               "AvgServiceTimeWhenJoined",
               "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
-            ]
-          },
-          "e2": {
-            "InputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay",
-              "EventId",
-              "AvgServiceTimeWhenJoined",
-              "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
+              "EffectiveQueuePosition",
+              "Batches"
             ],
             "OutputColumnName": "Features"
           },
-          "e6": {
-            "L1Regularization": 0.13930194,
-            "L2Regularization": 0.08646727,
+          "e4": {
+            "NumberOfLeaves": 4,
+            "MinimumExampleCountPerLeaf": 32,
+            "LearningRate": 0.032731152525591854,
+            "NumberOfTrees": 12563,
+            "SubsampleFraction": 4.6010203192307275E-09,
+            "MaximumBinCountPerFeature": 167,
+            "FeatureFraction": 0.94252800916759838,
+            "L1Regularization": 8.7417736191230347E-07,
+            "L2Regularization": 0.029621758076825769,
             "LabelColumnName": "TimeWaited",
             "FeatureColumnName": "Features"
           }
@@ -370,52 +250,44 @@
       {
         "Version": 1,
         "Type": "Trial",
-        "TrainerName": "LbfgsPoissonRegressionRegression",
-        "Score": 0.35403285951489577,
-        "RuntimeInSeconds": 0.155,
+        "TrainerName": "LightGbmRegression",
+        "Score": 0.98975574148350132,
+        "RuntimeInSeconds": 52.073,
         "Parameter": {
-          "_SCHEMA_": "e0 * e1 * e2 * e6",
+          "_SCHEMA_": "e0 * e1 * e4",
           "e0": {
             "OutputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay"
+              "AvgServiceTimeWhenJoined",
+              "NumActiveServersWhenJoined",
+              "EffectiveQueuePosition",
+              "Batches"
             ],
             "InputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay"
+              "AvgServiceTimeWhenJoined",
+              "NumActiveServersWhenJoined",
+              "EffectiveQueuePosition",
+              "Batches"
             ]
           },
           "e1": {
-            "OutputColumnNames": [
-              "EventId",
-              "AvgServiceTimeWhenJoined",
-              "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
-            ],
             "InputColumnNames": [
-              "EventId",
               "AvgServiceTimeWhenJoined",
               "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
-            ]
-          },
-          "e2": {
-            "InputColumnNames": [
-              "DayOfWeek",
-              "TimeOfDay",
-              "EventId",
-              "AvgServiceTimeWhenJoined",
-              "NumActiveServersWhenJoined",
-              "PositionInQueueWhenJoined",
-              "TotalPeopleInQueueWhenJoined"
+              "EffectiveQueuePosition",
+              "Batches"
             ],
             "OutputColumnName": "Features"
           },
-          "e6": {
-            "L1Regularization": 0.16306241,
-            "L2Regularization": 0.04197291,
+          "e4": {
+            "NumberOfLeaves": 2235,
+            "MinimumExampleCountPerLeaf": 20,
+            "LearningRate": 0.99999977667298645,
+            "NumberOfTrees": 7185,
+            "SubsampleFraction": 0.088011799688233888,
+            "MaximumBinCountPerFeature": 34,
+            "FeatureFraction": 0.7932653256893295,
+            "L1Regularization": 3.8644335083198471E-05,
+            "L2Regularization": 0.098963404417143866,
             "LabelColumnName": "TimeWaited",
             "FeatureColumnName": "Features"
           }
@@ -423,16 +295,15 @@
       }
     ],
     "Estimators": {
-      "e0": "OneHotEncoding",
-      "e1": "ReplaceMissingValues",
-      "e2": "Concatenate",
-      "e3": "FastTreeRegression",
-      "e4": "FastForestRegression",
-      "e5": "LightGbmRegression",
-      "e6": "LbfgsPoissonRegressionRegression",
-      "e7": "SdcaRegression"
+      "e0": "ReplaceMissingValues",
+      "e1": "Concatenate",
+      "e2": "FastTreeRegression",
+      "e3": "FastForestRegression",
+      "e4": "LightGbmRegression",
+      "e5": "LbfgsPoissonRegressionRegression",
+      "e6": "SdcaRegression"
     },
-    "Schema": "e0 * e1 * e2 * (e3 + e4 + e5 + e6 + e7)",
+    "Schema": "e0 * e1 * (e2 + e3 + e4 + e5 + e6)",
     "MetricName": "RSquared",
     "ModelFilePath": "C:\\Users\\ekpok\\source\\repos\\SwitfLine\\Infrastructure\\WaitTimeEstimator.mlnet"
   },
@@ -442,7 +313,7 @@
     "Version": 2,
     "Subsampling": false,
     "Type": "RegressionTrainingOption",
-    "TrainingTime": 700,
+    "TrainingTime": 600,
     "LabelColumn": "TimeWaited",
     "ValidationOption": {
       "Version": 0,

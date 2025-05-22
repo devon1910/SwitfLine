@@ -5,47 +5,37 @@ using System;
 using System.Linq;
 using System.IO;
 using System.Collections.Generic;
+using Microsoft.Extensions.Hosting;
 namespace Infrastructure
 {
     public partial class WaitTimeEstimator
     {
+       
         /// <summary>
         /// model input class for WaitTimeEstimator.
         /// </summary>
         #region model input class
         public class ModelInput
         {
-            [LoadColumn(1)]
-            [ColumnName(@"EventId")]
-            public float EventId { get; set; }
-
-            [LoadColumn(8)]
-            [ColumnName(@"TimeWaited")]
-            public float TimeWaited { get; set; }
-
-            [LoadColumn(9)]
+            [LoadColumn(0)]
             [ColumnName(@"AvgServiceTimeWhenJoined")]
             public float AvgServiceTimeWhenJoined { get; set; }
 
-            [LoadColumn(10)]
-            [ColumnName(@"DayOfWeek")]
-            public string DayOfWeek { get; set; }
-
-            [LoadColumn(11)]
+            [LoadColumn(1)]
             [ColumnName(@"NumActiveServersWhenJoined")]
             public float NumActiveServersWhenJoined { get; set; }
 
-            [LoadColumn(12)]
-            [ColumnName(@"PositionInQueueWhenJoined")]
-            public float PositionInQueueWhenJoined { get; set; }
+            [LoadColumn(2)]
+            [ColumnName(@"EffectiveQueuePosition")]
+            public float EffectiveQueuePosition { get; set; }
 
-            [LoadColumn(13)]
-            [ColumnName(@"TimeOfDay")]
-            public string TimeOfDay { get; set; }
+            [LoadColumn(3)]
+            [ColumnName(@"Batches")]
+            public float Batches { get; set; }
 
-            [LoadColumn(14)]
-            [ColumnName(@"TotalPeopleInQueueWhenJoined")]
-            public float TotalPeopleInQueueWhenJoined { get; set; }
+            [LoadColumn(4)]
+            [ColumnName(@"TimeWaited")]
+            public float TimeWaited { get; set; }
 
         }
 
@@ -57,29 +47,20 @@ namespace Infrastructure
         #region model output class
         public class ModelOutput
         {
-            [ColumnName(@"EventId")]
-            public float EventId { get; set; }
-
-            [ColumnName(@"TimeWaited")]
-            public float TimeWaited { get; set; }
-
             [ColumnName(@"AvgServiceTimeWhenJoined")]
             public float AvgServiceTimeWhenJoined { get; set; }
-
-            [ColumnName(@"DayOfWeek")]
-            public float[] DayOfWeek { get; set; }
 
             [ColumnName(@"NumActiveServersWhenJoined")]
             public float NumActiveServersWhenJoined { get; set; }
 
-            [ColumnName(@"PositionInQueueWhenJoined")]
-            public float PositionInQueueWhenJoined { get; set; }
+            [ColumnName(@"EffectiveQueuePosition")]
+            public float EffectiveQueuePosition { get; set; }
 
-            [ColumnName(@"TimeOfDay")]
-            public float[] TimeOfDay { get; set; }
+            [ColumnName(@"Batches")]
+            public float Batches { get; set; }
 
-            [ColumnName(@"TotalPeopleInQueueWhenJoined")]
-            public float TotalPeopleInQueueWhenJoined { get; set; }
+            [ColumnName(@"TimeWaited")]
+            public float TimeWaited { get; set; }
 
             [ColumnName(@"Features")]
             public float[] Features { get; set; }
@@ -91,14 +72,13 @@ namespace Infrastructure
 
         #endregion
 
-        private static string MLNetModelPath = "C:\\Users\\ekpok\\source\\repos\\SwitfLine\\Infrastructure\\WaitTimeEstimator.mlnet";
-
         public static readonly Lazy<PredictionEngine<ModelInput, ModelOutput>> PredictEngine = new Lazy<PredictionEngine<ModelInput, ModelOutput>>(() => CreatePredictEngine(), true);
 
-
+      
         private static PredictionEngine<ModelInput, ModelOutput> CreatePredictEngine()
         {
             var mlContext = new MLContext();
+            var MLNetModelPath = Path.Combine(AppContext.BaseDirectory, "WaitTimeEstimator.mlnet");
             ITransformer mlModel = mlContext.Model.Load(MLNetModelPath, out var _);
             return mlContext.Model.CreatePredictionEngine<ModelInput, ModelOutput>(mlModel);
         }
