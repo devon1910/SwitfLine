@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -81,89 +82,115 @@ namespace Infrastructure.Repositories
 
         public async Task<EventQueueRes> GetEventQueue(int page, int size, long eventId, bool isForPastMembers = false)
         {
-            var allLines = dbContext.Lines
-                .Where(x => x.EventId == eventId)
-                .AsNoTracking();
 
-           
-
-
-            var allIndividualsInQueue = allLines.Where(x => !x.IsAttendedTo).Count();
-
-            var allPastMembersInQueue = allLines.Where(x => x.IsAttendedTo).Count();
-
-            int pageCountInQueue = (int) Math.Ceiling(allIndividualsInQueue / (double) size);
-
-            int pageCountPastMembers = (int) Math.Ceiling(allPastMembersInQueue / (double) size);
-
-            var linesMembersInQueue = await allLines
-               .Where(x =>  !x.IsAttendedTo)
-               .Skip((page - 1) * size)
-               .Take(size)
-               .Select(x => new Line
-               {
-                   Id = x.Id,
-                   CreatedAt = x.CreatedAt.AddHours(-1),
-                   DateCompletedBeingAttendedTo = x.DateCompletedBeingAttendedTo.AddHours(-1),
-                   DateStartedBeingAttendedTo = x.DateStartedBeingAttendedTo.AddHours(-1),
-                   IsAttendedTo = x.IsAttendedTo,
-                   Status = x.Status,
-                   TimeWaited = x.TimeWaited,
-                   SwiftLineUser = new SwiftLineUser
-                   {
-                       UserName = x.SwiftLineUser.UserName,
-                   },
-               }).ToListAsync();
-
-            var pastLineMembers = await allLines
-              .Where(x => x.IsAttendedTo)
-              .Skip((page - 1) * size)
-              .Take(size)
-              .Select(x => new Line
-              {
-                  Id = x.Id,
-                  CreatedAt = x.CreatedAt.AddHours(-1),
-                  DateCompletedBeingAttendedTo = x.DateCompletedBeingAttendedTo.AddHours(-1),
-                  DateStartedBeingAttendedTo = x.DateStartedBeingAttendedTo.AddHours(-1),
-                  IsAttendedTo = x.IsAttendedTo,
-                  Status = x.Status,
-                  TimeWaited = x.TimeWaited,
-                  SwiftLineUser = new SwiftLineUser
-                  {
-                      UserName = x.SwiftLineUser.UserName,
-                  },
-              }).ToListAsync();
-
-            var isEventActive =  dbContext.Events.Find(eventId).IsActive;
-
-            var TotalServed = allLines.Where(x => x.EventId == eventId && x.Status.Contains("served")).Count();
-
-            int peopleThatHaveLeft = allLines
-               .Where(x => x.EventId == eventId && x.Status.Contains("left"))
-               .Count();
-
-            int dropOffRate = (int) Math.Ceiling((double)(peopleThatHaveLeft/3) * 100);
-
-            int averageTime = 0;
-
-            if (allLines.Any()) 
+            try
             {
-                 averageTime = (int)Math.Ceiling(allLines.Select(x => x.TimeWaited).Average());
+                var allLines = dbContext.Lines
+               .Where(x => x.EventId == eventId)
+               .AsNoTracking();
+
+
+
+
+                var allIndividualsInQueue = allLines.Where(x => !x.IsAttendedTo).Count();
+
+                var allPastMembersInQueue = allLines.Where(x => x.IsAttendedTo).Count();
+
+                int pageCountInQueue = (int)Math.Ceiling(allIndividualsInQueue / (double)size);
+
+                int pageCountPastMembers = (int)Math.Ceiling(allPastMembersInQueue / (double)size);
+
+                var linesMembersInQueue = await allLines
+                   .Where(x => !x.IsAttendedTo)
+                   .Skip((page - 1) * size)
+                   .Take(size)
+                   .Select(x => new Line
+                   {
+                       Id = x.Id,
+                       CreatedAt = x.CreatedAt.AddHours(-1),
+                       DateCompletedBeingAttendedTo = x.DateCompletedBeingAttendedTo.AddHours(-1),
+                       DateStartedBeingAttendedTo = x.DateStartedBeingAttendedTo.AddHours(-1),
+                       IsAttendedTo = x.IsAttendedTo,
+                       Status = x.Status,
+                       TimeWaited = x.TimeWaited,
+                       SwiftLineUser = new SwiftLineUser
+                       {
+                           UserName = x.SwiftLineUser.UserName,
+                       },
+                   }).ToListAsync();
+
+                var pastLineMembers = await allLines
+                  .Where(x => x.IsAttendedTo)
+                  .Skip((page - 1) * size)
+                  .Take(size)
+                  .Select(x => new Line
+                  {
+                      Id = x.Id,
+                      CreatedAt = x.CreatedAt.AddHours(-1),
+                      DateCompletedBeingAttendedTo = x.DateCompletedBeingAttendedTo.AddHours(-1),
+                      DateStartedBeingAttendedTo = x.DateStartedBeingAttendedTo.AddHours(-1),
+                      IsAttendedTo = x.IsAttendedTo,
+                      Status = x.Status,
+                      TimeWaited = x.TimeWaited,
+                      SwiftLineUser = new SwiftLineUser
+                      {
+                          UserName = x.SwiftLineUser.UserName,
+                      },
+                  }).ToListAsync();
+
+                var isEventActive = dbContext.Events.Find(eventId).IsActive;
+
+                var TotalServed = allLines.Where(x => x.EventId == eventId && x.Status.Contains("served")).Count();
+
+                int peopleThatHaveLeft = allLines
+                   .Where(x => x.EventId == eventId && x.Status.Contains("left"))
+                   .Count();
+
+                int dropOffRate = (int)Math.Ceiling((double)(peopleThatHaveLeft / TotalServed) * 100);
+
+                int averageTime = 0;
+
+                if (allLines.Any())
+                {
+                    averageTime = (int)Math.Ceiling(allLines.Select(x => x.TimeWaited).Average());
+                }
+
+                linesMembersInQueue = [.. linesMembersInQueue.OrderBy(x => x.CreatedAt)];
+
+                pastLineMembers = [.. pastLineMembers.OrderByDescending(x => x.CreatedAt)];
+
+                var attendanceData = allLines
+                 .Where(x => x.EventId == eventId && (x.Status == "served" || x.Status == "left"))
+                 .GroupBy(x => x.CreatedAt.Month)
+                 .Select(g => new
+                 {
+                     Month =g.Key,
+                     ServedCount = g.Count(x => x.Status == "served"),
+                     attendeesCount = g.Count(x => x.Status == "left" || x.Status=="served"),
+
+                 })
+                 .OrderBy(g => g.Month)
+                 .ToList();
+
+
+
+
+
+
+                return new EventQueueRes(
+                    linesMembersInQueue, pastLineMembers,
+                    !isEventActive, pageCountInQueue,
+                    pageCountPastMembers,
+                    TotalServed, averageTime,
+                    dropOffRate, attendanceData);
+
             }
+            catch (Exception ex)
+            {
 
-            linesMembersInQueue =  [.. linesMembersInQueue.OrderBy(x => x.CreatedAt)];
-      
-            pastLineMembers = [.. pastLineMembers.OrderByDescending(x => x.CreatedAt)];
-
-
+                throw;
+            }
            
-            return new EventQueueRes(
-                linesMembersInQueue, pastLineMembers,
-                !isEventActive, pageCountInQueue,
-                pageCountPastMembers,
-                TotalServed, averageTime,
-                dropOffRate);
-
         }
 
         public async Task<AuthRes> JoinEvent(string userId, long eventId)
