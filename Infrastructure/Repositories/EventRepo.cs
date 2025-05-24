@@ -146,7 +146,8 @@ namespace Infrastructure.Repositories
                    .Where(x => x.EventId == eventId && x.Status.Contains("left"))
                    .Count();
 
-                int dropOffRate = (int)Math.Ceiling((double)(peopleThatHaveLeft / TotalServed) * 100);
+                var test = peopleThatHaveLeft / TotalServed) * 100;
+                int dropOffRate = (int) Math.Ceiling((double) test);
 
                 int averageTime = 0;
 
@@ -173,6 +174,15 @@ namespace Infrastructure.Repositories
                  .ToList();
 
 
+                var dropOffRateTrend = attendanceData
+                 .Select(x => new
+                 {
+                     Month = x.Month,
+                     DropOffRate = (int)Math.Ceiling((double)(x.attendeesCount - x.ServedCount) / x.attendeesCount * 100)
+                 })
+                 .ToList();
+
+
 
 
 
@@ -182,7 +192,7 @@ namespace Infrastructure.Repositories
                     !isEventActive, pageCountInQueue,
                     pageCountPastMembers,
                     TotalServed, averageTime,
-                    dropOffRate, attendanceData);
+                    dropOffRate, attendanceData, dropOffRateTrend);
 
             }
             catch (Exception ex)
