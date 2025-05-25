@@ -65,9 +65,9 @@ namespace Application.Services
         }
 
 
-        public async Task<Result<EventQueueRes>> GetEventQueue(int page, int size, long eventId, bool isForPastMembers = false)
+        public async Task<Result<EventQueueRes>> GetEventQueue(int currentMembersPage,int pastMembersPage, int size, long eventId)
         {
-            var res = await  eventRepo.GetEventQueue(page, size, eventId,isForPastMembers);
+            var res = await  eventRepo.GetEventQueue(currentMembersPage, pastMembersPage, size, eventId);
             return Result<EventQueueRes>.Ok(res);
         }
 

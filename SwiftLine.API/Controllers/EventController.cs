@@ -30,9 +30,9 @@ namespace SwiftLine.API.Controllers
         }
        
         [HttpGet()]
-        public async Task<ActionResult<Result<EventQueueRes>>> GetEventQueue(int Page, int Size, long EventId, bool IsForPastMembers= false)
+        public async Task<ActionResult<Result<EventQueueRes>>> GetEventQueue(int CurrentMembersPage,int PastMembersPage, int Size, long EventId)
         {
-            var res = await eventService.GetEventQueue(Page, Size,EventId, IsForPastMembers);
+            var res = await eventService.GetEventQueue(CurrentMembersPage, PastMembersPage, Size,EventId);
             return res.ToActionResult();
         }
         [HttpGet]

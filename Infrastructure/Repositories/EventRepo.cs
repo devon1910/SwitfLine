@@ -80,7 +80,7 @@ namespace Infrastructure.Repositories
             return await dbContext.Events.Include(x => x.SwiftLineUser).FirstOrDefaultAsync(x=>x.Id ==eventId && !x.IsDeleted);
         }
 
-        public async Task<EventQueueRes> GetEventQueue(int page, int size, long eventId, bool isForPastMembers = false)
+        public async Task<EventQueueRes> GetEventQueue(int currentMembersPage, int pastMembersPage, int size, long eventId)
         {
 
             try
@@ -100,7 +100,7 @@ namespace Infrastructure.Repositories
 
                 var linesMembersInQueue = await allLines
                    .Where(x => !x.IsAttendedTo)
-                   .Skip((page - 1) * size)
+                   .Skip((currentMembersPage - 1) * size)
                    .Take(size)
                    .Select(x => new Line
                    {
@@ -119,7 +119,7 @@ namespace Infrastructure.Repositories
 
                 var pastLineMembers = await allLines
                   .Where(x => x.IsAttendedTo)
-                  .Skip((page - 1) * size)
+                  .Skip((pastMembersPage - 1) * size)
                   .Take(size)
                   .Select(x => new Line
                   {
@@ -138,69 +138,80 @@ namespace Infrastructure.Repositories
 
                 var isEventActive = dbContext.Events.Find(eventId).IsActive;
 
-                var TotalServed = allLines.Where(x => x.EventId == eventId && x.Status.Contains("served")).Count();
-
-                int peopleThatHaveLeft = allLines
-                   .Where(x => x.EventId == eventId && x.Status.Contains("left"))
-                   .Count();
-
-                double test = Math.Round(((double)peopleThatHaveLeft / allPastMembersInQueue) * 100,2);
-                int dropOffRate = (int) Math.Ceiling( test);
-
-                int averageTime = 0;
-
-                if (allLines.Any())
-                {
-                    averageTime = (int)Math.Ceiling(allLines.Select(x => x.TimeWaited).Average());
-                }
-
                 linesMembersInQueue = [.. linesMembersInQueue.OrderBy(x => x.CreatedAt)];
 
                 pastLineMembers = [.. pastLineMembers.OrderByDescending(x => x.CreatedAt)];
 
-                var attendanceData = allLines
-                 .Where(x => (x.Status == "served" || x.Status == "left"))
-                 .GroupBy(x => x.CreatedAt.Month)
-                 .Select(g => new
-                 {
-                     Month =g.Key,
-                     ServedCount = g.Count(x => x.Status == "served"),
-                     attendeesCount = g.Count(x => x.Status == "left" || x.Status=="served"),
-
-                 })
-                 .OrderBy(g => g.Month)
-                 .ToList();
+                int TotalServed = 0;
+                int dropOffRate = 0;
+                int averageTime = 0;
+                List<AttendanceData> attendanceData = null;
+                List<DropOffRateTrend> dropOffRateTrend = null;
+                List<DropOffReason> dropOffReasons =null;
+                List<PeakArrivalPeriodData> peakArrivalPeriodData = null;
 
 
-                var dropOffRateTrend = attendanceData
-                 .Select(x => new
-                 {
-                     Month = x.Month,
-                     DropOffRate = (int)Math.Ceiling((double)(x.attendeesCount - x.ServedCount) / x.attendeesCount * 100)
-                 })
-                 .ToList();
+                if (currentMembersPage == 1 && pastMembersPage == 1) 
+                {
+                    TotalServed = allLines.Where(x => x.EventId == eventId && x.Status.Contains("served")).Count();
 
-                var dropOffReasons = allLines
+                    int peopleThatHaveLeft = allLines
+                       .Where(x => x.EventId == eventId && x.Status.Contains("left"))
+                       .Count();
+
+                    double test = Math.Round(((double)peopleThatHaveLeft / allPastMembersInQueue) * 100, 2);
+                    dropOffRate = (int)Math.Ceiling(test);
+
+
+
+                    if (allLines.Any())
+                    {
+                        averageTime = (int)Math.Ceiling(allLines.Select(x => x.TimeWaited).Average());
+                    }
+
+                    attendanceData = allLines
+                    .Where(x => (x.Status == "served" || x.Status == "left"))
+                    .GroupBy(x => x.CreatedAt.Month)
+                    .Select(g => new AttendanceData
+                    {
+                        Month = g.Key,
+                        ServedCount = g.Count(x => x.Status == "served"),
+                        AttendeesCount = g.Count(x => x.Status == "left" || x.Status == "served"),
+
+                    })
+                    .OrderBy(g => g.Month)
+                    .ToList();
+
+
+                    dropOffRateTrend = attendanceData
+                     .Select(x => new DropOffRateTrend
+                     {
+                         Month = x.Month,
+                         DropOffRate = (int)Math.Ceiling((double)(x.AttendeesCount - x.ServedCount) / x.AttendeesCount * 100)
+                     })
+                     .ToList();
+
+                    dropOffReasons = [.. allLines
                     .Where(x => x.IsAttendedTo && !string.IsNullOrEmpty(x.LeaveQueueReason))
                     .GroupBy(x => x.LeaveQueueReason)
-                    .Select(g => new
+                    .Select(g => new DropOffReason
                     {
                         Reason = g.Key,
                         Count = g.Count()
-                    })
-                    .ToList();
+                    })];
 
-                var peakArrivalPeriodData = allLines
-                    .Where(x=> x.IsAttendedTo)
-                    .GroupBy(x => x.TimeOfDay)
-                    .Select(g => new
-                    {
-                        TimeOfDay =  g.Key,                     
-                        Count = g.Count()
-                    })
-                    .OrderByDescending(g => g.Count)
-                    .ToList();
+                    peakArrivalPeriodData = allLines
+                        .Where(x => x.IsAttendedTo)
+                        .GroupBy(x => x.TimeOfDay)
+                        .Select(g => new PeakArrivalPeriodData
+                        {
+                            TimeOfDay = g.Key,
+                            Count = g.Count()
+                        })
+                        .OrderByDescending(g => g.Count)
+                        .ToList();
 
+                }
 
                 return new EventQueueRes(
                     linesMembersInQueue, pastLineMembers,
@@ -350,7 +361,7 @@ namespace Infrastructure.Repositories
         public async Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "", int position = -1, string leaveQueueReason = "")
         {
             Line? line = dbContext.Lines
-                .Where(x => x.UserId == userId && !x.IsAttendedTo)
+                .Where(x => (x.UserId == userId || x.Id==lineMemberId) && !x.IsAttendedTo)
                 .FirstOrDefault();
 
             if (line is null) return false;
