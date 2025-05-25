@@ -71,11 +71,11 @@ namespace Application.Services
             return Result<EventQueueRes>.Ok(res);
         }
 
-        public async Task<Result<List<Event>>> GetUserEvents(string userId)
+        public async Task<Result<GetUserEventsRes>> GetUserEvents(string userId)
         {
             var userEvents = await eventRepo.GetUserEvents(userId);
 
-            return Result<List<Event>>.Ok(userEvents);
+            return Result<GetUserEventsRes>.Ok(userEvents);
         }
 
         public Result<bool> DeleteEvent(long Id)

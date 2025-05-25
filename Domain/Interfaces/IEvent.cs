@@ -25,7 +25,7 @@ namespace Domain.Interfaces
 
         public Task<EventQueueRes> GetEventQueue(int currentMembersPage, int pastMembersPage, int size, long eventId);
 
-        public Task<List<Event>> GetUserEvents(string userId);
+        public Task<GetUserEventsRes> GetUserEvents(string userId);
 
         public void DeleteEvent(long Id);
 
@@ -52,7 +52,7 @@ namespace Domain.Interfaces
         public Task<Result<Event>> GetEvent(long eventId);
 
         public Task<Result<EventQueueRes>> GetEventQueue(int currentMembersPage, int pastMembersPage, int size, long eventId);
-        public Task<Result<List<Event>>> GetUserEvents(string userId);
+        public Task<Result<GetUserEventsRes>> GetUserEvents(string userId);
         public Result<bool> DeleteEvent(long Id);
         public Task<Result<SearchEventsRes>> SearchEvents(int page, int size, string query, string userId);
 

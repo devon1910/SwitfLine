@@ -353,9 +353,62 @@ namespace Infrastructure.Repositories
         }
 
      
-        public async Task<List<Event>> GetUserEvents(string userId)
+        public async Task<GetUserEventsRes> GetUserEvents(string userId)
         {
-            return await dbContext.Events.Where(x => x.CreatedBy == userId && !x.IsDeleted).ToListAsync();
+            try
+            {
+                var events = await dbContext.Events.Where(x => x.CreatedBy == userId && !x.IsDeleted)
+                    .AsNoTracking()
+                    .ToListAsync();
+                List<long> allEventsIds = events.Select(x => x.Id).ToList();
+
+                var allLinesData = dbContext.Lines.Where(x => allEventsIds
+                .Contains(x.EventId))
+                    .Include(x => x.Event)
+                    .AsSplitQuery()
+                    .AsNoTracking()
+                    .ToList();
+
+                List<ComparisonMetric> totalAttendees = allLinesData
+                    .GroupBy(x => x.EventId)
+                    .Select(g => new ComparisonMetric
+                    {
+                        EventId = g.Key,
+                        Count = g.Count(),
+                        EventName = g.FirstOrDefault().Event.Title
+                    }).ToList();
+
+                List<ComparisonMetric> totalServed = allLinesData
+                    .Where(x => x.IsAttendedTo && x.Status.Contains("served"))
+                    .GroupBy(x => x.EventId)
+                    .Select(g => new ComparisonMetric
+                    {
+                        EventId = g.Key,
+                        Count = g.Count(),
+                        EventName = g.FirstOrDefault().Event.Title
+                    }).ToList();
+
+                List<ComparisonMetric> dropOffRate = allLinesData
+                    .Where(x => x.IsAttendedTo && x.Status.Contains("left"))
+                    .GroupBy(x => x.EventId)
+                    .Select(g => new ComparisonMetric
+                    {
+                        EventId = g.Key,
+                        Count = (int)Math.Ceiling(((double)g.Count() / totalAttendees.FirstOrDefault(x=>x.EventId == g.Key).Count) * 100),
+                        EventName = g.FirstOrDefault().Event.Title
+                    }).ToList();
+
+                EventComparisonData eventComparisonData = new(totalAttendees, totalServed, dropOffRate);
+
+                return new GetUserEventsRes(events, eventComparisonData);
+
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+           
         }
 
         public async Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "", int position = -1, string leaveQueueReason = "")
