@@ -45,7 +45,7 @@ namespace Infrastructure.Repositories
             {
                 line.IsAttendedTo = true;
                 line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
-                line.Status = status;
+                line.Status = leaveQueueReason == "Got served" ? "served" : status;
                 line.LeaveQueueReason = leaveQueueReason;
                 DateTime completedDate = line.DateStartedBeingAttendedTo != default ? line.DateStartedBeingAttendedTo : DateTime.UtcNow.AddHours(1);
                 line.TimeWaited = Math.Round((line.DateCompletedBeingAttendedTo - completedDate).TotalMinutes,2);

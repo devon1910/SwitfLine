@@ -90,8 +90,6 @@ namespace Infrastructure.Repositories
                .AsNoTracking();
 
 
-
-
                 var allIndividualsInQueue = allLines.Where(x => !x.IsAttendedTo).Count();
 
                 var allPastMembersInQueue = allLines.Where(x => x.IsAttendedTo).Count();
@@ -146,8 +144,8 @@ namespace Infrastructure.Repositories
                    .Where(x => x.EventId == eventId && x.Status.Contains("left"))
                    .Count();
 
-                var test = (peopleThatHaveLeft / TotalServed); //* 100;
-                int dropOffRate = (int) Math.Ceiling((double) test);
+                double test = Math.Round(((double)peopleThatHaveLeft / allPastMembersInQueue) * 100,2);
+                int dropOffRate = (int) Math.Ceiling( test);
 
                 int averageTime = 0;
 
@@ -161,7 +159,7 @@ namespace Infrastructure.Repositories
                 pastLineMembers = [.. pastLineMembers.OrderByDescending(x => x.CreatedAt)];
 
                 var attendanceData = allLines
-                 .Where(x => x.EventId == eventId && (x.Status == "served" || x.Status == "left"))
+                 .Where(x => (x.Status == "served" || x.Status == "left"))
                  .GroupBy(x => x.CreatedAt.Month)
                  .Select(g => new
                  {
@@ -182,9 +180,26 @@ namespace Infrastructure.Repositories
                  })
                  .ToList();
 
+                var dropOffReasons = allLines
+                    .Where(x => x.IsAttendedTo && !string.IsNullOrEmpty(x.LeaveQueueReason))
+                    .GroupBy(x => x.LeaveQueueReason)
+                    .Select(g => new
+                    {
+                        Reason = g.Key,
+                        Count = g.Count()
+                    })
+                    .ToList();
 
-
-
+                var peakArrivalPeriodData = allLines
+                    .Where(x=> x.IsAttendedTo)
+                    .GroupBy(x => x.TimeOfDay)
+                    .Select(g => new
+                    {
+                        TimeOfDay =  g.Key,                     
+                        Count = g.Count()
+                    })
+                    .OrderByDescending(g => g.Count)
+                    .ToList();
 
 
                 return new EventQueueRes(
@@ -192,7 +207,8 @@ namespace Infrastructure.Repositories
                     !isEventActive, pageCountInQueue,
                     pageCountPastMembers,
                     TotalServed, averageTime,
-                    dropOffRate, attendanceData, dropOffRateTrend);
+                    dropOffRate, attendanceData, dropOffRateTrend,
+                    dropOffReasons, peakArrivalPeriodData);
 
             }
             catch (Exception ex)
