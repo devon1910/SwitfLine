@@ -13,12 +13,12 @@ namespace SwiftLine.API
     {
         private static Dictionary<string, string> _userConnections = new Dictionary<string, string>();
 
-        public async Task ExitQueue(string userId, long lineMemberId, string adminId = "",int position=-1)
+        public async Task ExitQueue(string userId, long lineMemberId, string adminId = "",int position=-1, string leaveQueueReason = "")
         {
             Log.Information("Processing queue exit for user {UserId}, LineMemberId: {LineMemberId}, AdminId: {AdminId}", userId, lineMemberId, adminId);
             try
             {
-                await eventRepo.Value.ExitQueue(userId, lineMemberId, adminId, position);
+                await eventRepo.Value.ExitQueue(userId, lineMemberId, adminId, position, leaveQueueReason);
                 Log.Information("Successfully processed queue exit for user {UserId}", userId);
             }
             catch (Exception ex)

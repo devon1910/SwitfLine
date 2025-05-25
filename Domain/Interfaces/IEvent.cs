@@ -33,7 +33,7 @@ namespace Domain.Interfaces
         public Task AddEvent(Event evt);
         public Task<int> SaveChangesAsync();
 
-        public Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "",int position=-1);
+        public Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "",int position=-1, string leaveQueueReason = "");
 
         public Task<bool> ToggleQueueActivity(bool status, string userId, long eventId);
 

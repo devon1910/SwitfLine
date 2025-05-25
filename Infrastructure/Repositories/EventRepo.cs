@@ -146,7 +146,7 @@ namespace Infrastructure.Repositories
                    .Where(x => x.EventId == eventId && x.Status.Contains("left"))
                    .Count();
 
-                var test = peopleThatHaveLeft / TotalServed) * 100;
+                var test = (peopleThatHaveLeft / TotalServed); //* 100;
                 int dropOffRate = (int) Math.Ceiling((double) test);
 
                 int averageTime = 0;
@@ -331,7 +331,7 @@ namespace Infrastructure.Repositories
             return await dbContext.Events.Where(x => x.CreatedBy == userId && !x.IsDeleted).ToListAsync();
         }
 
-        public async Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "", int position = -1)
+        public async Task<bool> ExitQueue(string userId, long lineMemberId, string adminId = "", int position = -1, string leaveQueueReason = "")
         {
             Line? line = dbContext.Lines
                 .Where(x => x.UserId == userId && !x.IsAttendedTo)
@@ -339,7 +339,7 @@ namespace Infrastructure.Repositories
 
             if (line is null) return false;
 
-            await lineRepo.MarkUserAsServed(line, adminId!= "" ? "left" : "served by Admin" );
+            await lineRepo.MarkUserAsServed(line, adminId!= "" ? "left" : "served by Admin", leaveQueueReason);
             await notifier.BroadcastLineUpdate(line,position);
             await lineRepo.Notify2ndLineMember(line);
             return true;

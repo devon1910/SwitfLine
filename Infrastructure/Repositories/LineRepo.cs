@@ -38,7 +38,7 @@ namespace Infrastructure.Repositories
 
         }
 
-        public async Task<bool> MarkUserAsServed(Line line, string status)
+        public async Task<bool> MarkUserAsServed(Line line, string status, string leaveQueueReason)
         {
            
             try
@@ -46,6 +46,7 @@ namespace Infrastructure.Repositories
                 line.IsAttendedTo = true;
                 line.DateCompletedBeingAttendedTo = DateTime.UtcNow.AddHours(1);
                 line.Status = status;
+                line.LeaveQueueReason = leaveQueueReason;
                 DateTime completedDate = line.DateStartedBeingAttendedTo != default ? line.DateStartedBeingAttendedTo : DateTime.UtcNow.AddHours(1);
                 line.TimeWaited = Math.Round((line.DateCompletedBeingAttendedTo - completedDate).TotalMinutes,2);
  

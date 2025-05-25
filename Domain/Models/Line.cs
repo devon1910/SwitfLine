@@ -25,6 +25,8 @@ namespace Domain.Models
 
         public int EffectiveQueuePosition { get; set; }
 
+        public string LeaveQueueReason { get; set; }
+
         [AllowedValues(["pending", "served", "left", "served By Admin"], ErrorMessage = "The value passed is not allowed")]
         public string Status { get; set; } = "pending";
 

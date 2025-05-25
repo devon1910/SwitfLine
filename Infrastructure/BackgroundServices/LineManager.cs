@@ -36,7 +36,7 @@ namespace Infrastructure.BackgroundServices
                         {
                             if (line is not null && await linesRepo.IsItUserTurnToBeServed(line, e.AverageTimeToServeSeconds))
                             {
-                                await linesRepo.MarkUserAsServed(line, "served");
+                                await linesRepo.MarkUserAsServed(line, "served","");
                                 await signalRNotifier.BroadcastLineUpdate(line, -1);
                                 await linesRepo.Notify2ndLineMember(line);
 

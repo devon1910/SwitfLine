@@ -91,13 +91,13 @@ namespace SwiftLine.API
         //    }
         //}
 
-        public async Task ExitQueue(string userId, long lineMemberId, string adminId = "", int position=-1)
+        public async Task ExitQueue(string userId, long lineMemberId, string adminId = "", int position=-1, string leaveQueueReason = "")
         {
             Log.Information("User {UserId} exiting queue. LineMemberId: {LineMemberId}, AdminId: {AdminId}", 
                 userId, lineMemberId, adminId);
             try
             {
-                await notifier.ExitQueue(userId, lineMemberId, adminId,position);
+                await notifier.ExitQueue(userId, lineMemberId, adminId,position, leaveQueueReason);
             }
             catch (Exception ex)
             {
