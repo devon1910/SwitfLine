@@ -114,18 +114,16 @@ namespace Infrastructure.Repositories
 
                     string refreshToken = _tokenService.GenerateRefreshToken();
 
-                    //save refreshToken with exp date in the database
                     var tokenInfo = _context.TokenInfos.
                                 FirstOrDefault(a => a.Username == user.UserName);
 
-                    // If tokenInfo is null for the user, create a new one
                     if (tokenInfo == null)
                     {
                         var ti = new TokenInfo
                         {
                             Username = user.UserName,
                             RefreshToken = refreshToken,
-                            ExpiredAt = DateTime.UtcNow.AddHours(1).AddDays(7)
+                            ExpiredAt = DateTime.UtcNow.AddHours(1).AddDays(3)
                         };
                         _context.TokenInfos.Add(ti);
                     }
@@ -133,10 +131,9 @@ namespace Infrastructure.Repositories
                     else
                     {
                         tokenInfo.RefreshToken = refreshToken;
-                        tokenInfo.ExpiredAt = DateTime.UtcNow.AddHours(1).AddDays(7);
+                        tokenInfo.ExpiredAt = DateTime.UtcNow.AddHours(1).AddDays(3);
                     }
-
-                   
+           
                     await emailsDeliveryRepo.LogEmail(
                         email: user.Email,
                         username: user.UserName,
@@ -145,7 +142,6 @@ namespace Infrastructure.Repositories
                         type: EmailTypeEnum.Welcome
                         );
                     await _context.SaveChangesAsync();
-                    // Commit transaction if everything succeeded
                     await transaction.CommitAsync();
 
                     //Almost done🎉! A welcome mail has been sent to your email address. Kindly follow the instructions. Didn't get it in your inbox? Please check your spam folder or contact the support team. Thanks!
@@ -155,7 +151,6 @@ namespace Infrastructure.Repositories
                 }
                 catch (Exception ex)
                 {
-                    // Roll back all changes if any error occurs
                     await transaction.RollbackAsync();
                     _logger.LogError($"Signup transaction failed: {ex.Message}");
                     return AuthResFailed.CreateFailed("Something went wrong. If this error persists please contact the support team.");
@@ -351,8 +346,9 @@ namespace Infrastructure.Repositories
             //    throw new ExternalLoginProviderException("Google", "ClaimsPrincipal is null");
             //}
 
+            bool isFirstSignIn = false;
             var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
-            var fullName = claimsPrincipal.FindFirstValue(ClaimTypes.Name);
+            var fullName = claimsPrincipal.FindFirstValue(ClaimTypes.Name); 
 
             if (email == null)
             {
@@ -363,6 +359,7 @@ namespace Infrastructure.Repositories
 
             if (user == null)
             {
+                isFirstSignIn = true;
                 SwiftLineUser newUser = new()
                 {
                     Email = email,
@@ -431,6 +428,18 @@ namespace Infrastructure.Repositories
                 tokenInfo.RefreshToken = refreshToken;
                 tokenInfo.ExpiredAt = DateTime.UtcNow.AddDays(7);
             }
+
+            if (isFirstSignIn) 
+            {
+                await emailsDeliveryRepo.LogEmail(
+                       email: user.Email,
+                       username: user.UserName,
+                       subject: "Welcome to Swiftline ⏭",
+                       link: _configuration["SwiftLineBaseUrl"],
+                       type: EmailTypeEnum.Welcome
+                       );
+            }
+            
 
             await _context.SaveChangesAsync();
 
