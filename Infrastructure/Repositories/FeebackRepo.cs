@@ -21,7 +21,7 @@ namespace Infrastructure.Repositories
                 Tags = model.Tags,
                 UserId = model.UserId,
             };
-            databaseContext.Add(fb);
+            databaseContext.Feedbacks.Add(fb);
             databaseContext.SaveChanges();
             return true;
         }
