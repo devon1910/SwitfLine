@@ -9,11 +9,11 @@ namespace Domain.Models
     public class EmailsDelivery
     {
         public long Id { get; set; }
-        public string RecipientEmail { get; set; }
-        public string RecipientUsername { get; set; }
-        public EmailTypeEnum EmailType { get; set; }
+        public required string RecipientEmail { get; set; }
+        public required string RecipientUsername { get; set; }
+        public required EmailTypeEnum EmailType { get; set; }
         public bool IsSent { get; set; } = false;
-        public string Message { get; set; }
+        public string? Message { get; set; }
 
         public int RetryCount { get; set; }
 

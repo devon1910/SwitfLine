@@ -30,6 +30,6 @@ namespace Infrastructure.Data
         public DbSet<TokenInfo> TokenInfos { get; set; }
         public DbSet<PushNotification> PushNotifications { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
-        public DbSet<EmailsDelivery> EmailDeliveryJobs { get; set; }
+        public DbSet<EmailsDelivery> EmailDeliveryRequests { get; set; }
     }
 }

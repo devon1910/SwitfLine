@@ -88,6 +88,7 @@ try
     builder.Services.AddScoped<IFeedbackService, FeedbackService>();
     builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
     builder.Services.AddScoped<IPushNotificationRepo, PushNotificationRepo>();
+    builder.Services.AddScoped<IEmailsDeliveryRepo, EmailsDeliveryRepo>();
 
     builder.Services.Configure<IdentityOptions>(options =>
     {

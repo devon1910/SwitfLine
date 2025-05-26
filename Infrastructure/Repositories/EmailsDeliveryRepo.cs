@@ -19,7 +19,7 @@ namespace Infrastructure.Repositories
     {
         public async Task<List<EmailsDelivery>> GetAllUnsentEmails()
         {
-           return await dbContext.EmailDeliveryJobs
+           return await dbContext.EmailDeliveryRequests
                 .Where(x => !x.IsSent && x.RetryCount <= 3 )
                 .AsNoTracking()
                 .ToListAsync();
@@ -27,7 +27,7 @@ namespace Infrastructure.Repositories
 
         public async Task LogEmail(string username, string email, string subject, string link, EmailTypeEnum type)
         {
-            await dbContext.EmailDeliveryJobs.AddAsync(new EmailsDelivery
+            await dbContext.EmailDeliveryRequests.AddAsync(new EmailsDelivery
             {
                 RecipientUsername = username,
                 RecipientEmail = email,
