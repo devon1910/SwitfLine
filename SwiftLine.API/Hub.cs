@@ -17,7 +17,6 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace SwiftLine.API
 {
-    //[Authorize]
     public class SwiftLineHub(ISignalRNotifier notifier) : Hub
     {
         [EnableRateLimiting("SignupPolicy")]
@@ -27,7 +26,7 @@ namespace SwiftLine.API
             try
             {
                 //var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                var result = await notifier.JoinQueueGroup(eventId, userId, Context.ConnectionId);
+                AuthRes result = await notifier.JoinQueueGroup(eventId, userId, Context.ConnectionId);           
                 Log.Information("User {UserId} successfully joined queue group for event {EventId}", userId, eventId);
                 return result;
             }
@@ -41,7 +40,7 @@ namespace SwiftLine.API
         public override async Task OnConnectedAsync()
         {
             //var userId = Context.UserIdentifier;
-
+           
             var httpContext = Context.GetHttpContext();
             var userId = httpContext.Request.Query["userId"].ToString();
             if (!string.IsNullOrEmpty(userId))
@@ -57,6 +56,11 @@ namespace SwiftLine.API
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
+            if (!Context.User.Identity.IsAuthenticated)
+            {
+                throw new HubException("Unauthorized");
+            }
+
             Log.Information("Client disconnected. ConnectionId: {ConnectionId}", Context.ConnectionId);
             try
             {
@@ -73,6 +77,11 @@ namespace SwiftLine.API
        
         public async Task BroadcastQueueUpdate(string eventId, object queueUpdate)
         {
+            if (!Context.User.Identity.IsAuthenticated)
+            {
+                throw new HubException("Unauthorized");
+            }
+
             Log.Debug("Broadcasting queue update for event {EventId}", eventId);
             await Clients.Group($"queue-{eventId}").SendAsync("ReceiveQueueUpdate", queueUpdate);
         }
@@ -93,6 +102,11 @@ namespace SwiftLine.API
 
         public async Task ExitQueue(string userId, long lineMemberId, string adminId = "", int position=-1, string leaveQueueReason = "")
         {
+            if (!Context.User.Identity.IsAuthenticated)
+            {
+                throw new HubException("Unauthorized");
+            }
+
             Log.Information("User {UserId} exiting queue. LineMemberId: {LineMemberId}, AdminId: {AdminId}", 
                 userId, lineMemberId, adminId);
             try
@@ -109,6 +123,11 @@ namespace SwiftLine.API
 
         public async Task ToggleQueueActivity(bool status, string userId, long eventId) 
         {
+            if (!Context.User.Identity.IsAuthenticated)
+            {
+                throw new HubException("Unauthorized");
+            }
+
             Log.Information("Toggling queue activity. Status: {Status}, UserId: {UserId}, EventId: {EventId}", 
                 status, userId, eventId);
             try

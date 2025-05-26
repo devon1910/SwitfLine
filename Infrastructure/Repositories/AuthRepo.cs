@@ -166,17 +166,23 @@ namespace Infrastructure.Repositories
             bool isValidPassword = await _userManager.CheckPasswordAsync(user, model.Password);
             string message = "";
 
+            if (user is not null && string.IsNullOrEmpty(user.PasswordHash)) 
+            {
+                message = "No password created. You must have signed in with google. please sign in with google to continue or create a new account with a different email address.";
+                return AuthResFailed.CreateFailed(message);
+            }
+
             if (user is null || !isValidPassword)
             {
                 message = "Invalid user name or password.";
                 return AuthResFailed.CreateFailed(message);
             }
 
-            if (!user.EmailConfirmed)
-            {
-                message = "Email address not verified, please check your email for the verification link and follow the instructions.";
-                return AuthResFailed.CreateFailed(message);
-            }
+            //if (!user.EmailConfirmed)
+            //{
+            //    message = "Email address not verified, please check your email for the verification link and follow the instructions.";
+            //    return AuthResFailed.CreateFailed(message);
+            //}
 
 
             // creating the necessary claims

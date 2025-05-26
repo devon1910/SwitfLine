@@ -19,10 +19,12 @@ using Microsoft.AspNetCore.OpenApi;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ML;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.ML;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using Serilog;
 using Serilog.Events;
 using SwiftLine.API;
@@ -123,37 +125,39 @@ try
                ClockSkew = TimeSpan.Zero,
                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:secret"]))
            };
-          
-           //options.Events = new JwtBearerEvents
-           //{
-           //    OnMessageReceived = context =>
-           //    {
-           //        // Check for token in query string for WebSocket connections
-           //        var accessToken = context.Request.Query["access_token"];
 
-           //        // If the request is for your hub
-           //        var path = context.HttpContext.Request.Path;
-           //        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/queueHub"))
-           //        {
-           //            context.Token = accessToken;
-           //        }
+           options.Events = new JwtBearerEvents
+           {
+               OnMessageReceived = context =>
+               {
+                   // Check for token in query string for WebSocket connections
+                   var accessToken = context.Request.Query["access_token"];
 
-           //        return Task.CompletedTask;
-           //    },
-           //    OnChallenge = context =>
-           //    {              
-           //        context.Response.StatusCode = 401; // Unauthorized
-           //        context.Response.ContentType = "application/json";
-           //        return Task.CompletedTask;
-           //    },
-           //    OnAuthenticationFailed = context =>
-           //    {
-           //        // Log the error or handle it as needed
-           //        Log.Error("Signal R Authentication failed: {Error}", context.Exception.Message);
-           //        return Task.CompletedTask;
-           //    },
+                   // If the request is for your hub
+                   var path = context.HttpContext.Request.Path;
+                   if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/queueHub"))
+                   {
+                       context.Token = accessToken;
+                   }
+
+                   return Task.CompletedTask;
+               },
+               OnChallenge = context =>
+               {
+                   context.Response.StatusCode = 401; // Unauthorized
+                   context.Response.ContentType = "application/json";
+                   return Task.CompletedTask;
+               },
+               OnAuthenticationFailed = context =>
+               {
+                   // Log the error or handle it as needed
+                   Log.Error("Signal R Authentication failed: {Error}", context.Exception.Message);
+                   return Task.CompletedTask;
+               },
+
                
-           //};
+
+           };
        }
     ).AddCookie().AddGoogle(options =>
     {
