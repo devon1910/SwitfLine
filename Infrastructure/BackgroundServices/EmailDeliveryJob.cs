@@ -1,7 +1,9 @@
-﻿using Domain.Interfaces;
+﻿using Domain.DTOs.Responses;
+using Domain.Interfaces;
 using Domain.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.BackgroundServices
 {
-    public class EmailDeliveryJob(IServiceProvider serviceProvider) : BackgroundService
+    public class EmailDeliveryJob(IServiceProvider serviceProvider, ILogger<EmailDeliveryJob> logger) : BackgroundService
     {
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -25,23 +27,36 @@ namespace Infrastructure.BackgroundServices
 
                     foreach (var emailRecord in dueEmails)
                     {
-                        var result= await emailRepo.SendEmail (emailRecord);
-
-                        if (result.Item1)
+                        string message = "";
+                        try
                         {
-                            await emailRepo.MarkEmailAsSent(emailRecord.Id);
-                        }
-                        else {
-                            await emailRepo.UpdateRetryCount(emailRecord.Id, result.Item2);
-                        }
+                            var result = await emailRepo.SendEmail(emailRecord);
 
+                            if (result.Item1)
+                            {
+                                await emailRepo.MarkEmailAsSent(emailRecord.Id);
+                            }
+                            else
+                            {
+                                await emailRepo.UpdateRetryCount(emailRecord.Id, result.Item2);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            message = ex.Message;                     
+                        }
+                        finally 
+                        {
+                            await emailRepo.UpdateRetryCount(emailRecord.Id, message);
+                        }
+                       
                     }
                     await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
                 }
             }
             catch (Exception ex)
             {
-                throw ex;
+                logger.LogError(ex, "An error occurred while executing the EmailDeliveryJob background service.");
             }
         }
     }

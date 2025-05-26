@@ -20,12 +20,12 @@ namespace Infrastructure.Repositories
         public async Task<List<EmailsDelivery>> GetAllUnsentEmails()
         {
            return await dbContext.EmailDeliveryRequests
-                .Where(x => !x.IsSent && x.RetryCount <= 3 )
+                .Where(x => !x.IsSent && x.RetryCount < 3 )
                 .AsNoTracking()
                 .ToListAsync();
         }
 
-        public async Task LogEmail(string username, string email, string subject, string link, EmailTypeEnum type)
+        public async Task LogEmail(string username, string email, string subject, string link, EmailTypeEnum type, string estimatedWait)
         {
             await dbContext.EmailDeliveryRequests.AddAsync(new EmailsDelivery
             {
@@ -33,21 +33,33 @@ namespace Infrastructure.Repositories
                 RecipientEmail = email,
                 EmailType = type,
                 Subject = subject,
-                Link = link
-               
+                Link = link,
+                EstimatedWait= estimatedWait 
             });
 
         }
 
         public async Task MarkEmailAsSent(long emailId)
         {
-            await dbContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE EmailsDelivery SET IsSent = true WHERE Id = {emailId}");
+            try
+            {
+                await dbContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"EmailDeliveryRequests\" SET \"IsSent\" = true WHERE \"Id\" = {emailId}");
+                await dbContext.SaveChangesAsync();
+
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+           
         }
 
         public async Task UpdateRetryCount(long emailId, string message) 
         {
-            await dbContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"EmailsDelivery\" SET \"RetryCount\" = \"RetryCount\" + 1 WHERE \"Id\" = {emailId}");
-            await dbContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"EmailsDelivery\" SET \"ErrorMessage\" = {message} WHERE \"Id\" = {emailId}");
+            await dbContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"EmailDeliveryRequests\" SET \"RetryCount\" = \"RetryCount\" + 1 WHERE \"Id\" = {emailId}");
+            await dbContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE \"EmailDeliveryRequests\" SET \"Message\" = {message} WHERE \"Id\" = {emailId}");
+            await dbContext.SaveChangesAsync();
         }
 
         public async Task<Tuple<bool,string>> SendEmail(EmailsDelivery emailRecord)
@@ -59,7 +71,10 @@ namespace Infrastructure.Repositories
                 .Subject(emailRecord.Subject)
                 .Body(htmlTemplate
                 .Replace("{{UserName}}", emailRecord.RecipientUsername)
-                .Replace("{{SwiftlineUrl}}", emailRecord.Link), true)
+                .Replace("{{SwiftlineUrl}}", emailRecord.Link)
+                .Replace("{{EstimatedWait}}", emailRecord.EstimatedWait),
+                true)
+                // Assuming no estimated wait time is provided
                 .SendAsync();
             _logger.LogInformation("Email Sent Successfully");
             if (!email.Successful)

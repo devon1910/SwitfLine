@@ -16,6 +16,10 @@ namespace Infrastructure
             {
                 return WelcomeEmailTemplate();
             }
+            else if (emailTypeEnum == EmailTypeEnum.Reminder)
+            {
+                return ReminderEmailTemplate();
+            }
             return "";
             //else if (emailTypeEnum == EmailTypeEnum.Verify_Email)
             //{
@@ -23,235 +27,508 @@ namespace Infrastructure
             //}
         }
 
-        public static string WelcomeEmailTemplate()
+        private static string WelcomeEmailTemplate()
         {
             return @"<!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset=""UTF-8"">
-            <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-            <title>Welcome to SwiftLine Queue Management ⏩</title>
-            <style>
-                  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+<html>
+<head>
+    <meta charset=""UTF-8"">
+    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+    <title>Welcome to SwiftLine! Your Queue Management Revolution 🚀</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
-                body {
-                     margin: 0;
-                    padding: 0;
-                    font-family: 'Helvetica Neue', Arial, sans-serif;
-                    line-height: 1.6;
-                    color: #333333;
-                    background-color: #f5f5f5;
-                }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f5f5f5; /* Light grey background */
+            -webkit-text-size-adjust: 100%; /* Prevent font size adjustment on mobile */
+            -ms-text-size-adjust: 100%;
+        }
 
-                .container {
-                    max-width: 600px;
-                    margin: 0 auto;
-                    background-color: #ffffff;
-                }
-                .header {
-                    background-color: #8BA888; /* Sage green */
-                    padding: 30px;
-                    text-align: center;
-                    text-color: #ffffff
-                }
-                .logo {
-                    font-size: 28px;
-                    font-weight: bold;
-                    color: #ffffff;
-                    letter-spacing: 1px;
-                }
-                .tagline {
-                    color: #ffffff;
-                    margin-top: 10px;
-                    font-style: italic;
-                }
-                .content {
-                    padding: 30px;
-                    line-height: 1.6;
-                }
-                h1 {
-                    color: #333333;
-                    margin-top: 0;
-                }
-                h2 {
-                    color: #8BA888;
-                    margin-top: 30px;
-                }
-                .button {
-                    display: inline-block;
-                    background-color: #8BA888; /* Sage green */
-                    color: #ffffff !important;
-                    text-decoration: none;
-                    padding: 12px 24px;
-                    border-radius: 4px;
-                    font-weight: bold;
-                    margin: 20px 0;
-                }
-                .button:hover {
-                    background-color: #7A9977;
-                }
-                .features {
-                    margin: 30px 0;
-                }
-                .feature {
-                    display: flex;
-                    align-items: flex-start;
-                    margin-bottom: 20px;
-                }
-                .feature-icon {
-                    min-width: 30px;
-                    height: 30px;
-                    background-color: #8BA888;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin-right: 15px;
-                    color: white;
-                    font-weight: bold;
-                }
-                .feature-content {
-                    flex: 1;
-                }
-                .feature-title {
-                    font-weight: bold;
-                    margin-bottom: 5px;
-                }
-                .feature-description {
-                    color: #555555;
-                }
-                .steps {
-                    background-color: #f5f5f5;
-                    padding: 20px;
-                    border-radius: 4px;
-                    margin: 30px 0;
-                }
-                .step {
-                    margin-bottom: 15px;
-                }
-                .step-number {
-                    display: inline-block;
-                    background-color: #8BA888;
-                    color: white;
-                    width: 24px;
-                    height: 24px;
-                    text-align: center;
-                    border-radius: 50%;
-                    margin-right: 10px;
-                }
-                .footer {
-                    background-color: #f5f5f5;
-                    padding: 20px;
-                    text-align: center;
-                    color: #666666;
-                    font-size: 12px;
-                }
-                .social {
-                    margin: 15px 0;
-                }
-                .social a {
-                    display: inline-block;
-                    margin: 0 8px;
-                    color: #8BA888;
-                    text-decoration: none;
-                }
-                 .center {
-                    display: block;
-                    margin-left: auto;
-                    margin-right: auto;
-                    width: 30%;
-                }
-            </style>
-        </head>
-        <body>
-            <div class=""container"">
-       
-                <div class=""content"">
-                    <h1>Welcome to a Smarter Way to Queue!</h1>
-            
-                    <p>Hi {{UserName}},</p>
-            
-                    <p>Thank you for choosing Swiftline! We're excited to have you join our community of businesses and organizations that are transforming how people wait in line. <br><br>
-                    Your account has been successfully created, and you're now ready to start managing queues more efficiently.</p>
-            
-                    <a href=""{{SwiftlineUrl}}"" class=""button"">Set Up Your First Queue</a>
-            
-                    <h2>Why Swiftline Makes Waiting Better</h2>
-            
-                    <div class=""features"">
-                        <div class=""feature"">
-                            <div>🔄</div>
-                            <div class=""feature-content"">
-                                <div class=""feature-title""> Join From Anywhere</div>
-                                <div class=""feature-description"">Your customers can join queues remotely from their devices, eliminating the need to physically stand in line.</div>
-                            </div>
-                        </div>
-                
-                        <div class=""feature"">
-                            <div>⏱️</div>
-                            <div class=""feature-content"">
-                                <div class=""feature-title""> Real-Time Updates</div>
-                                <div class=""feature-description"">Automatic notifications keep everyone informed about queue status, an email reminder is sent when it's almost your turn and estimated wait times.</div>
-                            </div>
-                        </div>
-                
-                        <div class=""feature"">
-                            <div>✓</div>
-                            <div class=""feature-content"">
-                                <div class=""feature-title""> Time Efficiency</div>
-                                <div class=""feature-description"">Users can multitask and make better use of their time while waiting for their turn.</div>
-                            </div>
-                        </div>
-                
-                        <div class=""feature"">
-                            <div>📊</div>
-                            <div class=""feature-content"">
-                                <div class=""feature-title""> Powerful Analytics</div>
-                                <div class=""feature-description"">Gain insights into wait times, peak hours, and customer flow to optimize your operations.</div>
-                            </div>
-                        </div>
+        /* Essential for consistent rendering across email clients */
+        table, td, div {
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px; /* Softened edges */
+            overflow: hidden; /* Ensures border-radius applies to content */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Subtle shadow */
+        }
+        .header {
+            background-color: #8BA888; /* SwiftLine Sage Green */
+            padding: 40px 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 1.5px;
+            margin-bottom: 5px;
+            line-height: 1.2;
+        }
+        .tagline {
+            color: #ffffff;
+            font-size: 16px;
+            margin-top: 10px;
+            font-style: italic;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+            line-height: 1.7; /* Improved readability */
+        }
+        h1 {
+            color: #333333;
+            font-size: 28px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-align: center;
+        }
+        h2 {
+            color: #8BA888; /* SwiftLine Sage Green */
+            font-size: 22px;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-align: center;
+        }
+        p {
+            margin-bottom: 15px;
+            font-size: 15px;
+            color: #555555;
+        }
+        .button-wrapper {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            background-color: #8BA888; /* SwiftLine Sage Green */
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 17px;
+            letter-spacing: 0.5px;
+            transition: background-color 0.3s ease; /* Smooth hover effect */
+        }
+        .button:hover {
+            background-color: #7A9977; /* Darker sage green on hover */
+        }
+        .features {
+            margin: 30px 0;
+        }
+        .feature {
+            display: flex;
+            align-items: center; /* Vertically align icon and text */
+            margin-bottom: 25px;
+            padding-left: 10px;
+        }
+        .feature-icon-container {
+            min-width: 45px;
+            height: 45px;
+            background-color: #EBF2EB; /* Lighter sage background for icons */
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            color: #8BA888; /* Icon color */
+            font-size: 24px; /* Larger emoji */
+        }
+        .feature-title {
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #333333;
+            font-size: 16px;
+        }
+        .feature-description {
+            color: #555555;
+            font-size: 14px;
+        }
+        .steps {
+            background-color: #f9f9f9; /* Slightly lighter background for steps section */
+            padding: 25px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        .step {
+            margin-bottom: 18px;
+            display: flex;
+            align-items: flex-start;
+        }
+        .step-number {
+            min-width: 28px;
+            height: 28px;
+            background-color: #8BA888; /* SwiftLine Sage Green */
+            color: white;
+            text-align: center;
+            line-height: 28px;
+            border-radius: 50%;
+            margin-right: 15px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .step-text {
+            flex: 1;
+            color: #555555;
+            font-size: 15px;
+        }
+        .footer {
+            background-color: #F0F5EF; /* Lightest sage shade for footer */
+            padding: 30px;
+            text-align: center;
+            color: #666666;
+            font-size: 13px;
+        }
+        .social {
+            margin: 20px 0;
+        }
+        .social a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #8BA888; /* SwiftLine Sage Green */
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .footer p {
+            margin-bottom: 8px;
+            line-height: 1.5;
+            color: #777777;
+        }
+        .footer a {
+            color: #8BA888; /* SwiftLine Sage Green */
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media only screen and (max-width: 620px) {
+            .container {
+                width: 100% !important;
+                border-radius: 0;
+            }
+            .header, .content, .footer {
+                padding: 20px !important;
+            }
+            h1 {
+                font-size: 24px !important;
+            }
+            h2 {
+                font-size: 20px !important;
+            }
+            .button {
+                padding: 12px 25px !important;
+                font-size: 16px !important;
+            }
+            .feature-icon-container {
+                min-width: 38px !important;
+                height: 38px !important;
+                font-size: 20px !important;
+                margin-right: 15px !important;
+            }
+            .feature-title {
+                font-size: 15px !important;
+            }
+            .feature-description {
+                font-size: 13px !important;
+            }
+            .step-number {
+                min-width: 26px !important;
+                height: 26px !important;
+                line-height: 26px !important;
+                font-size: 14px !important;
+                margin-right: 12px !important;
+            }
+            .footer, .footer p, .footer a {
+                font-size: 12px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class=""container"">
+        <div class=""header"">
+            <div class=""logo"">SwiftLine</div>
+            <p class=""tagline"">Queue Management, Reimagined.</p>
+        </div>
+
+        <div class=""content"">
+            <h1>Welcome to a Smarter Way to Queue! 👋</h1>
+
+            <p>Hi {{UserName}},</p>
+
+            <p>We're thrilled to welcome you to SwiftLine, the virtual queue management system that's changing how businesses and organizations handle wait times. Get ready to transform your customer experience!</p>
+
+            <div class=""button-wrapper"">
+                <a href=""{{SwiftlineUrl}}"" class=""button"">Set Up Your First Event/Queue</a>
+            </div>
+
+            <h2>Why SwiftLine is Your Next Game-Changer</h2>
+
+            <div class=""features"">
+                <div class=""feature"">
+                    <div class=""feature-icon-container"">📲</div>
+                    <div class=""feature-content"">
+                        <div class=""feature-title"">Remote Queueing for Customers</div>
+                        <div class=""feature-description"">Empower your customers to join lines from anywhere, using their own devices. No more physical waiting!</div>
                     </div>
-            
-                    <div class=""steps"">
-                        <h2>Get Started in 3 Simple Steps:</h2>
-                
-                        <div class=""step"">
-                            <span class=""step-number"">1</span>
-                            <strong>Set up your event or service</strong> - Create your first queue and customize it to fit your needs
-                        </div>
-                
-                        <div class=""step"">
-                            <span class=""step-number"">2</span>
-                            <strong>Share your queue link</strong> - Invite people to join your queue through email, SMS, or QR code
-                        </div>
-                
-                        <div class=""step"">
-                            <span class=""step-number"">3</span>
-                            <strong>Start managing your queue</strong> - Use our dashboard to track and manage participants efficiently
-                        </div>
-                    </div>
-            
-                    <p>Our support team is available 24/7 to help you get the most out of SwiftLine. If you have any questions or need assistance setting up your queues, don't hesitate to reach out.</p>
-            
-                    <p>Say goodbye to long lines and hello to happy customers!</p>
-            
-                    <p>Best regards,<br>The SwiftLine Team</p>
                 </div>
-        
-                <div class=""footer"">
-                    <div class=""social"">
-                        <a href=""#"">Twitter</a> | 
-                        <a href=""#"">Facebook</a> | 
-                        <a href=""#"">Instagram</a> | 
-                        <a href=""#"">LinkedIn</a>
+
+                <div class=""feature"">
+                    <div class=""feature-icon-container"">⏱️</div>
+                    <div class=""feature-content"">
+                        <div class=""feature-title"">Real-Time Updates & Smart Estimates</div>
+                        <div class=""feature-description"">Leverage our ML-powered engine for accurate wait times and keep everyone informed with automated status notifications.</div>
                     </div>
-                    <p>© 2025 Swiftline Queue Management. All rights reserved.</p>
-                    <p>You're receiving this email because you signed up for Swiftline.<br>
-                    <a href=""#"" style=""color: #8BA888;"">Unsubscribe</a> | <a href=""#"" style=""color: #8BA888;"">Privacy Policy</a></p>
+                </div>
+
+                <div class=""feature"">
+                    <div class=""feature-icon-container"">⚡</div>
+                    <div class=""feature-content"">
+                        <div class=""feature-title"">Boost Efficiency & Satisfaction</div>
+                        <div class=""feature-description"">Reduce physical crowding, optimize staff allocation, and give customers the freedom to manage their time better.</div>
+                    </div>
+                </div>
+
+                <div class=""feature"">
+                    <div class=""feature-icon-container"">📈</div>
+                    <div class=""feature-content"">
+                        <div class=""feature-title"">Deep Analytics Dashboard</div>
+                        <div class=""feature-description"">Gain powerful insights into queue performance, peak times, and customer flow to continually optimize your operations.</div>
+                    </div>
                 </div>
             </div>
-        </body>
-        </html>";
+
+            <div class=""steps"">
+                <h2>Ready to Get Started? It's Simple:</h2>
+                <div class=""step"">
+                    <span class=""step-number"">1</span>
+                    <span class=""step-text""><strong>Create Your Event or Service:</strong> Easily set up your first queue and customize it to fit your unique needs.</span>
+                </div>
+
+                <div class=""step"">
+                    <span class=""step-number"">2</span>
+                    <span class=""step-text""><strong>Share Your Queue Link:</strong> Invite attendees to join through a simple link, QR code.</span>
+                </div>
+
+                <div class=""step"">
+                    <span class=""step-number"">3</span>
+                    <span class=""step-text""><strong>Manage Your Queue with Ease:</strong> Utilize your intuitive dashboard to track and manage participants in real-time.</span>
+                </div>
+            </div>
+
+            <p>Our dedicated support team is here to help you make the most of SwiftLine. If you have any questions or need assistance, don't hesitate to <a href=""#"" style=""color: #8BA888; text-decoration: none; font-weight: bold;"">reach out</a>.</p>
+
+            <p>Say goodbye to long lines and hello to happy customers!</p>
+
+            <p>Best regards,<br>The SwiftLine Team</p>
+        </div>
+
+        <div class=""footer"">
+            <div class=""social"">
+                <a href=""#"">Twitter</a> |
+                <a href=""#"">Facebook</a> |
+                <a href=""#"">Instagram</a> |
+                <a href=""#"">LinkedIn</a>
+            </div>
+            <p>&copy; 2025 SwiftLine Queue Management. All rights reserved.</p>
+            <p>You're receiving this email because you signed up for SwiftLine.<br>
+            <a href=""#"" style=""color: #8BA888;"">Unsubscribe</a> | <a href=""#"" style=""color: #8BA888;"">Privacy Policy</a></p>
+        </div>
+    </div>
+</body>
+</html>";
+        }
+
+  
+        private static string ReminderEmailTemplate()
+        {
+            return @"<!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset=""UTF-8"">
+                            <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+                            <title>Your Turn is Coming Up Soon - Swiftline</title>
+                            <style>
+                                /* Base styles */
+                                body {
+                                    margin: 0;
+                                    padding: 0;
+                                    font-family: 'Helvetica Neue', Arial, sans-serif;
+                                    line-height: 1.6;
+                                    color: #333333;
+                                    background-color: #f5f5f5;
+                                }
+        
+                                .container {
+                                    max-width: 600px;
+                                    margin: 0 auto;
+                                    background-color: #ffffff;
+                                }
+        
+                                /* Header styles */
+                                .header {
+                                    background-color: #7D9D74; /* Sage green */
+                                    padding: 24px;
+                                    text-align: center;
+                                }
+        
+                                .logo {
+                                    max-width: 180px;
+                                }
+        
+                                /* Content styles */
+                                .content {
+                                    padding: 30px;
+                                }
+        
+                                h1 {
+                                    color: #333333; /* Black */
+                                    font-size: 24px;
+                                    margin-top: 0;
+                                    margin-bottom: 20px;
+                                }
+        
+                                p {
+                                    margin-bottom: 20px;
+                                }
+        
+                                /* Timer styles */
+                                .timer-container {
+                                    text-align: center;
+                                    margin: 25px 0;
+                                    padding: 20px;
+                                    background-color: #F5F8F4; /* Light sage */
+                                    border-radius: 8px;
+                                }
+        
+                                .estimated-time {
+                                    font-size: 36px;
+                                    font-weight: bold;
+                                    color: #7D9D74; /* Sage green */
+                                    margin: 10px 0;
+                                }
+        
+                                .time-label {
+                                    font-size: 16px;
+                                    color: #666666;
+                                }
+        
+                                /* Button styles */
+                                .button-container {
+                                    text-align: center;
+                                    margin: 30px 0;
+                                }
+        
+                                .button {
+                                    display: inline-block;
+                                    background-color: #7D9D74; /* Sage green */
+                                    color: #ffffff; /* White */
+                                    text-decoration: none;
+                                    padding: 14px 30px;
+                                    border-radius: 4px;
+                                    font-weight: bold;
+                                    letter-spacing: 0.5px;
+                                    text-transform: uppercase;
+                                    font-size: 16px;
+                                }
+        
+                                /* Urgency note */
+                                .urgency-note {
+                                    border-left: 4px solid #7D9D74; /* Sage green */
+                                    padding: 15px;
+                                    margin-bottom: 25px;
+                                    background-color: #F5F8F4; /* Light sage */
+                                }
+        
+                                /* Footer styles */
+                                .footer {
+                                    background-color: #333333; /* Black */
+                                    color: #ffffff;
+                                    padding: 20px;
+                                    text-align: center;
+                                    font-size: 12px;
+                                }
+        
+                                .footer-links a {
+                                    color: #ffffff;
+                                    text-decoration: none;
+                                    margin: 0 10px;
+                                }
+                                 .center {
+                                    display: block;
+                                    margin-left: auto;
+                                    margin-right: auto;
+                                    width: 30%;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class=""container"">
+
+                                <div>
+                                    <img src = ""https://res.cloudinary.com/dddabj5ub/image/upload/v1741908218/swifline_logo_cpsacv.webp"" alt=""Swiftline"" class=""center"">
+                                </div>
+                                
+                                <div class=""content"">
+                                    <h1>You're Almost Up!</h1>
+            
+                                    <p>Hello {{UserName}},</p>
+            
+                                    <p>Great news! Your turn in the queue is coming up very soon. Please make sure you're ready and stay nearby.</p>
+            
+                                    <div class=""timer-container"">
+                                        <div class=""time-label"">Estimated time until your turn:</div>
+                                        <div class=""estimated-time""> {{EstimatedWait}} minutes</div>
+                                    </div>
+            
+                                    <div class=""urgency-note"">
+                                        <strong>Important:</strong> To maintain your place in line, please be ready when it's your turn. If you miss your slot, you may need to rejoin the queue.
+                                    </div>
+            
+                                    <p>Check your current status and receive live updates by returning to the app.</p>
+            
+                                    <div class=""button-container"">
+                                        <a href=""{{SwiftlineUrl}}"" class=""button"">CHECK MY STATUS</a>
+                                    </div>
+            
+                                    <p>Thank you for your patience. We'll see you soon!</p>
+            
+                                    <p>The Swiftline Team</p>
+                                </div>
+        
+                                <!-- Footer -->
+                                <div class=""footer"">
+                                    <div class=""footer-links"">
+                                        <a href=""#"">Help Center</a>
+                                        <a href=""#"">Privacy Policy</a>
+                                        <a href=""#"">Terms of Service</a>
+                                    </div>
+            
+                                    <p>&copy; 2025 Swiftline. All rights reserved.</p>
+                                </div>
+                            </div>
+                        </body>
+                        </html>";
+
+
         }
 
     }

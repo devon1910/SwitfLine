@@ -20,6 +20,7 @@ namespace Domain.Models
         public string Subject { get; set; }
 
         public string Link { get; set; }
+        public string? EstimatedWait { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.UtcNow.AddHours(1);
     }
 
