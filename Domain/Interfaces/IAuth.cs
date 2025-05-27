@@ -17,12 +17,13 @@ namespace Domain.Interfaces
         public Task<AuthRes> RefreshToken(TokenModel tokenModel);
         public Task<bool> Revoke(ClaimsPrincipal User);
         public AuthRes VerifyToken(string token);
-        public Task<AuthRes> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
+        public Task<string> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
         public Task<TurnstileResponse> VerifyTurnstile(TurnstileModel request);
         public Task<AnonymousUserAuthRes> CreateAnonymousUser();
         public Task<List<SwiftLineUser>> GetExpiredAccounts();
         public Task DeleteExpiredAccount(SwiftLineUser user);
 
+        public AuthRes GetAuthData(string authCode);
     }
 
     public interface IAuthService
@@ -32,7 +33,9 @@ namespace Domain.Interfaces
         public Task<Result<AuthRes>> RefreshToken(TokenModel tokenModel);
         public Task<Result<bool>> Revoke(ClaimsPrincipal User);
         public Result<AuthRes> VerifyToken(string token);
-        public Task<Result<AuthRes>> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
+        public Task<Result<string>> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
         public Task<Result<TurnstileResponse>> VerifyTurnstile(TurnstileModel request);
+
+        public Result<AuthRes> GetAuthData(string authCode);
     }
 }

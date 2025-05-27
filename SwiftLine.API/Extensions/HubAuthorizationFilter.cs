@@ -12,7 +12,7 @@ namespace SwiftLine.API.Extensions
         //    var method = context.HubMethod;
 
         //    // Check if the method has the [HubAuthorize] attribute
-        //    var hasAuthAttr = method.() != null;
+        //    var hasAuthAttr = method.GetCustomAttributes() != null;
 
         //    if (hasAuthAttr && !context.Context.User.Identity?.IsAuthenticated == true)
         //    {

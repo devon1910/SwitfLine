@@ -82,17 +82,11 @@ namespace Application.Services
             return Result<AuthRes>.Ok(authRes);
         }
 
-        public async Task<Result<AuthRes>> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
+        public async Task<Result<string>> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
         {
             var loginRes = await authRepo.LoginWithGoogleAsync(claimsPrincipal);
-
-            if(loginRes.status)
-            {
-                return Result<AuthRes>.Created(loginRes);
-               
-            }
-
-            return Result<AuthRes>.Failed("Failed to Login with Google", loginRes);
+       
+            return Result<string>.Ok(loginRes);
         }
 
         public async Task<Result<TurnstileResponse>> VerifyTurnstile(TurnstileModel request)
@@ -109,5 +103,18 @@ namespace Application.Services
             }
         }
 
+        public Result<AuthRes> GetAuthData(string authCode)
+        {
+            var result = authRepo.GetAuthData(authCode);
+
+            if (result.status)
+            {
+                return Result<AuthRes>.Ok(result);
+            }
+            else
+            {
+                return Result<AuthRes>.Failed("Failed to get auth data", result);
+            }
+        }
     }
 }

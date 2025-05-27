@@ -22,6 +22,7 @@ namespace SwiftLine.API
         [EnableRateLimiting("SignupPolicy")]
         public async Task<AuthRes> JoinQueueGroup(int eventId, string userId)
         {
+            
             Log.Information("User {UserId} joining queue group for event {EventId}", userId, eventId);
             try
             {
@@ -56,11 +57,7 @@ namespace SwiftLine.API
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            if (!Context.User.Identity.IsAuthenticated)
-            {
-                throw new HubException("Unauthorized");
-            }
-
+           
             Log.Information("Client disconnected. ConnectionId: {ConnectionId}", Context.ConnectionId);
             try
             {

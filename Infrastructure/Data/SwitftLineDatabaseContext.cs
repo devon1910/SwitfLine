@@ -31,5 +31,7 @@ namespace Infrastructure.Data
         public DbSet<PushNotification> PushNotifications { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<EmailsDelivery> EmailDeliveryRequests { get; set; }
+
+        public DbSet<AuthCodeData> AuthCodeData { get; set; }
     }
 }

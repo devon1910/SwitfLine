@@ -69,7 +69,7 @@ namespace SwiftLine.API.Controllers
         [HttpGet(), AllowAnonymous]
         public IActionResult LoginWithGoogle()
         {
-            string returnUrl = _config["SwiftLineBaseUrlForReminder"];
+            string returnUrl = _config["SwiftLineBaseUrl"];
 
             var callbackUrl = _lineGenerator.GetPathByName(
                 HttpContext,
@@ -96,9 +96,18 @@ namespace SwiftLine.API.Controllers
             var result = await service.LoginWithGoogleAsync(authenticateResult.Principal);
 
             // Instead of using cookies, append tokens to the redirect URL:
-            return Redirect($"{returnUrl}?accessToken={result.Data.AccessToken}&refreshToken={result.Data.RefreshToken}&username={result.Data.username}&userId={result.Data.userId}");
+            return Redirect($"{returnUrl}?authCode={result.Data}");
 
         }
+
+
+        [HttpGet, AllowAnonymous]
+        public ActionResult<Result<AuthRes>> GetAuthData(string authCode)
+        {
+            var res =  service.GetAuthData(authCode);
+            return res.ToActionResult();
+        }
+
         [HttpPost, AllowAnonymous]
         public async Task<ActionResult<Result<TurnstileResponse>>> VerifyTurnstileToken([FromBody] TurnstileModel request)
         {

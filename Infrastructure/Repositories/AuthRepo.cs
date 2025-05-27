@@ -345,7 +345,7 @@ namespace Infrastructure.Repositories
             }
         }  
 
-        public async Task<AuthRes> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
+        public async Task<string> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
         {
             //if (claimsPrincipal == null)
             //{
@@ -384,6 +384,16 @@ namespace Infrastructure.Repositories
                     //        result.Errors.Select(x => x.Description))}");
                     throw new Exception();
                 }
+                // Add the user to the role
+                var addUserToRoleResult = await _userManager.AddToRoleAsync(newUser, Roles.User);
+                if (!addUserToRoleResult.Succeeded)
+                {
+                    var errors = addUserToRoleResult.Errors.Select(e => e.Description);
+                    _logger.LogError($"Failed to add role to the user. Errors: {string.Join(", ", errors)}");
+                    string message = $"Failed to add role to the user. Errors: {string.Join(", ", errors)}";
+                    _logger.LogInformation(message);
+                    return "";
+                }
                 user = newUser;
             }
 
@@ -391,6 +401,7 @@ namespace Infrastructure.Repositories
                 "Google",
                 claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
                 "Google");
+
             // creating the necessary claims
             List<Claim> authClaims = [
                     new (ClaimTypes.Name, user.UserName),
@@ -445,11 +456,24 @@ namespace Infrastructure.Repositories
                        type: EmailTypeEnum.Welcome
                        );
             }
-            
 
+            //generate and capture authCode
+            string authCode = GenerateRandomAlphanumericString() + DateTime.Now.Millisecond.ToString();
+
+            var authCodeEntity = new AuthCodeData
+            {
+                Id = authCode,
+                AccessToken = token,
+                RefreshToken = refreshToken,
+                UserId = user.Id,
+                Username = user.UserName,
+                IsValid = true
+            };
+
+            await _context.AddAsync(authCodeEntity);
             await _context.SaveChangesAsync();
 
-            return new AuthRes(true, "Login Successful", token, refreshToken, user.Id, user.Email, user.UserName);
+            return authCode;
 
 
         }
@@ -549,7 +573,17 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
             
         }
-
+        private static string GenerateRandomAlphanumericString(int length = 16)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            var random = new Random();
+            var result = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                result[i] = chars[random.Next(chars.Length)];
+            }
+            return new string(result);
+        }
         private static string GenerateUsernameFromEmail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
@@ -610,6 +644,46 @@ namespace Infrastructure.Repositories
             string message = type == "user" ? "Failed to create anonymous user." : "Failed to assign Anonymous role to user.";
             _logger.LogError($"Failed to {message}. Errors: {errors}");
             return new AnonymousUserAuthRes(false, $"{message}. Errors: {errors}", "", null);
+        }
+        public AuthRes GetAuthData(string authCode)
+        {
+            try
+            {
+                AuthCodeData record = _context.AuthCodeData.FirstOrDefault(x => x.Id == authCode && x.IsValid);
+                if (record is not null) 
+                {
+                    record.IsValid = false;
+                    _context.SaveChanges();
+
+                    return new AuthRes(
+                        true,
+                        "Auth Data retrieved",
+                        record.AccessToken,
+                        record.RefreshToken,
+                        record.UserId,
+                        "",
+                        record.Username
+                        );
+                }
+
+                return new AuthRes(
+                        false,
+                        "Auth Data expired",
+                       "",
+                        "",
+                        "",
+                        "",
+                        ""
+                        );
+                
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+            
+
         }
         private string EmailVerificationTemplate()
         {
@@ -732,8 +806,6 @@ namespace Infrastructure.Repositories
 
 
         }
-
-       
 
        
     }
