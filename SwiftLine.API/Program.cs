@@ -204,7 +204,7 @@ try
     {
         options.AddDefaultPolicy(policy =>
         {
-            policy.WithOrigins("http://localhost:5173", "https://swiftline-olive.vercel.app", "https://www.theswiftline.com/") // Replace with your client origin
+            policy.WithOrigins("http://localhost:5173", "https://swiftline-olive.vercel.app", "https://www.theswiftline.com") // Replace with your client origin
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials(); // Required for SignalR with credentials
