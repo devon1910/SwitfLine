@@ -384,8 +384,13 @@ namespace Infrastructure.Repositories
                     //        result.Errors.Select(x => x.Description))}");
                     throw new Exception();
                 }
-                // Add the user to the role
-                var addUserToRoleResult = await _userManager.AddToRoleAsync(newUser, Roles.User);
+                
+                user = newUser;
+            }
+            // Add the user to the role
+            if (!await _userManager.IsInRoleAsync(user, Roles.User)) 
+            {
+                var addUserToRoleResult = await _userManager.AddToRoleAsync(user, Roles.User);
                 if (!addUserToRoleResult.Succeeded)
                 {
                     var errors = addUserToRoleResult.Errors.Select(e => e.Description);
@@ -394,8 +399,9 @@ namespace Infrastructure.Repositories
                     _logger.LogInformation(message);
                     return "";
                 }
-                user = newUser;
             }
+           
+            
 
             var info = new UserLoginInfo(
                 "Google",
