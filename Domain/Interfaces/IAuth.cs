@@ -16,7 +16,7 @@ namespace Domain.Interfaces
         public Task<AuthRes> Login(LoginModel model);
         public Task<AuthRes> RefreshToken(TokenModel tokenModel);
         public Task<bool> Revoke(ClaimsPrincipal User);
-        public AuthRes VerifyToken(string token);
+        public Task<AuthRes> VerifyToken(string token);
         public Task<string> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
         public Task<TurnstileResponse> VerifyTurnstile(TurnstileModel request);
         public Task<AnonymousUserAuthRes> CreateAnonymousUser();
@@ -32,7 +32,7 @@ namespace Domain.Interfaces
         public Task<Result<AuthRes>> Login(LoginModel model);
         public Task<Result<AuthRes>> RefreshToken(TokenModel tokenModel);
         public Task<Result<bool>> Revoke(ClaimsPrincipal User);
-        public Result<AuthRes> VerifyToken(string token);
+        public Task<Result<AuthRes>> VerifyToken(string token);
         public Task<Result<string>> LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
         public Task<Result<TurnstileResponse>> VerifyTurnstile(TurnstileModel request);
 

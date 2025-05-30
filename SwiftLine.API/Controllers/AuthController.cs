@@ -53,9 +53,9 @@ namespace SwiftLine.API.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public ActionResult<Result<AuthRes>> VerifyToken([JwtTokenAttribute] string token)
+        public async Task<ActionResult<Result<AuthRes>>> VerifyToken([JwtTokenAttribute] string token)
         {
-            var res = service.VerifyToken(token);
+            var res = await service.VerifyToken(token);
             return res.ToActionResult();
         }
 

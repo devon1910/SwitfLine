@@ -70,9 +70,9 @@ namespace Application.Services
             }
         }
 
-        public Result<AuthRes> VerifyToken(string token)
+        public async Task<Result<AuthRes>> VerifyToken(string token)
         {
-            var authRes = authRepo.VerifyToken(token);
+            var authRes = await authRepo.VerifyToken(token);
 
             if (authRes.purpose != "Email_Verification")
             {

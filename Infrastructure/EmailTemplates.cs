@@ -20,11 +20,13 @@ namespace Infrastructure
             {
                 return ReminderEmailTemplate();
             }
-            return "";
-            //else if (emailTypeEnum == EmailTypeEnum.Verify_Email)
-            //{
-            //    return VerifyEmailTemplate();
-            //}
+            else if (emailTypeEnum == EmailTypeEnum.Verify_Email)
+            {
+                return EmailVerificationTemplate();
+            }
+            else {
+                return "";
+            }
         }
 
         private static string WelcomeEmailTemplate()
@@ -527,6 +529,128 @@ namespace Infrastructure
                             </div>
                         </body>
                         </html>";
+
+
+        }
+
+        private static string EmailVerificationTemplate()
+        {
+            return @"
+                  <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset=""UTF-8"">
+                        <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+                      
+
+                        <title>Welcome to Swiftline</title>
+                        <style>
+                            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+                            body {
+                                font-family: 'Inter', sans-serif;
+                                line-height: 1.6;
+                                color: #333;
+                                max-width: 600px;
+                                margin: 0 auto;
+                                padding: 20px;
+                                background-color: #f9f9f9;
+                            }
+                            .logo {
+                                text-align: center;
+                                margin-bottom: 30px;
+                            }
+                            .logo img {
+                                max-width: 180px;
+                            }
+                            .container {
+                                background-color: white;
+                                border-radius: 8px;
+                                padding: 30px;
+                                border: 1px solid #eaeaea;
+                            }
+                            h1 {
+                                color: #6B8E6E; /* Sage green */
+                                margin-top: 0;
+                                font-weight: 600;
+                            }
+                            .button {
+                                display: inline-block;
+                                background-color: #6B8E6E; /* Sage green */
+                                color: white;
+                                text-decoration: none;
+                                padding: 12px 30px;
+                                border-radius: 4px;
+                                font-weight: 500;
+                                margin: 20px 0;
+                            }
+                            .expiry-note {
+                                color: #6B8E6E; /* Sage green */
+                                font-weight: 600;
+                                font-size: 14px;
+                                border: 1px solid #6B8E6E;
+                                display: inline-block;
+                                padding: 8px 15px;
+                                border-radius: 4px;
+                            }
+                            .footer {
+                                margin-top: 30px;
+                                font-size: 12px;
+                                color: #666;
+                                text-align: center;
+                            }
+                            .link {
+                                color: #6B8E6E; /* Sage green */
+                                text-decoration: underline;
+                            }
+                             .center {
+                                display: block;
+                                margin-left: auto;
+                                margin-right: auto;
+                                width: 30%;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                       
+    
+                        <div class=""container"">
+                            
+                            <div>
+                                 <img src = ""https://res.cloudinary.com/dddabj5ub/image/upload/v1741908218/swifline_logo_cpsacv.webp"" alt=""Swiftline"" class=""center"">
+                            </div>
+                            <p>Hello {{UserName}},</p>
+        
+                            <p>Thank you for Signing up with Swiftline! We're excited to have you on board. To get started with your account, please verify your email address by clicking the button below:</p>
+        
+                            <div style=""text-align: center;"">
+                                <a href=""{{SwiftlineUrl}}"" class=""button"">Verify Email Address</a>
+                            </div>
+        
+                            <p class=""expiry-note"">⏱️ This verification link expires in 1 hour</p>
+        
+                            <p>If this mail came in your spam folder, the button above wouldn't work. Click on the ""Report as not a spam button"" above to move the mail to your inbox and try to click on the button.
+                               OR 
+                            you can copy and paste the following link into your browser:</p>
+        
+                            <p style=""word-break: break-all; font-size: 14px; color: #666;"">{{SwiftlineUrl}}</p>
+        
+                            <p>Swiftline is designed to help you manage your workflow efficiently and boost your productivity. Once your email is verified, you'll have full access to all features.</p>
+                            
+                            <p> If you have any questions or need assistance, please don't hesitate to contact our support team at <a href=""mailto:swiftline00@gmail.com"" class=""link"">swiftline00@gmail.com</a>.</p>
+
+                            
+                            <p>Best regards,<br>
+                            The Swiftline Team</p>
+                        </div>
+    
+                        <div class=""footer"">
+                            <p>© 2025 Swiftline. All rights reserved.</p>
+                            <p>Visit our website: <a href=""https://www.theswiftline.com/"" class=""link"">https://www.theswiftline.com/</a></p>
+                            <p>If you didn't create this account, please ignore this email.</p>
+                        </div>
+                    </body>
+                    </html>";
 
 
         }
