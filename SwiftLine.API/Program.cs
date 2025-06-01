@@ -259,7 +259,9 @@ try
         });
     });
 
-    builder.Services.AddApplicationInsightsTelemetry();
+    //builder.Services.AddApplicationInsightsTelemetry();
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+    builder.WebHost.UseUrls($"http://*:{port}");
 
     var app = builder.Build();
 
@@ -302,8 +304,7 @@ try
 
     await DbSeeder.SeedData(app);  // Call this method to seed the data
 
-    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-    app.Run($"http://0.0.0.0:{port}");
+
 }
 catch (Exception ex)
 {
