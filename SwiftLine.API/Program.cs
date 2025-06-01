@@ -56,6 +56,16 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+
+    // Configure Kestrel to listen on ALL interfaces (0.0.0.0) using Azure's port
+    builder.WebHost.ConfigureKestrel(serverOptions => {
+        serverOptions.ListenAnyIP(int.Parse(port));
+    });
+
+    Log.Information($"port: {port} to listen");
+
+
     // Configure Serilog to integrate with App Insights
     builder.Host.UseSerilog((context, services, loggerConfiguration) => 
         loggerConfiguration
@@ -300,15 +310,22 @@ try
 
     app.MapControllers();
 
-    await DbSeeder.SeedData(app); 
+    await DbSeeder.SeedData(app);
+
+    app.Run();
+
+    Log.Information("Ended web application");
 
 
 }
 catch (Exception ex)
 {
     Log.Fatal(ex, "Application terminated unexpectedly");
+    Log.Information("Ended web application: "+ ex.Message);
     Console.WriteLine("Application start-up exception:");
     Console.WriteLine(ex.ToString());
+    File.WriteAllText("startup_error.txt", $"PORT: {Environment.GetEnvironmentVariable("PORT")}\nError: {ex}");
+    throw;
     throw ex; 
 }
 finally
