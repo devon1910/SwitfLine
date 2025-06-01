@@ -204,7 +204,7 @@ try
     {
         options.AddDefaultPolicy(policy =>
         {
-            policy.WithOrigins("http://localhost:5173", "https://swiftline-olive.vercel.app", "https://www.theswiftline.com") // Replace with your client origin
+            policy.WithOrigins("http://localhost:5173", "https://www.theswiftline.com") // Replace with your client origin
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials(); // Required for SignalR with credentials
@@ -300,14 +300,16 @@ try
 
     app.MapControllers();
 
-    await DbSeeder.SeedData(app);  // Call this method to seed the data
+    await DbSeeder.SeedData(app); 
 
 
 }
 catch (Exception ex)
 {
     Log.Fatal(ex, "Application terminated unexpectedly");
-    throw ex;
+    Console.WriteLine("Application start-up exception:");
+    Console.WriteLine(ex.ToString());
+    throw ex; 
 }
 finally
 {
