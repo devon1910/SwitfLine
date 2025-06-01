@@ -65,7 +65,10 @@ namespace Infrastructure.Repositories
         public async Task<Tuple<bool,string>> SendEmail(EmailsDelivery emailRecord)
         {
             string htmlTemplate = EmailTemplates.getEmailTemplate(emailRecord.EmailType);
-            string swiftlineLink = _configuration[emailRecord.Link]; //come back to this
+
+           //string logoPath = Path.Combine(AppContext.BaseDirectory, "assets\\theSwiftlineLogo.png");
+
+           string swiftlineLink = _configuration[emailRecord.Link]; //come back to this
             var email = await _fluentEmail
                 .To(emailRecord.RecipientEmail)
                 .Subject(emailRecord.Subject)

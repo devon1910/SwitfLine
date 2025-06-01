@@ -9,6 +9,7 @@ namespace Infrastructure
 {
     public static class EmailTemplates
     {
+       
         public static string getEmailTemplate(EmailTypeEnum emailTypeEnum)
         {
 
@@ -36,7 +37,7 @@ namespace Infrastructure
 <head>
     <meta charset=""UTF-8"">
     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-    <title>Welcome to SwiftLine! Your Queue Management Revolution 🚀</title>
+    <title>Welcome to theswiftline! Your Queue Management Revolution 🚀</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
@@ -267,7 +268,7 @@ namespace Infrastructure
 <body>
     <div class=""container"">
         <div class=""header"">
-            <div class=""logo"">SwiftLine</div>
+            <div class=""logo"">theswiftline</div>
             <p class=""tagline"">Queue Management, Reimagined.</p>
         </div>
 
@@ -276,13 +277,13 @@ namespace Infrastructure
 
             <p>Hi {{UserName}},</p>
 
-            <p>We're thrilled to welcome you to SwiftLine, the virtual queue management system that's changing how businesses and organizations handle wait times. Get ready to transform your customer experience!</p>
+            <p>We're thrilled to welcome you to theswiftline, the virtual queue management system that's changing how businesses and organizations handle wait times. Get ready to transform your customer experience!</p>
 
             <div class=""button-wrapper"">
                 <a href=""{{SwiftlineUrl}}"" class=""button"">Set Up Your First Event/Queue</a>
             </div>
 
-            <h2>Why SwiftLine is Your Next Game-Changer</h2>
+            <h2>Why theswiftline is Your Next Game-Changer</h2>
 
             <div class=""features"">
                 <div class=""feature"">
@@ -336,11 +337,11 @@ namespace Infrastructure
                 </div>
             </div>
 
-            <p>Our dedicated support team is here to help you make the most of SwiftLine. If you have any questions or need assistance, don't hesitate to <a href=""#"" style=""color: #8BA888; text-decoration: none; font-weight: bold;"">reach out</a>.</p>
+            <p>Our dedicated support team is here to help you make the most of theswiftline. If you have any questions or need assistance, don't hesitate to <a href=""#"" style=""color: #8BA888; text-decoration: none; font-weight: bold;"">reach out</a>.</p>
 
             <p>Say goodbye to long lines and hello to happy customers!</p>
 
-            <p>Best regards,<br>The SwiftLine Team</p>
+            <p>Best regards,<br>The theswiftline Team</p>
         </div>
 
         <div class=""footer"">
@@ -350,8 +351,8 @@ namespace Infrastructure
                 <a href=""#"">Instagram</a> |
                 <a href=""#"">LinkedIn</a>
             </div>
-            <p>&copy; 2025 SwiftLine Queue Management. All rights reserved.</p>
-            <p>You're receiving this email because you signed up for SwiftLine.<br>
+            <p>&copy; 2025 theswiftline Queue Management. All rights reserved.</p>
+            <p>You're receiving this email because you signed up for theswiftline.<br>
             <a href=""#"" style=""color: #8BA888;"">Unsubscribe</a> | <a href=""#"" style=""color: #8BA888;"">Privacy Policy</a></p>
         </div>
     </div>
@@ -367,7 +368,7 @@ namespace Infrastructure
                         <head>
                             <meta charset=""UTF-8"">
                             <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
-                            <title>Your Turn is Coming Up Soon - Swiftline</title>
+                            <title>Your Turn is Coming Up Soon - theswiftline</title>
                             <style>
                                 /* Base styles */
                                 body {
@@ -485,9 +486,7 @@ namespace Infrastructure
                         <body>
                             <div class=""container"">
 
-                                <div>
-                                    <img src = ""https://res.cloudinary.com/dddabj5ub/image/upload/v1741908218/swifline_logo_cpsacv.webp"" alt=""Swiftline"" class=""center"">
-                                </div>
+                                
                                 
                                 <div class=""content"">
                                     <h1>You're Almost Up!</h1>
@@ -616,12 +615,10 @@ namespace Infrastructure
     
                         <div class=""container"">
                             
-                            <div>
-                                 <img src = ""https://res.cloudinary.com/dddabj5ub/image/upload/v1741908218/swifline_logo_cpsacv.webp"" alt=""Swiftline"" class=""center"">
-                            </div>
+                           
                             <p>Hello {{UserName}},</p>
         
-                            <p>Thank you for Signing up with Swiftline! We're excited to have you on board. To get started with your account, please verify your email address by clicking the button below:</p>
+                            <p>Thank you for Signing up with theswiftline! We're excited to have you on board. To get started with your account, please verify your email address by clicking the button below:</p>
         
                             <div style=""text-align: center;"">
                                 <a href=""{{SwiftlineUrl}}"" class=""button"">Verify Email Address</a>
@@ -635,17 +632,17 @@ namespace Infrastructure
         
                             <p style=""word-break: break-all; font-size: 14px; color: #666;"">{{SwiftlineUrl}}</p>
         
-                            <p>Swiftline is designed to help you manage your workflow efficiently and boost your productivity. Once your email is verified, you'll have full access to all features.</p>
+                            <p>theswiftline is designed to help you manage your workflow efficiently and boost your productivity. Once your email is verified, you'll have full access to all features.</p>
                             
                             <p> If you have any questions or need assistance, please don't hesitate to contact our support team at <a href=""mailto:swiftline00@gmail.com"" class=""link"">swiftline00@gmail.com</a>.</p>
 
                             
                             <p>Best regards,<br>
-                            The Swiftline Team</p>
+                            The theswiftline Team</p>
                         </div>
     
                         <div class=""footer"">
-                            <p>© 2025 Swiftline. All rights reserved.</p>
+                            <p>© 2025 theSwiftline. All rights reserved.</p>
                             <p>Visit our website: <a href=""https://www.theswiftline.com/"" class=""link"">https://www.theswiftline.com/</a></p>
                             <p>If you didn't create this account, please ignore this email.</p>
                         </div>
