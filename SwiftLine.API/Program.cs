@@ -56,15 +56,6 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-
-    // Configure Kestrel to listen on ALL interfaces (0.0.0.0) using Azure's port
-    builder.WebHost.ConfigureKestrel(serverOptions => {
-        serverOptions.ListenAnyIP(int.Parse(port));
-    });
-
-    Log.Information($"port: {port} to listen");
-
 
     // Configure Serilog to integrate with App Insights
     builder.Host.UseSerilog((context, services, loggerConfiguration) => 
