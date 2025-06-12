@@ -1,12 +1,6 @@
 ﻿using Domain.DTOs.Requests;
 using Domain.DTOs.Responses;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WebPush;
+
 
 namespace Domain.Interfaces
 {

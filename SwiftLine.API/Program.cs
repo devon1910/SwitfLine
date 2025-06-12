@@ -1,35 +1,20 @@
 using Application.Services;
-using Domain.DTOs.Requests;
-using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
-using HealthChecks.UI.Client;
-using HealthChecks.UI.Configuration;
 using Infrastructure.BackgroundServices;
 using Infrastructure.Data;
 using Infrastructure.Middleware;
 using Infrastructure.Repositories;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Cors;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.OpenApi;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.ML;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.ML;
 using Microsoft.OpenApi.Models;
-using Newtonsoft.Json;
 using Serilog;
-using Serilog.Events;
 using SwiftLine.API;
 using SwiftLine.API.Extensions;
-using SwiftLine.API.Extensions.Health;
 using System.Net.Mail;
 using System.Text;
 using System.Threading.RateLimiting;
@@ -65,9 +50,7 @@ try
             .Enrich.FromLogContext());
 
     // Add services to the container.
-
     builder.Services.AddControllers();
-    // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
     builder.Services.AddIdentity<SwiftLineUser, IdentityRole>().AddEntityFrameworkStores<SwiftLineDatabaseContext>().AddDefaultTokenProviders();
 

@@ -1,23 +1,14 @@
-﻿using Application.Services;
-using Azure.Core;
-using Domain.AttributeValidator;
-using Domain.Constants;
+﻿using Domain.AttributeValidator;
 using Domain.DTOs.Requests;
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
-using Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using SwiftLine.API.Extensions;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.RateLimiting;
 
 namespace SwiftLine.API.Controllers
