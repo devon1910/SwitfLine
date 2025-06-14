@@ -68,16 +68,18 @@ namespace Infrastructure.Repositories
 
            //string logoPath = Path.Combine(AppContext.BaseDirectory, "assets\\theSwiftlineLogo.png");
 
-           string swiftlineLink = _configuration[emailRecord.Link]; //come back to this
+            string expirationTime = emailRecord.DateCreated.AddHours(2).ToString("yyyy-MM-dd HH:mm:ss");
+
+            string swiftlineLink = _configuration[emailRecord.Link]; //come back to this
             var email = await _fluentEmail
                 .To(emailRecord.RecipientEmail)
                 .Subject(emailRecord.Subject)
                 .Body(htmlTemplate
                 .Replace("{{UserName}}", emailRecord.RecipientUsername)
-                .Replace("{{SwiftlineUrl}}", emailRecord.Link)
-                .Replace("{{EstimatedWait}}", emailRecord.EstimatedWait),
+                .Replace("{{theswiftlineUrl}}", emailRecord.Link)
+                .Replace("{{EstimatedWait}}", emailRecord.EstimatedWait)
+                .Replace("{{ExpirationTime}}", "expirationTime"),
                 true)
-                // Assuming no estimated wait time is provided
                 .SendAsync();
             _logger.LogInformation("Email Sent Successfully");
             if (!email.Successful)

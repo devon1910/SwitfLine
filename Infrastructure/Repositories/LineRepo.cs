@@ -197,7 +197,7 @@ namespace Infrastructure.Repositories
                     await emailRepo.LogEmail(
                    email: result.FifthUser.Email,
                    subject: $"Your Turn is Coming Up Soon - SwiftLine ⏭",
-                   link: _configuration["SwiftLineBaseUrl"] + "/myQueue",
+                   link: _configuration["SwiftLineBaseUrl"] + "myQueue",
                    type: EmailTypeEnum.Reminder,
                    username: result.FifthUser.Username,
                    estimatedWait: estimatedTime.ToString()

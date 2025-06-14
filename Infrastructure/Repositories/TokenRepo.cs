@@ -16,7 +16,7 @@ namespace Infrastructure.Repositories
     public class TokenRepo(IConfiguration _configuration) : ITokenRepo
     {
 
-        public string GenerateAccessToken(IEnumerable<Claim> claims)
+        public string GenerateAccessToken(IEnumerable<Claim> claims, bool isSignUp=false)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
 
@@ -29,7 +29,7 @@ namespace Infrastructure.Repositories
                 Issuer = _configuration["JWT:ValidIssuer"],
                 Audience = _configuration["JWT:ValidAudience"],
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.Now.AddDays(1),
+                Expires = isSignUp ? DateTime.UtcNow.AddHours(1) : DateTime.UtcNow.AddDays(1),
                 SigningCredentials = new SigningCredentials
                               (authSigningKey, SecurityAlgorithms.HmacSha256)
             };

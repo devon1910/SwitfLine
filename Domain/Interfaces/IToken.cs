@@ -11,7 +11,7 @@ namespace Domain.Interfaces
 
     public interface ITokenRepo
     {
-        string GenerateAccessToken(IEnumerable<Claim> claims);
+        string GenerateAccessToken(IEnumerable<Claim> claims, bool isSignUp=false);
         string GenerateRefreshToken();
         ClaimsPrincipal GetPrincipalFromExpiredToken(string accessToken);
     }

@@ -5,7 +5,6 @@ using Domain.Interfaces;
 using Domain.Models;
 using FluentEmail.Core;
 using Infrastructure.Data;
-using Infrastructure.RetryLogic;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -109,16 +108,19 @@ namespace Infrastructure.Repositories
                         authClaims.Add(new Claim(ClaimTypes.Role, userRole));
                     }
 
-                    var token = _tokenService.GenerateAccessToken(authClaims);
+                    var token = _tokenService.GenerateAccessToken(authClaims, true);
 
                     string link = _configuration["SwiftLineBaseUrl"] + "VerifyToken?token=" + token; //come back to this
-             
+
+                    string expirationTime = "1 hour";
                     await emailsDeliveryRepo.LogEmail(
-                        email: user.Email,
                         username: user.UserName,
-                        subject: "Welcome to Swiftline ⏭ - Verify Your Email Address",
+                        email: user.Email,              
+                        subject: "Welcome to theSwiftline - Verify Your Email Address",
                         link: link,
-                        type: EmailTypeEnum.Verify_Email
+                        type: EmailTypeEnum.Verify_Email,
+                        ""
+                        
                         );
                    
                     await _context.SaveChangesAsync();
