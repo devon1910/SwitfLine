@@ -6,6 +6,8 @@ namespace Infrastructure
     {
 
         //private static string imgUrl = "C:\\Users\\ekpok\\source\\repos\\SwitfLine\\Infrastructure\\assets\\theSwiftlineLogo.png";
+
+       
         public static string getEmailTemplate(EmailTypeEnum emailTypeEnum)
         {
 
@@ -56,17 +58,19 @@ namespace Infrastructure
                                     padding: 40px 30px;
                                     text-align: center;
                                 }
-                                .logo {
-                                    font-size: 28px;
-                                    font-weight: bold;
-                                    margin-bottom: 10px;
-                                    letter-spacing: -0.5px;
-                                }
-                                .tagline {
-                                    font-size: 16px;
-                                    opacity: 0.9;
-                                    margin: 0;
-                                }
+                                 .logo {
+                                     height: 60px;
+                                     width: auto;
+                                     margin-bottom: 15px;
+                                     max-width: 250px;
+                                     border-radius: 15px;
+                                 }
+                                 .tagline {
+                                     font-size: 16px;
+                                     opacity: 0.9;
+                                     margin: 0;
+                                     color: white !important;
+                                 }
                                 .email-body {
                                     padding: 40px 30px;
                                 }
@@ -84,7 +88,7 @@ namespace Infrastructure
                                 .cta-button {
                                     display: inline-block;
                                     background: #6B7D6B;
-                                    color: white;
+                                    color: white !important;
                                     padding: 16px 32px;
                                     text-decoration: none;
                                     border-radius: 8px;
@@ -122,9 +126,9 @@ namespace Infrastructure
                         <body>
 
                         <div class=""email-container"">
-                            <div class=""email-header"">
-                                <div class=""logo"">theswiftline</div>
-                                <p class=""tagline"">Your Time, Your Control. Join Any Queue, anywhere.</p>
+                             <div class=""email-header"">
+                                <img src=""https://theswiftline.com/theSwiftlineLogo.png"" alt=""theswiftline"" class=""logo"" />
+                                <p class=""tagline"">Your Time, Your Control. Join Any queue, Anywhere.</p>
                             </div>
     
                             <div class=""email-body"">
@@ -192,17 +196,20 @@ namespace Infrastructure
                                     padding: 40px 30px;
                                     text-align: center;
                                 }
-                                .logo {
-                                    font-size: 28px;
-                                    font-weight: bold;
-                                    margin-bottom: 10px;
-                                    letter-spacing: -0.5px;
-                                }
-                                .tagline {
-                                    font-size: 16px;
-                                    opacity: 0.9;
-                                    margin: 0;
-                                }
+                                 .logo {
+                                     height: 60px;
+                                     width: auto;
+                                     margin-bottom: 15px;
+                                     max-width: 250px;
+                                        
+                                     border-radius: 15px;
+                                 }
+                                 .tagline {
+                                     font-size: 16px;
+                                     opacity: 0.9;
+                                     margin: 0;
+                                     color: white !important;
+                                 }
                                 .email-body {
                                     padding: 40px 30px;
                                 }
@@ -220,7 +227,7 @@ namespace Infrastructure
                                 .cta-button {
                                     display: inline-block;
                                     background: #6B7D6B;
-                                    color: white;
+                                    color: white !important;
                                     padding: 16px 32px;
                                     text-decoration: none;
                                     border-radius: 8px;
@@ -231,6 +238,7 @@ namespace Infrastructure
                                 }
                                 .cta-button:hover {
                                     background: #5a6b5a;
+                                    cursor: pointer;    
                                 }
                                 .info-box {
                                     background: #f8fafc;
@@ -264,10 +272,10 @@ namespace Infrastructure
                         <body>
 
                         <div class=""email-container"">
-                            <div class=""email-header"">
-                                <div class=""logo"">theswiftline</div>
-                                <p class=""tagline"">Your turn is coming up!</p>
-                            </div>
+                             <div class=""email-header"">
+                                 <img src=""https://theswiftline.com/theSwiftlineLogo.png"" alt=""theswiftline"" class=""logo"" />
+                                 <p class=""tagline"">Your Time, Your Control. Join Any queue, Anywhere.</p>
+                             </div>
     
                             <div class=""email-body"">
                                 <div class=""greeting"">Hey {{UserName}}, it's almost your turn! ⏰</div>
@@ -278,7 +286,7 @@ namespace Infrastructure
         
                                 <div class=""info-box"" style=""text-align: center; background: linear-gradient(135deg, #6B7D6B20 0%, #03071220 100%); border: 2px solid #6B7D6B;"">
                                     <div style=""font-size: 32px; font-weight: bold; color: #030712; margin-bottom: 10px;"">
-                                        {{EstimatedWait}}
+                                        {{EstimatedWait}} mins
                                     </div>
                                     <div style=""font-size: 16px; color: #4a5568;"">
                                         Estimated wait time remaining
@@ -352,15 +360,17 @@ namespace Infrastructure
                                     text-align: center;
                                 }
                                 .logo {
-                                    font-size: 28px;
-                                    font-weight: bold;
-                                    margin-bottom: 10px;
-                                    letter-spacing: -0.5px;
+                                    height: 60px;
+                                    width: auto;
+                                    margin-bottom: 15px;
+                                    max-width: 250px;
+                                    border-radius: 15px;
                                 }
                                 .tagline {
                                     font-size: 16px;
                                     opacity: 0.9;
                                     margin: 0;
+                                    color: white !important;
                                 }
                                 .email-body {
                                     padding: 40px 30px;
@@ -379,20 +389,22 @@ namespace Infrastructure
                                 .cta-button {
                                     display: inline-block;
                                     background: #6B7D6B;
-                                    color: white;
+                                    color: white !important;
                                     padding: 16px 32px;
                                     text-decoration: none;
                                     border-radius: 8px;
                                     font-weight: 600;
                                     font-size: 16px;
                                     transition: background-color 0.3s ease;
-                                    margin: 20px 0;
+                                    margin: 20px 0;                             
                                     
                                 }
                                 .cta-button:hover {
                                     background: #5a6b5a;
                                     cursor: pointer;
                                 }
+                                
+
                                 .info-box {
                                     background: #f8fafc;
                                     border: 1px solid #e2e8f0;
@@ -420,12 +432,11 @@ namespace Infrastructure
 
                         <div class=""email-container"">
                             <div class=""email-header"">
-                                <div class=""logo"">theswiftline</div>
-                                <p class=""tagline"">Almost there!</p>
+                                <img src=""https://theswiftline.com/theSwiftlineLogo.png"" alt=""theswiftline"" class=""logo"" />
+                                <p class=""tagline"">Your Time, Your Control. Join Any queue, Anywhere.</p>
                             </div>
-    
                             <div class=""email-body"">
-                                <div class=""greeting"">Verify Your Email, {{UserName}}</div>
+                                <div class=""greeting"">Hello👋, {{UserName}}</div>
         
                                 <div class=""content"">
                                     <p>Thanks for signing up with theswiftline! We just need to verify your email address to complete your account setup.</p>
@@ -433,7 +444,7 @@ namespace Infrastructure
                                     <p>Click the button below to verify your email and start skipping the lines:</p>
                                 </div>
         
-                                <div style=""text-align: center;"">
+                                <div style=""text-align: center;  color: white !important;"">
                                     <a href=""{{theswiftlineUrl}}"" class=""cta-button"">Verify My Email</a>
                                 </div>
         

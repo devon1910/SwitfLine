@@ -116,7 +116,7 @@ namespace Infrastructure.Repositories
                     await emailsDeliveryRepo.LogEmail(
                         username: user.UserName,
                         email: user.Email,              
-                        subject: "Welcome to theSwiftline - Verify Your Email Address",
+                        subject: "Verify Your Email Address",
                         link: link,
                         type: EmailTypeEnum.Verify_Email,
                         ""
@@ -293,7 +293,7 @@ namespace Infrastructure.Repositories
                 await emailsDeliveryRepo.LogEmail(
                         email: user.Email,
                         username: user.UserName,
-                        subject: "Welcome to Swiftline ⏭",
+                        subject: "Welcome to theswiftline 🤗",
                         link: _configuration["SwiftLineBaseUrl"],
                         type: EmailTypeEnum.Welcome
                         );
@@ -426,7 +426,7 @@ namespace Infrastructure.Repositories
                 await emailsDeliveryRepo.LogEmail(
                        email: user.Email,
                        username: user.UserName,
-                       subject: "Welcome to Swiftline ⏭",
+                       subject: "Welcome to theswiftline 🤗",
                        link: _configuration["SwiftLineBaseUrl"],
                        type: EmailTypeEnum.Welcome
                        );
