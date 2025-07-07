@@ -17,6 +17,8 @@ namespace Domain.DTOs.Requests
         public required int StaffCount { get; init; }
 
         public bool AllowAnonymousJoining { get; set; } = false;
+
+        public bool AllowAutomaticSkips { get; set; } = true;
     }
     public record EditEventReq 
     {
@@ -30,5 +32,7 @@ namespace Domain.DTOs.Requests
         public required int StaffCount { get; init; }
 
         public bool AllowAnonymousJoining { get; set; } = false;
+
+        public bool AllowAutomaticSkips { get; set; } = true;
     }
 }

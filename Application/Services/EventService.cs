@@ -15,30 +15,12 @@ namespace Application.Services
     {
         public async Task<Result<bool>> CreateEvent(string userId, CreateEventModel req)
         {
-
-            if (await EventExists(req.Title))
+            bool isEventCreated = await eventRepo.CreateEvent(userId, req);
+            if (isEventCreated)
             {
-                return Result<bool>.Failed("Event title exists already. Please use a different event title and try again.");
+                return Result<bool>.Ok(true, "New Event Created");              
             }
-
-            var newEvent = new Event
-            {
-                Title = req.Title,
-                Description = req.Description,
-                AverageTime = req.AverageTime,
-                AverageTimeToServeSeconds = req.AverageTime * 60,
-                CreatedBy = userId,
-                EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default,
-                EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default,
-                StaffCount = req.StaffCount,
-                Capacity = req.Capacity,
-                AllowAnonymousJoining = req.AllowAnonymousJoining,
-
-            };
-
-            await eventRepo.AddEvent(newEvent);
-            await eventRepo.SaveChangesAsync();
-            return Result<bool>.Ok(true,"New Event Created");
+            return Result<bool>.Failed("Failed to create event. Please try again later.");          
 
         }
 

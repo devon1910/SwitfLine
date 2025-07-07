@@ -42,5 +42,7 @@ namespace Domain.Models
         public bool IsDeleted { get; set; } = false;
         [DefaultValue(false)]
         public bool AllowAnonymousJoining { get; set; }
+
+        public bool AllowAutomaticSkips { get; set; } = true;
     }
 }

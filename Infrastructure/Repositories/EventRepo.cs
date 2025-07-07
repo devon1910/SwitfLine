@@ -19,7 +19,36 @@ namespace Infrastructure.Repositories
 
     public class EventRepo(SwiftLineDatabaseContext dbContext, ILineRepo lineRepo, ISignalRNotifierRepo notifier, IAuthRepo authRepo) : IEventRepo 
     {
-      
+
+
+        public async Task<bool> CreateEvent(string userId, CreateEventModel req)
+        {
+            if (await EventExists(req.Title))
+            {
+                return false;
+            }
+
+            var newEvent = new Event
+            {
+                Title = req.Title,
+                Description = req.Description,
+                AverageTime = req.AverageTime,
+                AverageTimeToServeSeconds = req.AverageTime * 60,
+                CreatedBy = userId,
+                EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default,
+                EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default,
+                StaffCount = req.StaffCount,
+                Capacity = req.Capacity,
+                AllowAnonymousJoining = req.AllowAnonymousJoining,
+                AllowAutomaticSkips = req.AllowAutomaticSkips
+
+            };
+
+            await dbContext.Events.AddAsync(newEvent);
+            await dbContext.SaveChangesAsync();
+            return true;
+
+        }
         public async Task<bool> EditEvent(EditEventReq req)
         {
             Event? @event = await dbContext.Events.FindAsync(req.EventId);
@@ -50,7 +79,7 @@ namespace Infrastructure.Repositories
             // Create a single query that gets both active events by time and events with unfinished lines
             var activeEvents = await dbContext.Events
                 .AsNoTracking()
-                .Where(x => x.IsActive && !x.IsDeleted && (
+                .Where(x => x.IsActive && !x.IsDeleted && x.AllowAutomaticSkips && (
                     // Time-based active events
                     (
                         // For events that do not span midnight
@@ -522,5 +551,7 @@ namespace Infrastructure.Repositories
         {
            return await dbContext.SaveChangesAsync();
         }
+
+        
     }
 }
