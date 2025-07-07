@@ -140,7 +140,8 @@ namespace Infrastructure.Repositories
                     @event.AverageTime,
                     @event.IsActive,
                     @event.StaffCount,
-                    timeTillYourTurnAI
+                    timeTillYourTurnAI,
+                    @event.AllowAutomaticSkips
                 );
 
             }
