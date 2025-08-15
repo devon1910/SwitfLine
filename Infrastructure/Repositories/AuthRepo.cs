@@ -3,27 +3,18 @@ using Domain.DTOs.Requests;
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
-using FluentEmail.Core;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
-using Serilog.Core;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Metrics;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Numerics;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace Infrastructure.Repositories
 {
@@ -52,6 +43,12 @@ namespace Infrastructure.Repositories
                         return AuthResFailed.CreateFailed(message);
                     }
 
+                    if (!model.HasAgreedToTermsOfServiceAndPrivacyPolicy) 
+                    {
+                        message = "You must agree to the terms of service and privacy policy to create an account.";
+                        return AuthResFailed.CreateFailed(message);
+                    }
+
                     // Create User role if it doesn't exist
                     if (!(await _roleManager.RoleExistsAsync(Roles.User)))
                     {
@@ -72,7 +69,8 @@ namespace Infrastructure.Repositories
                         FullName = model.FullName,
                         SecurityStamp = Guid.NewGuid().ToString(),
                         UserName = await GetUniqueUsername(model.Email),
-                        EmailConfirmed = false,// just for now, verification later on.            
+                        EmailConfirmed = false,// just for now, verification later on.
+                        HasAgreedToTermsOfServiceAndPrivacyPolicy = model.HasAgreedToTermsOfServiceAndPrivacyPolicy
                     };
 
                     var createUserResult = await _userManager.CreateAsync(user, model.Password);

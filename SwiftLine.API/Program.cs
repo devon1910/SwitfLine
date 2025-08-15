@@ -260,8 +260,8 @@ try
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/openapi/v1.json", "SwiftLine");
-
     });
+
     app.UseCors();
     app.UseMiddleware<ExceptionMiddleware>();
     app.UseAuthentication();

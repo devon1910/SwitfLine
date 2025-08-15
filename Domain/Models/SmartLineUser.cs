@@ -16,6 +16,8 @@ namespace Domain.Models
 
         public long LastEventJoined { get; set; } = 0;
 
+        public bool HasAgreedToTermsOfServiceAndPrivacyPolicy { get; set; } = true;
+
         public DateTime DateCreated { get; set; } = DateTime.UtcNow.AddHours(1);
     }
 }
