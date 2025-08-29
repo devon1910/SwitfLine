@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -44,5 +45,15 @@ namespace Domain.Models
         public bool AllowAnonymousJoining { get; set; }
 
         public bool AllowAutomaticSkips { get; set; } = true;
+
+        public bool EnableGeographicRestriction { get; set; }
+
+        public string? Address { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? Longitude { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? Latitude { get; set; }
+
+        public int RadiusInMeters { get; set; }
     }
 }

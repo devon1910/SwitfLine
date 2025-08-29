@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SwiftLineDatabaseContext))]
-    partial class SwiftLineDatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20250829000130_New Events columns")]
+    partial class NewEventscolumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -108,9 +111,6 @@ namespace Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("Address")
-                        .HasColumnType("text");
-
                     b.Property<bool>("AllowAnonymousJoining")
                         .HasColumnType("boolean");
 
@@ -138,9 +138,6 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
-                    b.Property<bool>("EnableGeographicRestriction")
-                        .HasColumnType("boolean");
-
                     b.Property<TimeOnly>("EventEndTime")
                         .HasColumnType("time without time zone");
 
@@ -153,15 +150,6 @@ namespace Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<decimal?>("Latitude")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("Longitude")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("RadiusInMeters")
-                        .HasColumnType("integer");
-
                     b.Property<int>("StaffCount")
                         .HasColumnType("integer");
 
@@ -171,6 +159,18 @@ namespace Infrastructure.Migrations
                         .HasColumnType("character varying(450)");
 
                     b.Property<int>("UsersInQueue")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("address")
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("latitude")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("longitude")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("radiusInMeters")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");

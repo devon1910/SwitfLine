@@ -20,7 +20,7 @@ namespace Application.Services
             {
                 return Result<bool>.Ok(true, "New Event Created");              
             }
-            return Result<bool>.Failed("Failed to create event. Please try again later.");          
+            return Result<bool>.Failed("Event already exists. Please try again with a different event name.");          
 
         }
 

@@ -40,8 +40,12 @@ namespace Infrastructure.Repositories
                 StaffCount = req.StaffCount,
                 Capacity = req.Capacity,
                 AllowAnonymousJoining = req.AllowAnonymousJoining,
-                AllowAutomaticSkips = req.AllowAutomaticSkips
-
+                AllowAutomaticSkips = req.AllowAutomaticSkips,
+                EnableGeographicRestriction = req.EnableGeographicRestriction,
+                Address = req.Address,
+                Longitude = req.Longitude,
+                Latitude= req.Latitude,
+                RadiusInMeters = req.RadiusInMeters
             };
 
             await dbContext.Events.AddAsync(newEvent);
@@ -67,6 +71,12 @@ namespace Infrastructure.Repositories
             @event.StaffCount = req.StaffCount;
             @event.Capacity = req.Capacity;
             @event.AllowAnonymousJoining = req.AllowAnonymousJoining;
+            @event.AllowAutomaticSkips = req.AllowAutomaticSkips;
+            @event.EnableGeographicRestriction = req.EnableGeographicRestriction;
+            @event.Address = req.Address;
+            @event.Longitude = req.Longitude;
+            @event.Latitude = req.Latitude;
+            @event.RadiusInMeters = req.RadiusInMeters;
             await dbContext.SaveChangesAsync();
             return true;
 
@@ -503,6 +513,9 @@ namespace Infrastructure.Repositories
                 StaffCount = x.StaffCount,
                 IsActive = x.IsActive,
                 AllowAnonymousJoining = x.AllowAnonymousJoining,
+                EnableGeographicRestriction = x.EnableGeographicRestriction,
+                RadiusInMeters = x.RadiusInMeters,
+                Address = x.Address
             }).ToList();
 
             // Execute user query in parallel
