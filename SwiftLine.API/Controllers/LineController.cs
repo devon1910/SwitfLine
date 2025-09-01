@@ -19,5 +19,21 @@ namespace SwiftLine.API.Controllers
             var res = await lineService.GetUserLineInfo(UserId);
             return res.ToActionResult(); 
         }  
+
+        //endpoint to get the top 10 players
+        [HttpGet("top10players")]
+        public async Task<ActionResult<Result<List<WordChainGameLeaderboard>>>> GetTop10Players()
+        {
+            var res = await lineService.GetTop10Players();
+            return res.ToActionResult();
+        }
+        //endpoint to update the user score
+        [HttpPost("updateUserScore")]
+        public async Task<ActionResult<Result<bool>>> UpdateUserScore(int Score, int Level)
+        {
+            var res = await lineService.UpdateUserScore(UserId, Score, Level);
+            return res.ToActionResult();
+        }
+
     }
 }

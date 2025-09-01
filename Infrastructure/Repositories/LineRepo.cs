@@ -131,6 +131,8 @@ namespace Infrastructure.Repositories
 
                 int timeTillYourTurnAI = @event.StaffCount > 1 ? (int)Math.Ceiling(predictionResult.Score) : (int)Math.Floor(predictionResult.Score);
 
+                int HighestScore = dbContext.WordChainGameLeaderboard.Find(UserId) is WordChainGameLeaderboard leaderboard ? leaderboard.HighestScore : 0;
+
                 // Return final result
                 return new LineInfoRes(
                     position,
@@ -141,7 +143,8 @@ namespace Infrastructure.Repositories
                     @event.IsActive,
                     @event.StaffCount,
                     timeTillYourTurnAI,
-                    @event.AllowAutomaticSkips
+                    @event.AllowAutomaticSkips,
+                    HighestScore
                 );
 
             }
@@ -224,6 +227,41 @@ namespace Infrastructure.Repositories
                 3 => number + "rd",
                 _ => number + "th",
             };
+        }
+
+        public async Task<List<WordChainGameLeaderboard>> GetTop10Players()
+        {
+             return await dbContext.WordChainGameLeaderboard
+                .OrderByDescending(x=>x.HighestScore)
+                .Skip(0)
+                .Take(10)
+                .Include(x=>x.SwiftLineUser)
+                .Select(x=> new WordChainGameLeaderboard {
+                    UserId=x.UserId, HighestScore=x.HighestScore, Level=x.Level,
+                    Username= x.SwiftLineUser.UserName.StartsWith("Anonymous") ? "Anonymous" : x.SwiftLineUser.UserName
+                })
+                .ToListAsync();
+        }
+
+        public async Task<bool> UpdateUserScore(string UserId, int Score, int Level)
+        {
+            var isUpdated = dbContext.WordChainGameLeaderboard
+                .Where(x => x.UserId == UserId)
+                .ExecuteUpdate(x => x.SetProperty(p => p.HighestScore, p => Score));
+
+            if (isUpdated == 0 && !string.IsNullOrEmpty(UserId)) 
+            {
+                var newRecord = new WordChainGameLeaderboard
+                {
+                    UserId = UserId,
+                    HighestScore = Score,
+                    Level = Level
+                    
+                };
+                await dbContext.WordChainGameLeaderboard.AddAsync(newRecord);
+                await dbContext.SaveChangesAsync();               
+            }
+            return true;
         }
     }
 }

@@ -33,5 +33,7 @@ namespace Infrastructure.Data
         public DbSet<EmailsDelivery> EmailDeliveryRequests { get; set; }
 
         public DbSet<AuthCodeData> AuthCodeData { get; set; }
+
+        public DbSet<WordChainGameLeaderboard> WordChainGameLeaderboard { get; set; }
     }
 }

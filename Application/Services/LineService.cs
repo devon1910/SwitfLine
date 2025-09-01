@@ -1,5 +1,6 @@
 ﻿using Domain.DTOs.Responses;
 using Domain.Interfaces;
+using Domain.Models;
 
 namespace Application.Services
 {
@@ -11,6 +12,17 @@ namespace Application.Services
 
             return Result<LineInfoRes>.Ok(lineInfo);
         }
+        public async Task<Result<List<WordChainGameLeaderboard>>> GetTop10Players()
+        {
+            return Result<List<WordChainGameLeaderboard>>.Ok(await lineRepo.GetTop10Players());
+
+        }
+
+        public async Task<Result<bool>> UpdateUserScore(string UserId, int Score, int Level)
+        {
+            return Result<bool>.Ok(await lineRepo.UpdateUserScore(UserId, Score, Level));
+        }
+
         
     }
 }
