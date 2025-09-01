@@ -1,6 +1,7 @@
 ﻿using Application.Services;
 using Azure.Core;
 using Domain;
+using Domain.DTOs.Requests;
 using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
@@ -231,31 +232,34 @@ namespace Infrastructure.Repositories
 
         public async Task<List<WordChainGameLeaderboard>> GetTop10Players()
         {
+             
              return await dbContext.WordChainGameLeaderboard
                 .OrderByDescending(x=>x.HighestScore)
                 .Skip(0)
                 .Take(10)
                 .Include(x=>x.SwiftLineUser)
                 .Select(x=> new WordChainGameLeaderboard {
-                    UserId=x.UserId, HighestScore=x.HighestScore, Level=x.Level,
-                    Username= x.SwiftLineUser.UserName.StartsWith("Anonymous") ? "Anonymous" : x.SwiftLineUser.UserName
+                    UserId=x.UserId, HighestScore=x.HighestScore, 
+                    Level=x.Level,
+                    Rank= dbContext.WordChainGameLeaderboard.Count(y=>y.HighestScore>x.HighestScore)+1,//on the fly ranking
+                    Username = x.SwiftLineUser.UserName.StartsWith("Anonymous") ? "Anonymous" : x.SwiftLineUser.UserName
                 })
                 .ToListAsync();
         }
 
-        public async Task<bool> UpdateUserScore(string UserId, int Score, int Level)
+        public async Task<bool> UpdateUserScore(string UserId, LeaderboardUpdateReq req)
         {
             var isUpdated = dbContext.WordChainGameLeaderboard
                 .Where(x => x.UserId == UserId)
-                .ExecuteUpdate(x => x.SetProperty(p => p.HighestScore, p => Score));
+                .ExecuteUpdate(x => x.SetProperty(p => p.HighestScore, p => req.score));
 
             if (isUpdated == 0 && !string.IsNullOrEmpty(UserId)) 
             {
                 var newRecord = new WordChainGameLeaderboard
                 {
                     UserId = UserId,
-                    HighestScore = Score,
-                    Level = Level
+                    HighestScore = req.score,
+                    Level = req.level
                     
                 };
                 await dbContext.WordChainGameLeaderboard.AddAsync(newRecord);

@@ -21,17 +21,17 @@ namespace SwiftLine.API.Controllers
         }  
 
         //endpoint to get the top 10 players
-        [HttpGet("top10players")]
-        public async Task<ActionResult<Result<List<WordChainGameLeaderboard>>>> GetTop10Players()
+        [HttpGet()]
+        public async Task<ActionResult<Result<List<WordChainGameLeaderboard>>>> Top10players()
         {
             var res = await lineService.GetTop10Players();
             return res.ToActionResult();
         }
         //endpoint to update the user score
-        [HttpPost("updateUserScore")]
-        public async Task<ActionResult<Result<bool>>> UpdateUserScore(int Score, int Level)
+        [HttpPut()]
+        public async Task<ActionResult<Result<bool>>> UpdateUserScore(LeaderboardUpdateReq req)
         {
-            var res = await lineService.UpdateUserScore(UserId, Score, Level);
+            var res = await lineService.UpdateUserScore(UserId, req);
             return res.ToActionResult();
         }
 

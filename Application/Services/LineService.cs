@@ -1,4 +1,5 @@
-﻿using Domain.DTOs.Responses;
+﻿using Domain.DTOs.Requests;
+using Domain.DTOs.Responses;
 using Domain.Interfaces;
 using Domain.Models;
 
@@ -18,9 +19,9 @@ namespace Application.Services
 
         }
 
-        public async Task<Result<bool>> UpdateUserScore(string UserId, int Score, int Level)
+        public async Task<Result<bool>> UpdateUserScore(string UserId, LeaderboardUpdateReq req)
         {
-            return Result<bool>.Ok(await lineRepo.UpdateUserScore(UserId, Score, Level));
+            return Result<bool>.Ok(await lineRepo.UpdateUserScore(UserId, req));
         }
 
         

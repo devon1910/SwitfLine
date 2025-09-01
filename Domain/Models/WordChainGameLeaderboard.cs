@@ -24,5 +24,8 @@ namespace Domain.Models
 
         [NotMapped]
         public string Username { get; set; }
+
+        [NotMapped]
+        public int Rank { get; set; }
     }
 }
