@@ -54,6 +54,6 @@ namespace Domain.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal? Latitude { get; set; }
 
-        public int RadiusInMeters { get; set; }
+        public int? RadiusInMeters { get; set; }
     }
 }

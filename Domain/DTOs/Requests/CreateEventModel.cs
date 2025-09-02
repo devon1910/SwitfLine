@@ -52,6 +52,6 @@ namespace Domain.DTOs.Requests
 
         public decimal? Latitude { get; set; }
 
-        public int RadiusInMeters { get; set; }
+        public int? RadiusInMeters { get; set; }
     }
 }

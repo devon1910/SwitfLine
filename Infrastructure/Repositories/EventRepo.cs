@@ -493,6 +493,7 @@ namespace Infrastructure.Repositories
 
             // Execute second query to get paginated data
             var eventsData = await baseQuery
+                .OrderByDescending(x=>x.CreatedAt)
                 .Skip((page - 1) * size)
                 .Take(size)
                 .Include(x => x.SwiftLineUser)
