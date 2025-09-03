@@ -132,8 +132,15 @@ namespace Infrastructure.Repositories
 
                 int timeTillYourTurnAI = @event.StaffCount > 1 ? (int)Math.Ceiling(predictionResult.Score) : (int)Math.Floor(predictionResult.Score);
 
-                int HighestScore = dbContext.WordChainGameLeaderboard.Where(x=>x.UserId==UserId) is WordChainGameLeaderboard leaderboard ? leaderboard.HighestScore : 0;
+                var wordChainGameLeaderboardRecord = dbContext.WordChainGameLeaderboard.Where(x => x.UserId == UserId).FirstOrDefault();
 
+                int HighestScore = 0;
+
+                if (wordChainGameLeaderboardRecord is not null) {
+
+                    HighestScore = wordChainGameLeaderboardRecord.HighestScore;
+                }
+              
                 // Return final result
                 return new LineInfoRes(
                     position,
