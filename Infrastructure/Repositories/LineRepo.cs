@@ -114,24 +114,31 @@ namespace Infrastructure.Repositories
                 int timeTillYourTurn = (int)Math.Ceiling(totalMinutes);
                 timeTillYourTurn = Math.Max(timeTillYourTurn, @event.AverageTime);
 
-                int position = (int)Math.Ceiling((decimal)timeTillYourTurn / @event.AverageTime);
+                int position = (int)Math.Ceiling((decimal)timeTillYourTurn / @event.AverageTime);               
 
- 
-                int eqp = Math.Max(actualPosition - @event.StaffCount, 0);
-                int batches = eqp / @event.StaffCount; // tell the model how to handle parallelism
-                //using ML for estimating wait time
-                WaitTimeEstimator.ModelInput sampleData = new WaitTimeEstimator.ModelInput()
+                int timeTillYourTurnAI = 0;
+
+                if (@event.AverageTime > 5)
                 {
-                    AvgServiceTimeWhenJoined = @event.AverageTime,
-                    NumActiveServersWhenJoined = @event.StaffCount,
-                    EffectiveQueuePosition = eqp, //Number of people ahead of me
-                    Batches = batches
-                };
+                    timeTillYourTurnAI = timeTillYourTurn - @event.AverageTime;
+                }
+                else 
+                {
+                    int eqp = Math.Max(actualPosition - @event.StaffCount, 0);
+                    int batches = eqp / @event.StaffCount; // tell the model how to handle parallelism
+                                                           //using ML for estimating wait time
+                    WaitTimeEstimator.ModelInput sampleData = new WaitTimeEstimator.ModelInput()
+                    {
+                        AvgServiceTimeWhenJoined = @event.AverageTime,
+                        NumActiveServersWhenJoined = @event.StaffCount,
+                        EffectiveQueuePosition = eqp, //Number of people ahead of me
+                        Batches = batches
+                    };
 
-                var predictionResult = WaitTimeEstimator.Predict(sampleData);
-
-                int timeTillYourTurnAI = @event.StaffCount > 1 ? (int)Math.Ceiling(predictionResult.Score) : (int)Math.Floor(predictionResult.Score);
-
+                    var predictionResult = WaitTimeEstimator.Predict(sampleData);
+                    timeTillYourTurnAI = @event.StaffCount > 1 ? (int)Math.Ceiling(predictionResult.Score) : (int)Math.Floor(predictionResult.Score);
+                }
+                    
                 var wordChainGameLeaderboardRecord = dbContext.WordChainGameLeaderboard.Where(x => x.UserId == UserId).FirstOrDefault();
 
                 int HighestScore = 0;
