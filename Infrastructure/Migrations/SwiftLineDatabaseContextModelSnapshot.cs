@@ -49,7 +49,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AuthCodeData");
+                    b.ToTable("AuthCodeData", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.EmailsDelivery", b =>
@@ -97,7 +97,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EmailDeliveryRequests");
+                    b.ToTable("EmailDeliveryRequests", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.Event", b =>
@@ -177,7 +177,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("CreatedBy");
 
-                    b.ToTable("Events");
+                    b.ToTable("Events", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.Feedback", b =>
@@ -207,7 +207,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Feedbacks");
+                    b.ToTable("Feedbacks", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.Line", b =>
@@ -271,7 +271,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Lines");
+                    b.ToTable("Lines", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.PushNotification", b =>
@@ -298,7 +298,7 @@ namespace Infrastructure.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("PushNotifications");
+                    b.ToTable("PushNotifications", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.SwiftLineUser", b =>
@@ -408,7 +408,7 @@ namespace Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TokenInfos");
+                    b.ToTable("TokenInfos", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.WordChainGameLeaderboard", b =>
@@ -433,7 +433,7 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("WordChainGameLeaderboard");
+                    b.ToTable("WordChainGameLeaderboard", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

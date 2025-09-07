@@ -23,45 +23,50 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> CreateEvent(string userId, CreateEventModel req)
         {
-            if (await EventExists(req.Title))
+            try
             {
-                return false;
+                if (await EventExists(req.Title))
+                {
+                    return false;
+                }
+
+                if (req.EnableGeographicRestriction && (req.Latitude == null || req.Longitude == null || req.RadiusInMeters == default))
+                {
+                    return false;
+                }
+
+                var newEvent = new Event
+                {
+                    Title = req.Title,
+                    Description = req.Description,
+                    AverageTime = req.AverageTime,
+                    AverageTimeToServeSeconds = req.AverageTime * 60,
+                    CreatedBy = userId,
+                    EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default,
+                    EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default,
+                    StaffCount = req.StaffCount,
+                    Capacity = req.Capacity,
+                    AllowAnonymousJoining = req.AllowAnonymousJoining,
+                    AllowAutomaticSkips = req.AllowAutomaticSkips,
+                    EnableGeographicRestriction = req.EnableGeographicRestriction,
+                    Address = req.Address,
+                    Longitude = req.Longitude,
+                    Latitude = req.Latitude,
+                    RadiusInMeters = req.RadiusInMeters
+                };
+
+                await dbContext.Events.AddAsync(newEvent);
+                await dbContext.SaveChangesAsync();
+                return true;
+
             }
-
-            if (!req.AllowAutomaticSkips && (req.AverageTime == default || req.StaffCount == default || req.Capacity == default)) 
+            catch (Exception ex)
             {
-                return false;
+
+                throw ex;
             }
-
-            if(req.EnableGeographicRestriction && (req.Latitude == null || req.Longitude == null || req.RadiusInMeters == default)) 
-            {
-                return false;
-            }
-
-            var newEvent = new Event
-            {
-                Title = req.Title,
-                Description = req.Description,
-                AverageTime = req.AverageTime,
-                AverageTimeToServeSeconds = req.AverageTime * 60,
-                CreatedBy = userId,
-                EventStartTime = TimeOnly.TryParse(req.EventStartTime, out _) ? TimeOnly.Parse(req.EventStartTime) : default,
-                EventEndTime = TimeOnly.TryParse(req.EventEndTime, out _) ? TimeOnly.Parse(req.EventEndTime) : default,
-                StaffCount = req.StaffCount,
-                Capacity = req.Capacity,
-                AllowAnonymousJoining = req.AllowAnonymousJoining,
-                AllowAutomaticSkips = req.AllowAutomaticSkips,
-                EnableGeographicRestriction = req.EnableGeographicRestriction,
-                Address = req.Address,
-                Longitude = req.Longitude,
-                Latitude= req.Latitude,
-                RadiusInMeters = req.RadiusInMeters
-            };
-
-            await dbContext.Events.AddAsync(newEvent);
-            await dbContext.SaveChangesAsync();
-            return true;
-
+          
+            
         }
         public async Task<bool> EditEvent(EditEventReq req)
         {

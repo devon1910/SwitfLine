@@ -19,8 +19,8 @@ namespace Domain.Models
         public string Description { get; set; }
         public string CreatedBy { get; set; }
         [Range(1, 60, ErrorMessage ="Average time to serve must be between 1-60")]
-        public int? AverageTime { get; set; }
-        public int? AverageTimeToServeSeconds
+        public int AverageTime { get; set; }
+        public int AverageTimeToServeSeconds
         {
             get; set;
         }
@@ -31,7 +31,7 @@ namespace Domain.Models
 
         public int Capacity { get; set; }
         [Range(1,20,ErrorMessage ="Staff Count must be between 1-20")]
-        public int? StaffCount { get; set; }
+        public int StaffCount { get; set; }
 
         public int UsersInQueue { get; set; }
         [MaxLength(450)]

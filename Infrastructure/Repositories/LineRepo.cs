@@ -110,9 +110,11 @@ namespace Infrastructure.Repositories
                 int actualPosition = index + 1;
 
                 // Estimate wait time
+                int timeTillYourTurn = 0;
                 double totalMinutes = (actualPosition * @event.AverageTime) / (double)@event.StaffCount;
-                int timeTillYourTurn = (int)Math.Ceiling(totalMinutes);
+                timeTillYourTurn = (int)Math.Ceiling(totalMinutes);
                 timeTillYourTurn = Math.Max(timeTillYourTurn, @event.AverageTime);
+              
 
                 int position = (int)Math.Ceiling((decimal)timeTillYourTurn / @event.AverageTime);               
 
