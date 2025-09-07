@@ -17,13 +17,23 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace Infrastructure.Repositories
 {
 
-    public class EventRepo(SwiftLineDatabaseContext dbContext, ILineRepo lineRepo, ISignalRNotifierRepo notifier, IAuthRepo authRepo) : IEventRepo 
+    public class EventRepo(SwiftLineDatabaseContext dbContext, ILineRepo lineRepo, ISignalRNotifierRepo notifier, IAuthRepo authRepo) : IEventRepo
     {
 
 
         public async Task<bool> CreateEvent(string userId, CreateEventModel req)
         {
             if (await EventExists(req.Title))
+            {
+                return false;
+            }
+
+            if (!req.AllowAutomaticSkips && (req.AverageTime == default || req.StaffCount == default || req.Capacity == default)) 
+            {
+                return false;
+            }
+
+            if(req.EnableGeographicRestriction && (req.Latitude == null || req.Longitude == null || req.RadiusInMeters == default)) 
             {
                 return false;
             }
