@@ -497,7 +497,7 @@ namespace Infrastructure.Repositories
             // Only apply filter if query exists
             if (!string.IsNullOrEmpty(query))
             {
-                baseQuery = baseQuery.Where(x => EF.Functions.Like(x.Title, $"%{query}%"));
+                baseQuery = baseQuery.Where(x => EF.Functions.Like(x.Title.ToLower(), $"%{query.ToLower()}%"));
             }
 
             baseQuery = baseQuery.OrderBy(x => x.EventStartTime);

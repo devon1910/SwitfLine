@@ -49,7 +49,7 @@ namespace Infrastructure.Repositories
                 line.Status = leaveQueueReason == "Got served" ? "served" : status;
                 line.LeaveQueueReason = leaveQueueReason;
                 DateTime completedDate = line.DateStartedBeingAttendedTo != default ? line.DateStartedBeingAttendedTo : DateTime.UtcNow.AddHours(1);
-                line.TimeWaited = Math.Round((line.DateCompletedBeingAttendedTo - completedDate).TotalMinutes,2);
+                line.TimeWaited = Math.Round((completedDate- line.DateCompletedBeingAttendedTo).TotalMinutes,2);
  
 
                 await dbContext.Database.ExecuteSqlInterpolatedAsync(
