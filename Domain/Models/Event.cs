@@ -13,9 +13,9 @@ namespace Domain.Models
 
     public class Event : BaseModel
     {
-        [MaxLength(450)]
+        [MaxLength(50)]
         public string Title { get; set; }
-        [MaxLength(1000)]
+        [MaxLength(500)]
         public string Description { get; set; }
         public string CreatedBy { get; set; }
         [Range(1, 60, ErrorMessage ="Average time to serve must be between 1-60")]
