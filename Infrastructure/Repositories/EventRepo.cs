@@ -120,8 +120,7 @@ namespace Infrastructure.Repositories
                     // Events with unfinished queue items
                     dbContext.Lines
                         .Any(l => !l.IsAttendedTo &&
-                              l.EventId == x.Id &&
-                              !l.Event.IsDeleted)
+                              l.EventId == x.Id)
                 ))
                 .ToListAsync();
 
@@ -131,7 +130,7 @@ namespace Infrastructure.Repositories
 
         public async Task<Event> GetEvent(long eventId)
         {
-            return await dbContext.Events.Include(x => x.SwiftLineUser).FirstOrDefaultAsync(x=>x.Id ==eventId && !x.IsDeleted);
+            return await dbContext.Events.Include(x => x.SwiftLineUser).FirstOrDefaultAsync(x=>x.Id ==eventId);
         }
 
         public async Task<EventQueueRes> GetEventQueue(int currentMembersPage, int pastMembersPage, int size, long eventId)
@@ -411,7 +410,7 @@ namespace Infrastructure.Repositories
         {
             try
             {
-                var events = await dbContext.Events.Where(x => x.CreatedBy == userId && !x.IsDeleted)
+                var events = await dbContext.Events.Where(x => x.CreatedBy == userId)
                     .AsNoTracking()
                     .ToListAsync();
                 List<long> allEventsIds = events.Select(x => x.Id).ToList();
@@ -491,8 +490,7 @@ namespace Infrastructure.Repositories
         public async Task<SearchEventsRes> SearchEvents(int page, int size, string query, string userId)
         {
             var baseQuery = dbContext.Events
-       .AsNoTracking()
-       .Where(x => !x.IsDeleted);
+       .AsNoTracking();
 
             // Only apply filter if query exists
             if (!string.IsNullOrEmpty(query))

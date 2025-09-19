@@ -23,6 +23,9 @@ namespace Infrastructure.Data
             modelBuilder.Entity<EmailsDelivery>()
                 .Property(e => e.EmailType)
                 .HasConversion<string>();
+
+
+            modelBuilder.Entity<Event>().HasQueryFilter(b => !b.IsDeleted);
         }
         public DbSet<SwiftLineUser> SwiftLineUsers { get; set; }
         public DbSet<Event> Events { get; set; }
